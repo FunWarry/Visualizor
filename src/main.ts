@@ -581,11 +581,12 @@ function setupDpadArrow(btn: Element | null, axis: 'orbit' | 'tilt', direction: 
   let glideTimeout: number | null = null;
 
   const startGlide = () => {
+    stopGlide();
     btn.classList.add('is-holding');
     if (autoRotateToggle) {
       autoRotateToggle.checked = false;
     }
-    renderEngine.cameraController.setAutoRotate(false);
+    renderEngine.setAutoRotate(false);
     renderEngine.cameraController.nudge(axis, direction, 0.1);
 
     glideTimeout = window.setTimeout(() => {
@@ -663,6 +664,7 @@ viewpointBtns.forEach(btn => {
     viewpointBtns.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     const viewId = (btn as HTMLElement).dataset.view ?? 'default';
+    renderEngine.setAutoRotate(false);
     renderEngine.setViewpoint(viewId);
     if (autoRotateToggle) autoRotateToggle.checked = false;
     const currentZoom = renderEngine.cameraController.getZoom();
@@ -696,7 +698,7 @@ camDirCcwBtn?.addEventListener('click', () => setSpinDirection(-1));
 camDirCwBtn?.addEventListener('click', () => setSpinDirection(1));
 
 camShakeToggle?.addEventListener('change', () => {
-  renderEngine.cameraController.setCameraShakeEnabled(camShakeToggle.checked);
+  renderEngine.setCameraShake(camShakeToggle.checked);
 });
 
 camShakeSlider?.addEventListener('input', () => {
@@ -714,8 +716,7 @@ cameraShakeSegments.forEach(chip => {
     cameraShakeSegments.forEach(c => c.classList.remove('active'));
     chip.classList.add('active');
     const val = Number.parseFloat((chip as HTMLElement).dataset.value || '0');
-    renderEngine.cameraController.setCameraShakeIntensity(val);
-    renderEngine.cameraController.setCameraShakeEnabled(val > 0);
+    renderEngine.setCameraShake(val > 0, val);
     if (camShakeSlider) camShakeSlider.value = val.toString();
     if (camShakeVal) camShakeVal.textContent = `${Math.round(val * 100)}%`;
     if (camShakeToggle) camShakeToggle.checked = val > 0;

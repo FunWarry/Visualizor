@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from '../harness/test-context';
-import { setupTestEnvironment } from '../harness/env';
+import { setupTestEnvironment, MockElement } from '../harness/env';
 import { RenderEngine } from '../../src/engine/RenderEngine';
 import { getTheme } from '../../src/themes/themes';
 import { createBeatDropAudioFeatures, createSilentAudioFeatures } from '../harness/fixtures';
@@ -192,34 +192,35 @@ describe('Tier 1: Camera & 3D Viewpoints (#42)', () => {
     const canvas = document.getElementById('webgl-canvas') as unknown as HTMLCanvasElement;
     const engine = new RenderEngine(canvas, getTheme('ember'));
     const ctrl = engine.cameraController;
+    const silentAudio = createSilentAudioFeatures();
 
     // Top View (Bird's eye, tilt near +PI/2)
-    ctrl.setViewpoint('top');
+    engine.setViewpoint('top');
     expect(ctrl.getActiveViewpoint()).toBe('top');
-    for (let i = 0; i < 30; i++) ctrl.update(0.033);
+    for (let i = 0; i < 30; i++) engine.render(silentAudio);
     expect(ctrl.getTiltAngle()).toBeCloseTo(Math.PI / 2 - 0.05, 0.05);
 
     // Low View (Worm's eye, tilt negative)
-    ctrl.setViewpoint('low');
+    engine.setViewpoint('low');
     expect(ctrl.getActiveViewpoint()).toBe('low');
-    for (let i = 0; i < 30; i++) ctrl.update(0.033);
+    for (let i = 0; i < 30; i++) engine.render(silentAudio);
     expect(ctrl.getTiltAngle()).toBeLessThan(-0.5);
 
     // Iso View (45 deg orbit, positive tilt)
-    ctrl.setViewpoint('iso');
+    engine.setViewpoint('iso');
     expect(ctrl.getActiveViewpoint()).toBe('iso');
-    for (let i = 0; i < 30; i++) ctrl.update(0.033);
+    for (let i = 0; i < 30; i++) engine.render(silentAudio);
     expect(ctrl.getRotAngle()).toBeCloseTo(Math.PI / 4, 0.1);
 
     // Side View (90 deg orbit)
-    ctrl.setViewpoint('side');
+    engine.setViewpoint('side');
     expect(ctrl.getActiveViewpoint()).toBe('side');
-    for (let i = 0; i < 30; i++) ctrl.update(0.033);
+    for (let i = 0; i < 30; i++) engine.render(silentAudio);
     expect(ctrl.getRotAngle()).toBeCloseTo(Math.PI / 2, 0.1);
 
     // Default View (0 orbit, 0 tilt)
-    ctrl.setViewpoint('default');
-    for (let i = 0; i < 30; i++) ctrl.update(0.033);
+    engine.setViewpoint('default');
+    for (let i = 0; i < 30; i++) engine.render(silentAudio);
     expect(ctrl.getRotAngle()).toBeCloseTo(0, 0.05);
     expect(ctrl.getTiltAngle()).toBeCloseTo(0, 0.05);
   });
@@ -278,5 +279,112 @@ describe('Tier 1: Camera & 3D Viewpoints (#42)', () => {
     expect(isFinite(engine.camera.position.y)).toBe(true);
     expect(isFinite(engine.camera.position.z)).toBe(true);
     expect(isNaN(engine.camera.position.x)).toBe(false);
+  });
+
+  test('T1.Camera.13: Viewpoint transition under active engine.render() loop reaches PI/2 without auto-orbit clobbering', () => {
+    const canvas = document.getElementById('webgl-canvas') as unknown as HTMLCanvasElement;
+    const engine = new RenderEngine(canvas, getTheme('ember'));
+    const silentAudio = createSilentAudioFeatures();
+
+    // Verify initial autoRotate is true
+    expect(engine.config.autoRotate).toBe(true);
+    expect(engine.cameraController.autoRotate).toBe(true);
+
+    // Switch to side viewpoint (PI/2 rad = 90 deg)
+    engine.setViewpoint('side');
+    expect(engine.config.autoRotate).toBe(false);
+    expect(engine.cameraController.autoRotate).toBe(false);
+
+    // Run 60 frames of render loop (1 second at 60fps)
+    for (let i = 0; i < 60; i++) {
+      engine.render(silentAudio);
+    }
+
+    const finalRot = engine.cameraController.getRotAngle();
+    expect(finalRot).toBeCloseTo(Math.PI / 2, 0.05);
+    expect(engine.cameraController.autoRotate).toBe(false);
+    expect(engine.config.autoRotate).toBe(false);
+  });
+
+  test('T1.Camera.14: DOM controls (#tiltUp, #rotateLeft, #zoomSlider, #viewTopBtn) drive camera rig and viewpoints', () => {
+    const canvas = document.getElementById('webgl-canvas') as unknown as HTMLCanvasElement;
+    const engine = new RenderEngine(canvas, getTheme('ember'));
+    const silentAudio = createSilentAudioFeatures();
+
+    // Create DOM structure matching index.html
+    const rotateLeft = new MockElement('BUTTON');
+    rotateLeft.id = 'rotateLeft';
+    rotateLeft.setAttribute('data-axis', 'orbit');
+    rotateLeft.setAttribute('data-direction', '-1');
+
+    const tiltUp = new MockElement('BUTTON');
+    tiltUp.id = 'tiltUp';
+    tiltUp.setAttribute('data-axis', 'tilt');
+    tiltUp.setAttribute('data-direction', '1');
+
+    const zoomSlider = new MockElement('INPUT');
+    zoomSlider.id = 'zoomSlider';
+    zoomSlider.setAttribute('type', 'range');
+    zoomSlider.value = '0.5';
+
+    const viewTopBtn = new MockElement('BUTTON');
+    viewTopBtn.id = 'viewTopBtn';
+    viewTopBtn.setAttribute('data-view', 'top');
+
+    const autoRotateToggle = new MockElement('INPUT');
+    autoRotateToggle.id = 'autoRotateToggle';
+    autoRotateToggle.setAttribute('type', 'checkbox');
+    (autoRotateToggle as unknown as { checked: boolean }).checked = true;
+
+    // Attach listeners following main.ts architecture
+    rotateLeft.addEventListener('click', () => {
+      engine.setAutoRotate(false);
+      engine.cameraController.nudge('orbit', -1, 0.1);
+      (autoRotateToggle as unknown as { checked: boolean }).checked = false;
+    });
+
+    tiltUp.addEventListener('click', () => {
+      engine.setAutoRotate(false);
+      engine.cameraController.nudge('tilt', 1, 0.1);
+      (autoRotateToggle as unknown as { checked: boolean }).checked = false;
+    });
+
+    zoomSlider.addEventListener('input', () => {
+      const val = Number.parseFloat(zoomSlider.value);
+      engine.cameraController.setZoom(val, true);
+    });
+
+    viewTopBtn.addEventListener('click', () => {
+      engine.setAutoRotate(false);
+      engine.setViewpoint('top');
+      (autoRotateToggle as unknown as { checked: boolean }).checked = false;
+    });
+
+    // 1. Test #rotateLeft click
+    const initialRot = engine.cameraController.getRotAngle();
+    rotateLeft.click();
+    expect(engine.cameraController.getRotAngle()).toBeLessThan(initialRot);
+    expect(engine.cameraController.autoRotate).toBe(false);
+    expect(engine.config.autoRotate).toBe(false);
+
+    // 2. Test #tiltUp click
+    const initialTilt = engine.cameraController.getTiltAngle();
+    tiltUp.click();
+    expect(engine.cameraController.getTiltAngle()).toBeGreaterThan(initialTilt);
+
+    // 3. Test #zoomSlider input simulation
+    zoomSlider.value = '0.9';
+    zoomSlider.dispatchEvent(new Event('input'));
+    expect(engine.cameraController.getZoom()).toBeCloseTo(0.9);
+    expect(engine.cameraController.getDistance()).toBeGreaterThan(12);
+
+    // 4. Test #viewTopBtn click followed by render loop
+    viewTopBtn.click();
+    expect(engine.cameraController.getActiveViewpoint()).toBe('top');
+    for (let i = 0; i < 60; i++) {
+      engine.render(silentAudio);
+    }
+    expect(engine.cameraController.getTiltAngle()).toBeCloseTo(Math.PI / 2 - 0.05, 0.05);
+    expect(engine.config.autoRotate).toBe(false);
   });
 });

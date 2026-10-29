@@ -149,6 +149,34 @@ export class RenderEngine {
       orbitSpeed: this.config.autoRotateSpeed
     });
 
+    // Synchronize camera state bidirectionally between config and cameraController
+    Object.defineProperty(this.config, 'autoRotate', {
+      get: () => this.cameraController.autoRotate,
+      set: (val: boolean) => {
+        this.cameraController.autoRotate = val;
+      },
+      enumerable: true,
+      configurable: true
+    });
+
+    Object.defineProperty(this.config, 'autoRotateSpeed', {
+      get: () => this.cameraController.autoRotateSpeed,
+      set: (val: number) => {
+        this.cameraController.autoRotateSpeed = val;
+      },
+      enumerable: true,
+      configurable: true
+    });
+
+    Object.defineProperty(this.config, 'cameraShake', {
+      get: () => this.cameraController.cameraShakeEnabled,
+      set: (val: boolean) => {
+        this.cameraController.setCameraShakeEnabled(val);
+      },
+      enumerable: true,
+      configurable: true
+    });
+
     // Renderer setup
     this.renderer = new THREE.WebGLRenderer({
       canvas,
@@ -263,10 +291,9 @@ export class RenderEngine {
     const time = this.clock.getElapsedTime();
 
     // Delegate camera position, auto-orbit, shake, and lerping to cameraController
-    this.cameraController.autoRotate = this.config.autoRotate;
-    this.cameraController.autoRotateSpeed = this.config.autoRotateSpeed;
-    this.cameraController.cameraShakeEnabled = this.config.cameraShake;
     this.cameraController.update(delta, audio.beat, audio.bass);
+    this.config.autoRotate = this.cameraController.autoRotate;
+    this.config.cameraShake = this.cameraController.cameraShakeEnabled;
 
     // Update active preset
     if (this.activePreset) {
@@ -339,15 +366,26 @@ export class RenderEngine {
     this.cameraController.triggerShake(intensity);
   }
 
+  public setCameraShake(enabled: boolean, intensity?: number): void {
+    this.config.cameraShake = enabled;
+    this.cameraController.setCameraShakeEnabled(enabled);
+    if (intensity !== undefined) {
+      this.cameraController.setCameraShakeIntensity(intensity);
+    }
+  }
+
   public setCameraViewpoint(viewpointId: string, immediate?: boolean): void {
+    this.config.autoRotate = false;
     this.cameraController.setViewpoint(viewpointId, immediate);
   }
 
   public setViewpoint(viewpointId: string, immediate?: boolean): void {
+    this.config.autoRotate = false;
     this.cameraController.setViewpoint(viewpointId, immediate);
   }
 
   public resetCamera(): void {
+    this.config.autoRotate = true;
     this.cameraController.reset();
   }
 }

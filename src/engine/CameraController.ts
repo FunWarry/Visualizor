@@ -103,6 +103,7 @@ export class CameraController {
       this.isTransitioning = false;
       this.applyTransform();
     } else {
+      this.autoRotate = false;
       this.targetRotAngle = validRot;
       this.targetTiltAngle = clampedTilt;
       this.isTransitioning = true;
@@ -268,7 +269,7 @@ export class CameraController {
   }
 
   private updateAutoRotate(safeDelta: number): void {
-    if (this.autoRotate && this.autoRotateSpeed > 0) {
+    if (this.autoRotate && this.autoRotateSpeed > 0 && !this.isTransitioning) {
       const angleDelta = safeDelta * this.autoRotateSpeed * 0.5 * this.autoRotateDirection;
       this.rotAngle = (this.rotAngle + angleDelta) % (Math.PI * 2);
       this.targetRotAngle = this.rotAngle;
