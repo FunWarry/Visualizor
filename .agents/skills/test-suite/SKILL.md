@@ -42,3 +42,4 @@ For every preset in `src/presets/`:
 * [ ] `MediaRecorder` stream captures both canvas animation and Web Audio destination simultaneously.
 * [ ] Generated WebM/MP4 file plays back with synchronized sound.
 * [ ] Screenshots capture full-resolution canvas without black screens (`preserveDrawingBuffer: true`).
+

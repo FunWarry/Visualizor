@@ -96,3 +96,4 @@ export class BlackHolePreset implements VisualizerPreset {
     this.group.removeFromParent();
   }
 }
+

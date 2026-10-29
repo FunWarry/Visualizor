@@ -75,3 +75,4 @@ export class LavaEnergyPreset implements VisualizerPreset {
     this.mesh.removeFromParent();
   }
 }
+

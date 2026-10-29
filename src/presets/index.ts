@@ -26,3 +26,4 @@ export const PRESETS: VisualizerPreset[] = [
 export function getPreset(id: string): VisualizerPreset {
   return PRESETS.find(p => p.id === id) || PRESETS[0];
 }
+

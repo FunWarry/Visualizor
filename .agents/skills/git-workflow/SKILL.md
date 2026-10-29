@@ -54,3 +54,4 @@ All commit messages must follow the standard structure:
 * [ ] Ensure `.gitignore` ignores `node_modules/`, `dist/`, `_ref_dump/`, and local caches.
 * [ ] Verify that `npx tsc --noEmit` and `npm run build` pass with zero errors.
 * [ ] Verify that no private tokens, passwords, or personal keys are included.
+

@@ -89,3 +89,4 @@ export class ObsidianPolyPreset implements VisualizerPreset {
     this.group.removeFromParent();
   }
 }
+

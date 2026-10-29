@@ -77,3 +77,4 @@ export class MatrixRainPreset implements VisualizerPreset {
     this.instancedMesh.removeFromParent();
   }
 }
+

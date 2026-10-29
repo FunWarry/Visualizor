@@ -35,3 +35,4 @@ Visualizor is built with **TypeScript**, **Three.js**, **Vite**, and **Web Audio
    - Combine screen shaders into single-pass post-processing wherever possible.
 3. **Disposal Lifecycle**:
    - Every preset must cleanly dispose geometries, materials, and custom textures in `dispose()` to prevent WebGL GPU memory leaks.
+
