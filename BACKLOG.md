@@ -90,3 +90,10 @@ Toutes les issues ci-dessous sont créées et suivies sur le dépôt GitHub [Fun
 - [x] **Core** `feat(export): High-resolution PNG screenshot capture`
 - [x] [#34](https://github.com/FunWarry/Visualizor/issues/34) `feat(export): Implement Batch Recording Mode (multi-preset sequence)`
 - [x] [#35](https://github.com/FunWarry/Visualizor/issues/35) `feat(export): Implement Aspect Ratio Framing (16:9, 9:16, 1:1) & GIF export`
+
+---
+
+## 🛡️ Qualité de Code & Moteur Double (MilkDrop)
+
+- [x] [#36](https://github.com/FunWarry/Visualizor/issues/36) `feat(quality): SonarQube Quality Gate integration & zero-defect compliance`
+- [x] [#37](https://github.com/FunWarry/Visualizor/issues/37) `feat(engine): Dual-engine MilkDrop & ProjectM support via Butterchurn WebGL`
