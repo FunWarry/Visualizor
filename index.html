@@ -50,7 +50,7 @@
 
       <!-- Upload Audio Pill Button -->
       <label class="btn-pill" title="Upload Audio File (MP3, WAV, FLAC)">
-        <input type="file" id="topUploadInput" accept="audio/*" style="display:none;">
+        <input type="file" id="topUploadInput" accept="audio/*" style="display:none;" aria-label="Upload Audio File">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
         Upload
       </label>
@@ -143,7 +143,7 @@
 
     <!-- Search Input -->
     <div class="drawer-search-wrap">
-      <input type="text" class="drawer-search" id="presetSearchInput" placeholder="🔍 Search presets...">
+      <input type="text" class="drawer-search" id="presetSearchInput" placeholder="🔍 Search presets..." aria-label="Search presets">
     </div>
 
     <!-- Filter Tabs (All, Favorites, 3D, MilkDrop/ProjectM) -->
@@ -182,7 +182,7 @@
     <div class="panel-content">
       <div style="margin-bottom:12px;">
         <label class="btn-primary" style="justify-content:center;font-size:12px;cursor:pointer;">
-          <input type="file" id="queueFileInput" accept="audio/*" multiple style="display:none;">
+          <input type="file" id="queueFileInput" accept="audio/*" multiple style="display:none;" aria-label="Add Audio Tracks">
           + Add Audio Tracks
         </label>
       </div>
@@ -206,28 +206,28 @@
       </div>
 
       <div class="control-row">
-        <div class="control-label"><span>Chroma Intensity</span><span id="studioChromaVal">1.0</span></div>
-        <input class="ui-slider" type="range" id="studioChromaSlider" min="0" max="2" step="0.1" value="1.0">
+        <label for="studioChromaSlider" class="control-label"><span>Chroma Intensity</span><span id="studioChromaVal">1.0</span></label>
+        <input class="ui-slider" type="range" id="studioChromaSlider" min="0" max="2" step="0.1" value="1.0" aria-label="Studio Chroma Intensity">
       </div>
 
       <div class="control-row">
-        <div class="control-label"><span>Liquid Warp</span><span id="studioLiquidVal">1.0</span></div>
-        <input class="ui-slider" type="range" id="studioLiquidSlider" min="0" max="2" step="0.1" value="1.0">
+        <label for="studioLiquidSlider" class="control-label"><span>Liquid Warp</span><span id="studioLiquidVal">1.0</span></label>
+        <input class="ui-slider" type="range" id="studioLiquidSlider" min="0" max="2" step="0.1" value="1.0" aria-label="Studio Liquid Warp">
       </div>
 
       <div class="control-row">
-        <div class="control-label"><span>Tunnel Depth</span><span id="studioTunnelVal">1.0</span></div>
-        <input class="ui-slider" type="range" id="studioTunnelSlider" min="0" max="2" step="0.1" value="1.0">
+        <label for="studioTunnelSlider" class="control-label"><span>Tunnel Depth</span><span id="studioTunnelVal">1.0</span></label>
+        <input class="ui-slider" type="range" id="studioTunnelSlider" min="0" max="2" step="0.1" value="1.0" aria-label="Studio Tunnel Depth">
       </div>
 
       <div class="control-row">
-        <div class="control-label"><span>Volume Particle Density</span><span id="studioVolumeVal">1.0</span></div>
-        <input class="ui-slider" type="range" id="studioVolumeSlider" min="0" max="2" step="0.1" value="1.0">
+        <label for="studioVolumeSlider" class="control-label"><span>Volume Particle Density</span><span id="studioVolumeVal">1.0</span></label>
+        <input class="ui-slider" type="range" id="studioVolumeSlider" min="0" max="2" step="0.1" value="1.0" aria-label="Studio Volume Particle Density">
       </div>
 
       <div class="control-row">
-        <div class="control-label"><span>The Force (Gravity / Vortex)</span><span id="studioForceVal">1.0</span></div>
-        <input class="ui-slider" type="range" id="studioForceSlider" min="-2" max="2" step="0.2" value="1.0">
+        <label for="studioForceSlider" class="control-label"><span>The Force (Gravity / Vortex)</span><span id="studioForceVal">1.0</span></label>
+        <input class="ui-slider" type="range" id="studioForceSlider" min="-2" max="2" step="0.2" value="1.0" aria-label="The Force">
       </div>
 
       <p style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-top:10px;">
@@ -244,32 +244,32 @@
     </div>
     <div class="panel-content">
       <div class="control-row">
-        <div class="control-label"><span>Bloom / Glow</span><span id="bloomVal">1.2</span></div>
-        <input class="ui-slider" type="range" id="bloomSlider" min="0" max="3" step="0.1" value="1.2">
+        <label for="bloomSlider" class="control-label"><span>Bloom / Glow</span><span id="bloomVal">1.2</span></label>
+        <input class="ui-slider" type="range" id="bloomSlider" min="0" max="3" step="0.1" value="1.2" aria-label="Bloom Glow">
       </div>
       <div class="control-row">
-        <div class="control-label"><span>Motion Trails (Persistence)</span><span id="persistVal">0.0</span></div>
-        <input class="ui-slider" type="range" id="persistSlider" min="0" max="0.9" step="0.05" value="0.0">
+        <label for="persistSlider" class="control-label"><span>Motion Trails (Persistence)</span><span id="persistVal">0.0</span></label>
+        <input class="ui-slider" type="range" id="persistSlider" min="0" max="0.9" step="0.05" value="0.0" aria-label="Motion Trails Persistence">
       </div>
       <div class="control-row">
-        <div class="control-label"><span>Chromatic Aberration</span><span id="chromaVal">0.35</span></div>
-        <input class="ui-slider" type="range" id="chromaSlider" min="0" max="1" step="0.05" value="0.35">
+        <label for="chromaSlider" class="control-label"><span>Chromatic Aberration</span><span id="chromaVal">0.35</span></label>
+        <input class="ui-slider" type="range" id="chromaSlider" min="0" max="1" step="0.05" value="0.35" aria-label="Chromatic Aberration">
       </div>
       <div class="control-row">
-        <div class="control-label"><span>Film Grain</span><span id="grainVal">0.12</span></div>
-        <input class="ui-slider" type="range" id="grainSlider" min="0" max="0.5" step="0.02" value="0.12">
+        <label for="grainSlider" class="control-label"><span>Film Grain</span><span id="grainVal">0.12</span></label>
+        <input class="ui-slider" type="range" id="grainSlider" min="0" max="0.5" step="0.02" value="0.12" aria-label="Film Grain">
       </div>
       <div class="control-row">
-        <div class="control-label"><span>Vignette</span><span id="vigVal">0.45</span></div>
-        <input class="ui-slider" type="range" id="vigSlider" min="0" max="1" step="0.05" value="0.45">
+        <label for="vigSlider" class="control-label"><span>Vignette</span><span id="vigVal">0.45</span></label>
+        <input class="ui-slider" type="range" id="vigSlider" min="0" max="1" step="0.05" value="0.45" aria-label="Vignette">
       </div>
       <div class="control-row">
-        <div class="control-label"><span>CRT Scanlines</span><span id="scanVal">0.0</span></div>
-        <input class="ui-slider" type="range" id="scanSlider" min="0" max="1" step="0.05" value="0.0">
+        <label for="scanSlider" class="control-label"><span>CRT Scanlines</span><span id="scanVal">0.0</span></label>
+        <input class="ui-slider" type="range" id="scanSlider" min="0" max="1" step="0.05" value="0.0" aria-label="CRT Scanlines">
       </div>
       <div class="control-row">
-        <div class="control-label"><span>CRT Screen Bend</span><span id="bendVal">0.0</span></div>
-        <input class="ui-slider" type="range" id="bendSlider" min="0" max="0.3" step="0.02" value="0.0">
+        <label for="bendSlider" class="control-label"><span>CRT Screen Bend</span><span id="bendVal">0.0</span></label>
+        <input class="ui-slider" type="range" id="bendSlider" min="0" max="0.3" step="0.02" value="0.0" aria-label="CRT Screen Bend">
       </div>
     </div>
   </div>
@@ -282,8 +282,8 @@
     </div>
     <div class="panel-content">
       <div class="control-row">
-        <div class="control-label"><span>Audio Sensitivity</span><span id="sensVal">100%</span></div>
-        <input class="ui-slider" type="range" id="sensSlider" min="0.5" max="2.5" step="0.1" value="1.0">
+        <label for="sensSlider" class="control-label"><span>Audio Sensitivity</span><span id="sensVal">100%</span></label>
+        <input class="ui-slider" type="range" id="sensSlider" min="0.5" max="2.5" step="0.1" value="1.0" aria-label="Audio Sensitivity">
       </div>
       <div class="control-row" style="margin-top:16px;">
         <button class="btn-primary" style="width:100%;justify-content:center;" id="resetBpmBtn">Auto-Detect BPM (Reset Tap)</button>
@@ -330,7 +330,8 @@
 
       <div class="volume-slider-wrap">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
-        <input class="ui-slider" type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.8" style="width:70px;">
+        <label for="volumeSlider" style="display:none;">Volume</label>
+        <input class="ui-slider" type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.8" style="width:70px;" aria-label="Audio Master Volume">
       </div>
 
       <button class="btn-icon" id="dockFsBtn" title="Fullscreen">
@@ -381,10 +382,10 @@
       </div>
 
       <div style="margin-top:14px;padding:10px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;">
-        <div style="font-size:12px;color:#fff;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+        <label for="batchModeToggle" style="font-size:12px;color:#fff;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
           <span>Batch Recording Mode (Multi-Preset)</span>
-          <input type="checkbox" id="batchModeToggle" style="accent-color:var(--primary);cursor:pointer;width:16px;height:16px;">
-        </div>
+          <input type="checkbox" id="batchModeToggle" style="accent-color:var(--primary);cursor:pointer;width:16px;height:16px;" aria-label="Batch Recording Mode Toggle">
+        </label>
         <div id="batchOptions" style="display:none;margin-top:8px;">
           <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Cycles through flagship presets during recording:</div>
           <div class="chip-group" id="batchDurChips">
