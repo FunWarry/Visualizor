@@ -73,7 +73,7 @@ export class DiodeWallPreset implements VisualizerPreset {
   }
 
   onThemeChange(_theme: VisualizerTheme) {
-    this.update({} as any, { frequencyData: new Uint8Array(1024) } as any, 0, 0);
+    // Theme colors are dynamically evaluated on each frame from PresetContext
   }
 
   dispose() {

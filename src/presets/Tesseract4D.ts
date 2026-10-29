@@ -94,7 +94,7 @@ export class Tesseract4DPreset implements VisualizerPreset {
     const nodePos = (this.vertexNodes.geometry as THREE.BufferGeometry).attributes.position.array as Float32Array;
 
     for (let i = 0; i < 16; i++) {
-      let [x, y, z, w] = this.vertices4D[i];
+      const [x, y, z, w] = this.vertices4D[i];
 
       // Rotate in XW plane
       const cosXW = Math.cos(this.rotXW);

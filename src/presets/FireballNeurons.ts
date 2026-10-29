@@ -41,7 +41,7 @@ export class FireballNeuronsPreset implements VisualizerPreset {
         Math.random() * 2 - 1
       ).normalize();
 
-      let currentPos = dir.clone().multiplyScalar(1.6);
+      const currentPos = dir.clone().multiplyScalar(1.6);
 
       for (let s = 0; s < segmentsPerAxon - 1; s++) {
         // Line start

@@ -10,6 +10,11 @@ Use this skill whenever verifying code changes, testing a new preset, or prepari
 
 ## 1. Automated Verification Commands
 
+* **SonarQube / SonarLint Quality Gate** (Mandatory zero-defect policy: 0 errors, 0 warnings, no ignored rules):
+  ```powershell
+  $env:Path = "C:\Program Files\nodejs;" + $env:Path
+  npm run sonar
+  ```
 * **Full Static Typecheck**:
   ```powershell
   $env:Path = "C:\Program Files\nodejs;" + $env:Path

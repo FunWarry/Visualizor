@@ -96,7 +96,7 @@ const exportManager = new ExportManager(renderEngine, audioEngine);
 let isMilkdropInitialized = false;
 let currentFilter: 'all' | 'fav' | 'milkdrop' = 'all';
 let searchQuery = '';
-let autoCycleTimer: any = null;
+let autoCycleTimer: ReturnType<typeof setInterval> | null = null;
 let activePresetId = PRESETS[0].id;
 const favoritePresets = new Set<string>(JSON.parse(localStorage.getItem('visualizor_favorites') || '[]'));
 
@@ -635,10 +635,11 @@ captureBtn.addEventListener('click', () => {
 });
 
 // Export Video Modal & Aspect Ratio Framing
+const FRAMING_GUIDE_HIDDEN = 'framing-guide hidden';
 openExportBtn.addEventListener('click', () => exportModal.classList.add('open'));
 cancelExportBtn.addEventListener('click', () => {
   exportModal.classList.remove('open');
-  framingGuide.className = 'framing-guide hidden';
+  framingGuide.className = FRAMING_GUIDE_HIDDEN;
   exportManager.stopExport();
 });
 
@@ -673,7 +674,7 @@ setupChips('aspectChips', (ratio) => {
   } else if (ratio === '1:1') {
     framingGuide.className = 'framing-guide ratio-1-1';
   } else {
-    framingGuide.className = 'framing-guide hidden';
+    framingGuide.className = FRAMING_GUIDE_HIDDEN;
   }
 });
 
@@ -728,7 +729,7 @@ startExportAction.addEventListener('click', async () => {
         exportProgressSection.style.display = 'none';
         startExportAction.textContent = 'Start Export';
         exportModal.classList.remove('open');
-        framingGuide.className = 'framing-guide hidden';
+        framingGuide.className = FRAMING_GUIDE_HIDDEN;
 
         const ext = format === 'gif' ? 'gif' : (format === 'mp4' ? 'mp4' : 'webm');
         const link = document.createElement('a');
@@ -750,7 +751,7 @@ startExportAction.addEventListener('click', async () => {
         exportProgressSection.style.display = 'none';
         startExportAction.textContent = 'Start Export';
         exportModal.classList.remove('open');
-        framingGuide.className = 'framing-guide hidden';
+        framingGuide.className = FRAMING_GUIDE_HIDDEN;
 
         const ext = format === 'gif' ? 'gif' : (format === 'mp4' ? 'mp4' : 'webm');
         const link = document.createElement('a');

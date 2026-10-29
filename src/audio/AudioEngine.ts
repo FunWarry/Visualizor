@@ -118,12 +118,12 @@ export class AudioEngine {
   private micSourceNode: MediaStreamAudioSourceNode | null = null;
 
   // Demo Synth
-  private demoInterval: any = null;
+  private demoInterval: ReturnType<typeof setInterval> | null = null;
   public isDemoPlaying = false;
 
   // Analysis Buffers & Detectors
-  private freqData!: Uint8Array;
-  private timeData!: Uint8Array;
+  private freqData!: Uint8Array<ArrayBuffer>;
+  private timeData!: Uint8Array<ArrayBuffer>;
   private beatDetector = new BeatDetector();
   public bpmDetector = new BPMDetector();
 
@@ -168,7 +168,10 @@ export class AudioEngine {
 
   private initContext() {
     if (!this.ctx) {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioCtx = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AudioCtx) {
+        throw new Error('Web Audio API is not supported in this browser.');
+      }
       this.ctx = new AudioCtx();
 
       this.analyser = this.ctx.createAnalyser();
@@ -453,8 +456,8 @@ export class AudioEngine {
       };
     }
 
-    this.analyser.getByteFrequencyData(this.freqData as any);
-    this.analyser.getByteTimeDomainData(this.timeData as any);
+    this.analyser.getByteFrequencyData(this.freqData);
+    this.analyser.getByteTimeDomainData(this.timeData);
 
     const subBass = this.calcBand(1, 4) * this.sensitivity;
     const bass = this.calcBand(4, 14) * this.sensitivity;

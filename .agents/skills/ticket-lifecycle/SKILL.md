@@ -37,7 +37,15 @@ flowchart LR
 * Use `InstancedMesh` for multiple objects and vertex shaders for GPU displacements.
 * Ensure all geometries and materials have corresponding `.dispose()` calls.
 
-## Step 4: Automated Testing & Verification
+## Step 4: Automated Testing & SonarQube Quality Gate
+* Run SonarQube / SonarLint static scan (zero issues permitted):
+  ```powershell
+  $env:Path = "C:\Program Files\nodejs;" + $env:Path
+  npm run sonar
+  ```
+  > [!IMPORTANT]
+  > Every code smell, bug, vulnerability, unused parameter, or styling defect reported by SonarQube / SonarLint MUST be resolved without exception prior to commit. No errors may be ignored.
+
 * Run static typechecking:
   ```powershell
   $env:Path = "C:\Program Files\nodejs;" + $env:Path

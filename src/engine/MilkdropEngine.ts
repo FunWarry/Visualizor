@@ -1,4 +1,4 @@
-import butterchurn from 'butterchurn';
+import butterchurn, { type ButterchurnVisualizer } from 'butterchurn';
 import butterchurnPresets from 'butterchurn-presets';
 
 export interface MilkdropPresetItem {
@@ -7,10 +7,10 @@ export interface MilkdropPresetItem {
 }
 
 export class MilkdropEngine {
-  private visualizer: any = null;
+  private visualizer: ButterchurnVisualizer | null = null;
   private canvas: HTMLCanvasElement;
   private audioNode: AudioNode | null = null;
-  private presets: Record<string, any> = {};
+  private presets: Record<string, unknown> = {};
   public presetNames: string[] = [];
   public currentPresetName: string = '';
   public isActive: boolean = false;
@@ -52,7 +52,7 @@ export class MilkdropEngine {
     this.visualizer.loadPreset(this.presets[name], blendTime);
   }
 
-  public loadCustomPreset(presetObj: any, blendTime = 2.0) {
+  public loadCustomPreset(presetObj: unknown, blendTime = 2.0) {
     if (!this.visualizer) return;
     this.visualizer.loadPreset(presetObj, blendTime);
     this.currentPresetName = 'Custom ProjectM Preset';

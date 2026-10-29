@@ -311,7 +311,7 @@ export class RenderEngine {
     // If persistence active, copy output to write target and swap
     if (this.config.persistence > 0.01) {
       this.renderer.setRenderTarget(currentWriteTarget);
-      this.copyMaterial.map = this.renderer.domElement as any; // canvas source
+      this.copyMaterial.map = this.composer.readBuffer.texture;
       this.renderer.render(this.copyScene, this.copyCamera);
       this.renderer.setRenderTarget(null);
       this.currentFeedbackIndex = 1 - this.currentFeedbackIndex;
