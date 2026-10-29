@@ -274,7 +274,7 @@ export class AudioEngine {
     }
   }
 
-  public async loadAudioFile(file: File) {
+  public loadAudioFile(file: File) {
     this.addFilesToPlaylist([file]);
   }
 
@@ -319,7 +319,7 @@ export class AudioEngine {
       return false;
     } else {
       this.stopDemo();
-      if (this.audioElement && !this.audioElement.paused) {
+      if (this.audioElement?.paused === false) {
         this.audioElement.pause();
         this.isPlaying = false;
       }
@@ -344,21 +344,17 @@ export class AudioEngine {
   }
 
   private disableMic() {
-    if (this.micStream) {
-      this.micStream.getTracks().forEach(track => track.stop());
-      this.micStream = null;
-    }
-    if (this.micSourceNode) {
-      this.micSourceNode.disconnect();
-      this.micSourceNode = null;
-    }
+    this.micStream?.getTracks().forEach(track => track.stop());
+    this.micStream = null;
+    this.micSourceNode?.disconnect();
+    this.micSourceNode = null;
     this.isMicActive = false;
   }
 
   public playDemo() {
     this.initContext();
     this.disableMic();
-    if (this.audioElement && !this.audioElement.paused) {
+    if (this.audioElement?.paused === false) {
       this.audioElement.pause();
       this.isPlaying = false;
     }

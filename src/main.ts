@@ -377,7 +377,7 @@ repeatBtn.addEventListener('click', () => {
 // Drawer Navigation Tabs
 railBtns.forEach(btn => {
   btn.addEventListener('click', () => {
-    const tab = btn.getAttribute('data-tab');
+    const tab = (btn as HTMLElement).dataset.tab;
     if (!tab) return;
     railBtns.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
@@ -454,11 +454,11 @@ demoBtn.addEventListener('click', () => {
   updatePlayButton();
 });
 
-topUploadInput?.addEventListener('change', async (e) => {
+topUploadInput?.addEventListener('change', (e) => {
   initMilkdropIfNeeded();
   const file = (e.target as HTMLInputElement).files?.[0];
   if (file) {
-    await audioEngine.loadAudioFile(file);
+    audioEngine.loadAudioFile(file);
     updatePlayButton();
   }
 });
@@ -504,54 +504,54 @@ function updatePlayButton() {
 }
 
 volumeSlider.addEventListener('input', () => {
-  audioEngine.setVolume(parseFloat(volumeSlider.value));
+  audioEngine.setVolume(Number.parseFloat(volumeSlider.value));
 });
 
 // FX Controls
 bloomSlider.addEventListener('input', () => {
-  const val = parseFloat(bloomSlider.value);
+  const val = Number.parseFloat(bloomSlider.value);
   document.getElementById('bloomVal')!.textContent = val.toFixed(1);
   renderEngine.updateConfig({ bloomStrength: val });
 });
 
 persistSlider.addEventListener('input', () => {
-  const val = parseFloat(persistSlider.value);
+  const val = Number.parseFloat(persistSlider.value);
   document.getElementById('persistVal')!.textContent = val.toFixed(2);
   renderEngine.updateConfig({ persistence: val });
 });
 
 chromaSlider.addEventListener('input', () => {
-  const val = parseFloat(chromaSlider.value);
+  const val = Number.parseFloat(chromaSlider.value);
   document.getElementById('chromaVal')!.textContent = val.toFixed(2);
   renderEngine.updateConfig({ chromaticAberration: val });
 });
 
 grainSlider.addEventListener('input', () => {
-  const val = parseFloat(grainSlider.value);
+  const val = Number.parseFloat(grainSlider.value);
   document.getElementById('grainVal')!.textContent = val.toFixed(2);
   renderEngine.updateConfig({ filmGrain: val });
 });
 
 vigSlider.addEventListener('input', () => {
-  const val = parseFloat(vigSlider.value);
+  const val = Number.parseFloat(vigSlider.value);
   document.getElementById('vigVal')!.textContent = val.toFixed(2);
   renderEngine.updateConfig({ vignette: val });
 });
 
 scanSlider.addEventListener('input', () => {
-  const val = parseFloat(scanSlider.value);
+  const val = Number.parseFloat(scanSlider.value);
   document.getElementById('scanVal')!.textContent = val.toFixed(1);
   renderEngine.updateConfig({ scanlines: val });
 });
 
 bendSlider.addEventListener('input', () => {
-  const val = parseFloat(bendSlider.value);
+  const val = Number.parseFloat(bendSlider.value);
   document.getElementById('bendVal')!.textContent = val.toFixed(2);
   renderEngine.updateConfig({ crtBend: val });
 });
 
 sensSlider.addEventListener('input', () => {
-  const val = parseFloat(sensSlider.value);
+  const val = Number.parseFloat(sensSlider.value);
   document.getElementById('sensVal')!.textContent = `${Math.round(val * 100)}%`;
   audioEngine.sensitivity = val;
 });
@@ -571,31 +571,31 @@ const studioVolumeSlider = document.getElementById('studioVolumeSlider') as HTML
 const studioForceSlider = document.getElementById('studioForceSlider') as HTMLInputElement;
 
 studioChromaSlider?.addEventListener('input', () => {
-  const val = parseFloat(studioChromaSlider.value);
+  const val = Number.parseFloat(studioChromaSlider.value);
   document.getElementById('studioChromaVal')!.textContent = val.toFixed(1);
   studioPreset.config.chromaIntensity = val;
 });
 
 studioLiquidSlider?.addEventListener('input', () => {
-  const val = parseFloat(studioLiquidSlider.value);
+  const val = Number.parseFloat(studioLiquidSlider.value);
   document.getElementById('studioLiquidVal')!.textContent = val.toFixed(1);
   studioPreset.config.liquidWarp = val;
 });
 
 studioTunnelSlider?.addEventListener('input', () => {
-  const val = parseFloat(studioTunnelSlider.value);
+  const val = Number.parseFloat(studioTunnelSlider.value);
   document.getElementById('studioTunnelVal')!.textContent = val.toFixed(1);
   studioPreset.config.tunnelDepth = val;
 });
 
 studioVolumeSlider?.addEventListener('input', () => {
-  const val = parseFloat(studioVolumeSlider.value);
+  const val = Number.parseFloat(studioVolumeSlider.value);
   document.getElementById('studioVolumeVal')!.textContent = val.toFixed(1);
   studioPreset.config.volumeDensity = val;
 });
 
 studioForceSlider?.addEventListener('input', () => {
-  const val = parseFloat(studioForceSlider.value);
+  const val = Number.parseFloat(studioForceSlider.value);
   document.getElementById('studioForceVal')!.textContent = val.toFixed(1);
   studioPreset.config.theForceAttraction = val;
 });
@@ -650,7 +650,7 @@ function setupChips(containerId: string, onChange?: (val: string) => void) {
     c.addEventListener('click', () => {
       chips.forEach(x => x.classList.remove('active'));
       c.classList.add('active');
-      const val = c.getAttribute('data-val') || '';
+      const val = (c as HTMLElement).dataset.val || '';
       onChange?.(val);
     });
   });
@@ -678,11 +678,11 @@ setupChips('aspectChips', (ratio) => {
   }
 });
 
-startExportAction.addEventListener('click', async () => {
-  const format = (document.querySelector('#formatChips .opt-chip.active')?.getAttribute('data-val') || 'webm') as 'webm' | 'mp4' | 'gif';
-  const ratio = (document.querySelector('#aspectChips .opt-chip.active')?.getAttribute('data-val') || '16:9') as '16:9' | '9:16' | '1:1';
-  const fps = parseInt(document.querySelector('#fpsChips .opt-chip.active')?.getAttribute('data-val') || '60') as 30 | 60;
-  const duration = parseInt(document.querySelector('#durChips .opt-chip.active')?.getAttribute('data-val') || '15');
+startExportAction.addEventListener('click', () => {
+  const format = ((document.querySelector('#formatChips .opt-chip.active') as HTMLElement)?.dataset.val || 'webm') as 'webm' | 'mp4' | 'gif';
+  const ratio = ((document.querySelector('#aspectChips .opt-chip.active') as HTMLElement)?.dataset.val || '16:9') as '16:9' | '9:16' | '1:1';
+  const fps = Number.parseInt((document.querySelector('#fpsChips .opt-chip.active') as HTMLElement)?.dataset.val || '60', 10) as 30 | 60;
+  const duration = Number.parseInt((document.querySelector('#durChips .opt-chip.active') as HTMLElement)?.dataset.val || '15', 10);
 
   const settings: ExportSettings = {
     format,
@@ -705,7 +705,7 @@ startExportAction.addEventListener('click', async () => {
   }
 
   if (batchModeToggle?.checked) {
-    const secondsPerPreset = parseInt(document.querySelector('#batchDurChips .opt-chip.active')?.getAttribute('data-val') || '5');
+    const secondsPerPreset = Number.parseInt((document.querySelector('#batchDurChips .opt-chip.active') as HTMLElement)?.dataset.val || '5', 10);
     const batchPresets = [
       getPreset('circular-spectrum'),
       getPreset('lava-energy'),
@@ -714,7 +714,7 @@ startExportAction.addEventListener('click', async () => {
       studioPreset
     ];
 
-    await exportManager.startBatchExport(
+    exportManager.startBatchExport(
       settings,
       batchPresets,
       secondsPerPreset,
@@ -739,7 +739,7 @@ startExportAction.addEventListener('click', async () => {
       }
     );
   } else {
-    await exportManager.startExport(
+    exportManager.startExport(
       settings,
       duration,
       (percent, timeLeft) => {

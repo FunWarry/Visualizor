@@ -12,7 +12,7 @@ export class ExportManager {
     private readonly audioEngine: AudioEngine
   ) {}
 
-  public async startExport(
+  public startExport(
     settings: ExportSettings,
     durationSeconds: number,
     onProgress: (percent: number, timeLeft: number) => void,
@@ -96,7 +96,7 @@ export class ExportManager {
   /**
    * Batch Recording Mode: Cycles sequentially through presets during a single recording
    */
-  public async startBatchExport(
+  public startBatchExport(
     settings: ExportSettings,
     presetList: VisualizerPreset[],
     secondsPerPreset: number,
@@ -128,7 +128,7 @@ export class ExportManager {
       }
     }, secondsPerPreset * 1000);
 
-    await this.startExport(
+    this.startExport(
       settings,
       totalDuration,
       onProgress,
@@ -140,8 +140,8 @@ export class ExportManager {
   }
 
   public stopExport() {
-    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
-      this.mediaRecorder.stop();
+    if (this.mediaRecorder?.state !== 'inactive') {
+      this.mediaRecorder?.stop();
     }
   }
 }
