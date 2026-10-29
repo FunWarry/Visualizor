@@ -1,0 +1,14 @@
+{
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true
+  },
+  "sonarlint.pathToNodeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+  "sonarlint.rules": {},
+  "sonarlint.analysisExcludes": "**/dist/**,**/node_modules/**,**/*.min.js,**/.agents/**",
+  "sonarlint.analysisExcludesStandalone": "**/dist/**,**/node_modules/**,**/*.min.js,**/.agents/**"
+}
