@@ -90,3 +90,4 @@ export class GeodesicSpherePreset implements VisualizerPreset {
     this.group.removeFromParent();
   }
 }
+

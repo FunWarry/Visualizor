@@ -77,7 +77,7 @@ export class Tesseract4DPreset implements VisualizerPreset {
     ctx.scene.add(this.group);
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
+  update(ctx: PresetContext, audio: AudioFeatures, _time: number, delta: number) {
     // 4D Rotation speeds modulated by audio
     this.rotXW += delta * (0.4 + audio.bass * 1.5);
     this.rotYW += delta * (0.3 + audio.mid * 1.2);
@@ -169,3 +169,4 @@ export class Tesseract4DPreset implements VisualizerPreset {
     this.group.removeFromParent();
   }
 }
+

@@ -158,7 +158,7 @@ export class StudioComposerPreset implements VisualizerPreset {
     ctx.scene.add(this.group);
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
+  update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
     // 1. Update Liquid
     this.liquidMaterial.uniforms.uTime.value = time;
     this.liquidMaterial.uniforms.uBass.value = audio.bass;
@@ -254,3 +254,4 @@ export class StudioComposerPreset implements VisualizerPreset {
     this.group.removeFromParent();
   }
 }
+

@@ -97,7 +97,7 @@ export class FluidPlasmaPreset implements VisualizerPreset {
     ctx.scene.add(this.mesh);
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, time: number, _delta: number) {
+  update(_ctx: PresetContext, audio: AudioFeatures, time: number, _delta: number) {
     this.material.uniforms.uTime.value = time;
     this.material.uniforms.uBass.value = audio.bass;
     this.material.uniforms.uMid.value = audio.mid;

@@ -94,3 +94,4 @@ export class KaleidoscopeMandalaPreset implements VisualizerPreset {
     this.group.removeFromParent();
   }
 }
+

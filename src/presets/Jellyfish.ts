@@ -60,7 +60,7 @@ export class JellyfishPreset implements VisualizerPreset {
     ctx.scene.add(this.group);
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
+  update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
     this.group.rotation.y += delta * 0.2;
 
     // Bell propulsion pulsation on beat
@@ -102,3 +102,4 @@ export class JellyfishPreset implements VisualizerPreset {
     this.group.removeFromParent();
   }
 }
+

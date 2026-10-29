@@ -91,3 +91,4 @@ export class ForestStormPreset implements VisualizerPreset {
     this.group.removeFromParent();
   }
 }
+

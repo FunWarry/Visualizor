@@ -92,7 +92,7 @@ export class FogRipplesPreset implements VisualizerPreset {
     ctx.scene.add(this.group);
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
+  update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
     this.waterMaterial.uniforms.uTime.value = time;
     this.waterMaterial.uniforms.uBass.value = audio.bass;
 

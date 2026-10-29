@@ -86,7 +86,7 @@ export class MandelFractalPreset implements VisualizerPreset {
     ctx.scene.add(this.mesh);
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
+  update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
     // Zoom in progressively, accelerate on bass
     const zoomSpeed = 0.4 + audio.bass * 1.2;
     this.currentZoom *= 1.0 + delta * zoomSpeed;

@@ -73,7 +73,7 @@ export class BloomFlowerPreset implements VisualizerPreset {
     ctx.scene.add(this.group);
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
+  update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
     this.group.rotation.z += delta * 0.15;
 
     // Unfold petals on bass & beat
@@ -117,3 +117,4 @@ export class BloomFlowerPreset implements VisualizerPreset {
     this.group.removeFromParent();
   }
 }
+

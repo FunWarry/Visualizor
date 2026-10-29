@@ -46,7 +46,7 @@ export class FirefliesPreset implements VisualizerPreset {
     ctx.scene.add(this.points);
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
+  update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
     const pos = (this.points.geometry as THREE.BufferGeometry).attributes.position.array as Float32Array;
     const speedMultiplier = 1.0 + audio.mid * 2.0;
 

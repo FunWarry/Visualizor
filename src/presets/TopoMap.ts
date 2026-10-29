@@ -77,7 +77,7 @@ export class TopoMapPreset implements VisualizerPreset {
     ctx.scene.add(this.group);
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
+  update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
     this.group.rotation.z += delta * 0.05;
 
     const pos = (this.terrainMesh.geometry as THREE.BufferGeometry).attributes.position.array as Float32Array;
@@ -117,3 +117,4 @@ export class TopoMapPreset implements VisualizerPreset {
     this.group.removeFromParent();
   }
 }
+

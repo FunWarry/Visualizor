@@ -73,7 +73,7 @@ export class SpectrogramPreset implements VisualizerPreset {
     ctx.scene.add(this.group);
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, _time: number, delta: number) {
+  update(_ctx: PresetContext, audio: AudioFeatures, _time: number, delta: number) {
     // Rotate radar arm
     this.radarArm.rotation.z -= delta * (1.5 + audio.mid * 2.0);
 

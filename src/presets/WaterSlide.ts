@@ -77,7 +77,7 @@ export class WaterSlidePreset implements VisualizerPreset {
     ctx.scene.add(this.mesh);
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
+  update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
     this.material.uniforms.uTime.value = time;
     this.material.uniforms.uBass.value = audio.bass;
     this.material.uniforms.uMid.value = audio.mid;
@@ -97,3 +97,4 @@ export class WaterSlidePreset implements VisualizerPreset {
     this.mesh.removeFromParent();
   }
 }
+

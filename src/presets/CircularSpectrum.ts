@@ -53,7 +53,7 @@ export class CircularSpectrumPreset implements VisualizerPreset {
     ctx.scene.add(this.group);
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
+  update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
     this.group.rotation.z += delta * (0.15 + audio.mid * 0.3);
 
     for (let r = 0; r < this.numRings; r++) {

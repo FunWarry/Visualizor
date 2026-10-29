@@ -89,3 +89,4 @@ export class FerrofluidPreset implements VisualizerPreset {
     this.mesh.removeFromParent();
   }
 }
+

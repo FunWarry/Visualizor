@@ -427,6 +427,16 @@ export class AudioEngine {
     return this.streamDestination?.stream || null;
   }
 
+  public getContext(): AudioContext {
+    this.initContext();
+    return this.ctx!;
+  }
+
+  public getAnalyser(): AnalyserNode {
+    this.initContext();
+    return this.analyser!;
+  }
+
   public getFeatures(): AudioFeatures {
     if (!this.analyser) {
       return {

@@ -110,3 +110,4 @@ export class VinylPlayerPreset implements VisualizerPreset {
     this.group.removeFromParent();
   }
 }
+

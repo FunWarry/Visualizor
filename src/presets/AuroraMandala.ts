@@ -94,7 +94,7 @@ export class AuroraMandalaPreset implements VisualizerPreset {
     ctx.scene.add(this.group);
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
+  update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
     this.auroraMaterial.uniforms.uTime.value = time;
     this.auroraMaterial.uniforms.uTreble.value = audio.treble;
     this.auroraMaterial.uniforms.uMid.value = audio.mid;

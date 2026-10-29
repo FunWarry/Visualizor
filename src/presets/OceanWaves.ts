@@ -104,7 +104,7 @@ export class OceanWavesPreset implements VisualizerPreset {
     ctx.scene.add(this.group);
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
+  update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
     this.oceanMaterial.uniforms.uTime.value = time;
     this.oceanMaterial.uniforms.uBass.value = audio.bass;
     this.oceanMaterial.uniforms.uMid.value = audio.mid;
@@ -143,3 +143,4 @@ export class OceanWavesPreset implements VisualizerPreset {
     this.group.removeFromParent();
   }
 }
+

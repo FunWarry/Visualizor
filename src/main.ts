@@ -1,5 +1,6 @@
 import { AudioEngine, PlaylistTrack } from './audio/AudioEngine';
 import { RenderEngine } from './engine/RenderEngine';
+import { MilkdropEngine } from './engine/MilkdropEngine';
 import { ExportManager } from './export/ExportManager';
 import { THEMES, getTheme } from './themes/themes';
 import { PRESETS, getPreset } from './presets';
@@ -8,26 +9,29 @@ import { ExportSettings, VisualizerPreset } from './types';
 
 // DOM Elements
 const canvas = document.getElementById('webgl-canvas') as HTMLCanvasElement;
+const milkdropCanvas = document.getElementById('milkdrop-canvas') as HTMLCanvasElement;
 const framingGuide = document.getElementById('framingGuide') as HTMLElement;
 const playBtn = document.getElementById('playBtn') as HTMLButtonElement;
 const playIcon = document.getElementById('playIcon') as HTMLElement;
-const prevTrackBtn = document.getElementById('prevTrackBtn') as HTMLButtonElement;
-const nextTrackBtn = document.getElementById('nextTrackBtn') as HTMLButtonElement;
 const demoBtn = document.getElementById('demoBtn') as HTMLButtonElement;
-const audioFileInput = document.getElementById('audioFileInput') as HTMLInputElement;
+const topUploadInput = document.getElementById('topUploadInput') as HTMLInputElement;
 const queueFileInput = document.getElementById('queueFileInput') as HTMLInputElement;
 const micBtn = document.getElementById('micBtn') as HTMLButtonElement;
 const captureBtn = document.getElementById('captureBtn') as HTMLButtonElement;
 const ambientBtn = document.getElementById('ambientBtn') as HTMLButtonElement;
 const fsBtn = document.getElementById('fsBtn') as HTMLButtonElement;
+const dockFsBtn = document.getElementById('dockFsBtn') as HTMLButtonElement;
+const dockQueueBtn = document.getElementById('dockQueueBtn') as HTMLButtonElement;
 const scrubber = document.getElementById('scrubber') as HTMLElement;
 const scrubberFill = document.getElementById('scrubberFill') as HTMLElement;
 const curTime = document.getElementById('curTime') as HTMLElement;
 const totTime = document.getElementById('totTime') as HTMLElement;
 const trackTitle = document.getElementById('trackTitle') as HTMLElement;
-const trackArtist = document.getElementById('trackArtist') as HTMLElement;
 const volumeSlider = document.getElementById('volumeSlider') as HTMLInputElement;
-const vuMeter = document.getElementById('vuMeter') as HTMLElement;
+
+// Mode Switcher Elements
+const modeVisualizerBtn = document.getElementById('modeVisualizerBtn') as HTMLButtonElement;
+const modeStudioBtn = document.getElementById('modeStudioBtn') as HTMLButtonElement;
 
 // BPM Elements
 const bpmBtn = document.getElementById('bpmBtn') as HTMLButtonElement;
@@ -46,11 +50,22 @@ const allPanels = [presetsPanel, themesPanel, queuePanel, studioPanel, fxPanel, 
 
 // Rail tabs
 const railBtns = document.querySelectorAll('.rail-btn');
+const railShuffleBtn = document.getElementById('railShuffleBtn');
 
 // Queue elements
 const queueList = document.getElementById('queueList') as HTMLElement;
 const shuffleBtn = document.getElementById('shuffleBtn') as HTMLButtonElement;
 const repeatBtn = document.getElementById('repeatBtn') as HTMLButtonElement;
+
+// Presets Search & Filters
+const presetSearchInput = document.getElementById('presetSearchInput') as HTMLInputElement;
+const filterAllBtn = document.getElementById('filterAllBtn') as HTMLButtonElement;
+const filterFavBtn = document.getElementById('filterFavBtn') as HTMLButtonElement;
+const filterMilkdropBtn = document.getElementById('filterMilkdropBtn') as HTMLButtonElement;
+const presetsCatalogView = document.getElementById('presetsCatalogView') as HTMLElement;
+const autoCycleBtn = document.getElementById('autoCycleBtn') as HTMLButtonElement;
+const shufflePresetBtn = document.getElementById('shufflePresetBtn') as HTMLButtonElement;
+const loopPresetBtn = document.getElementById('loopPresetBtn') as HTMLButtonElement;
 
 // Export Modal
 const exportModal = document.getElementById('exportModal') as HTMLElement;
@@ -75,30 +90,29 @@ const sensSlider = document.getElementById('sensSlider') as HTMLInputElement;
 const defaultTheme = getTheme('ember');
 const audioEngine = new AudioEngine();
 const renderEngine = new RenderEngine(canvas, defaultTheme);
+const milkdropEngine = new MilkdropEngine(milkdropCanvas);
 const exportManager = new ExportManager(renderEngine, audioEngine);
 
-// Set default preset
+let isMilkdropInitialized = false;
+let currentFilter: 'all' | 'fav' | 'milkdrop' = 'all';
+let searchQuery = '';
+let autoCycleTimer: any = null;
+let activePresetId = PRESETS[0].id;
+const favoritePresets = new Set<string>(JSON.parse(localStorage.getItem('visualizor_favorites') || '[]'));
+
+function initMilkdropIfNeeded() {
+  if (!isMilkdropInitialized) {
+    const ctx = audioEngine.getContext();
+    const analyser = audioEngine.getAnalyser();
+    milkdropEngine.init(ctx, analyser);
+    isMilkdropInitialized = true;
+  }
+}
+
+// Set initial 3D preset
 renderEngine.setPreset(PRESETS[0]);
 
-// Build Presets List
-const presetsList = document.getElementById('presetsList') as HTMLElement;
-PRESETS.forEach(p => {
-  const card = document.createElement('div');
-  card.className = `preset-card ${p.id === renderEngine.activePreset?.id ? 'active' : ''}`;
-  card.innerHTML = `
-    <div class="preset-card-title">${p.name}</div>
-    <div class="preset-card-cat">${p.category}</div>
-    <div class="preset-card-desc">${p.description}</div>
-  `;
-  card.addEventListener('click', () => {
-    renderEngine.setPreset(p);
-    document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
-    card.classList.add('active');
-  });
-  presetsList.appendChild(card);
-});
-
-// Build Themes List
+// Build Color Themes List
 const themesList = document.getElementById('themesList') as HTMLElement;
 THEMES.forEach(t => {
   const card = document.createElement('div');
@@ -113,6 +127,216 @@ THEMES.forEach(t => {
     card.classList.add('active');
   });
   themesList.appendChild(card);
+});
+
+// Category definition matching user screenshot
+const CATEGORIES: { name: string; key: VisualizerPreset['category'] }[] = [
+  { name: 'Structures', key: 'Structures' },
+  { name: 'Abstract & Space', key: 'Abstract & Space' },
+  { name: 'Particles & Light', key: 'Particles & Light' },
+  { name: 'Fluids & Heat', key: 'Fluids & Heat' },
+  { name: 'Tunnels', key: 'Tunnels' },
+  { name: 'Retro & Digital', key: 'Retro & Digital' },
+  { name: 'Organic & Nature', key: 'Organic & Nature' }
+];
+
+// Presets Catalog Renderer (3-Column Square Cards matching screenshot)
+function renderPresetsCatalog() {
+  initMilkdropIfNeeded();
+  presetsCatalogView.innerHTML = '';
+
+  const q = searchQuery.toLowerCase();
+
+  // 1. Render Three.js 3D Presets by Category
+  if (currentFilter !== 'milkdrop') {
+    CATEGORIES.forEach(cat => {
+      let catPresets = PRESETS.filter(p => p.category === cat.key);
+      if (q) {
+        catPresets = catPresets.filter(p => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q));
+      }
+      if (currentFilter === 'fav') {
+        catPresets = catPresets.filter(p => favoritePresets.has(p.id));
+      }
+
+      if (catPresets.length === 0) return;
+
+      const sectionHeader = document.createElement('div');
+      sectionHeader.className = 'category-header';
+      sectionHeader.innerHTML = `<span>${cat.name}</span><span>${catPresets.length}</span>`;
+      presetsCatalogView.appendChild(sectionHeader);
+
+      const grid = document.createElement('div');
+      grid.className = 'cards-grid-3';
+
+      catPresets.forEach(p => {
+        const isFav = favoritePresets.has(p.id);
+        const isActive = !milkdropEngine.isActive && activePresetId === p.id;
+
+        const card = document.createElement('div');
+        card.className = `preset-card-3 ${isActive ? 'active' : ''}`;
+        card.innerHTML = `
+          <button class="preset-fav-btn ${isFav ? 'active' : ''}" title="Favorite">★</button>
+          <div class="preset-thumb-visual">💎</div>
+          <div class="preset-badge-name" title="${p.name}">${p.name}</div>
+        `;
+
+        card.querySelector('.preset-fav-btn')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleFavorite(p.id);
+        });
+
+        card.addEventListener('click', () => {
+          select3DPreset(p);
+        });
+
+        grid.appendChild(card);
+      });
+
+      presetsCatalogView.appendChild(grid);
+    });
+  }
+
+  // 2. Render ProjectM & MilkDrop Presets Section
+  if (currentFilter === 'all' || currentFilter === 'milkdrop' || currentFilter === 'fav') {
+    let milkdropNames = milkdropEngine.presetNames;
+    if (q) {
+      milkdropNames = milkdropNames.filter(n => n.toLowerCase().includes(q));
+    }
+    if (currentFilter === 'fav') {
+      milkdropNames = milkdropNames.filter(n => favoritePresets.has(`milkdrop_${n}`));
+    }
+
+    if (milkdropNames.length > 0) {
+      const displayList = milkdropNames.slice(0, 30); // Show top 30 Milkdrop presets
+      const sectionHeader = document.createElement('div');
+      sectionHeader.className = 'category-header';
+      sectionHeader.innerHTML = `<span>ProjectM & MilkDrop</span><span>${milkdropNames.length}</span>`;
+      presetsCatalogView.appendChild(sectionHeader);
+
+      const grid = document.createElement('div');
+      grid.className = 'cards-grid-3';
+
+      displayList.forEach(name => {
+        const favKey = `milkdrop_${name}`;
+        const isFav = favoritePresets.has(favKey);
+        const isActive = milkdropEngine.isActive && milkdropEngine.currentPresetName === name;
+
+        const card = document.createElement('div');
+        card.className = `preset-card-3 ${isActive ? 'active' : ''}`;
+        card.innerHTML = `
+          <button class="preset-fav-btn ${isFav ? 'active' : ''}" title="Favorite">★</button>
+          <div class="preset-thumb-visual">🌀</div>
+          <div class="preset-badge-name" title="${name}">${name}</div>
+        `;
+
+        card.querySelector('.preset-fav-btn')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleFavorite(favKey);
+        });
+
+        card.addEventListener('click', () => {
+          selectMilkdropPreset(name);
+        });
+
+        grid.appendChild(card);
+      });
+
+      presetsCatalogView.appendChild(grid);
+    }
+  }
+}
+
+function select3DPreset(p: VisualizerPreset) {
+  milkdropEngine.setActive(false);
+  canvas.style.display = 'block';
+  activePresetId = p.id;
+  renderEngine.setPreset(p);
+  renderPresetsCatalog();
+}
+
+function selectMilkdropPreset(name: string) {
+  initMilkdropIfNeeded();
+  canvas.style.display = 'none';
+  milkdropEngine.setActive(true);
+  milkdropEngine.loadPreset(name, 2.0);
+  renderPresetsCatalog();
+}
+
+function toggleFavorite(id: string) {
+  if (favoritePresets.has(id)) {
+    favoritePresets.delete(id);
+  } else {
+    favoritePresets.add(id);
+  }
+  localStorage.setItem('visualizor_favorites', JSON.stringify(Array.from(favoritePresets)));
+  renderPresetsCatalog();
+}
+
+// Search and filter listeners
+presetSearchInput.addEventListener('input', () => {
+  searchQuery = presetSearchInput.value;
+  renderPresetsCatalog();
+});
+
+function setFilter(f: 'all' | 'fav' | 'milkdrop') {
+  currentFilter = f;
+  filterAllBtn.classList.toggle('active', f === 'all');
+  filterFavBtn.classList.toggle('active', f === 'fav');
+  filterMilkdropBtn.classList.toggle('active', f === 'milkdrop');
+  renderPresetsCatalog();
+}
+
+filterAllBtn.addEventListener('click', () => setFilter('all'));
+filterFavBtn.addEventListener('click', () => setFilter('fav'));
+filterMilkdropBtn.addEventListener('click', () => setFilter('milkdrop'));
+
+// Auto Cycle Presets
+autoCycleBtn.addEventListener('click', () => {
+  if (autoCycleTimer) {
+    clearInterval(autoCycleTimer);
+    autoCycleTimer = null;
+    autoCycleBtn.classList.remove('active');
+  } else {
+    autoCycleBtn.classList.add('active');
+    autoCycleTimer = setInterval(() => {
+      pickRandomPreset();
+    }, 10000);
+  }
+});
+
+function pickRandomPreset() {
+  const chooseMilkdrop = Math.random() > 0.5 && milkdropEngine.presetNames.length > 0;
+  if (chooseMilkdrop) {
+    milkdropEngine.loadRandomPreset(2.5);
+    canvas.style.display = 'none';
+    milkdropEngine.setActive(true);
+  } else {
+    const randomIdx = Math.floor(Math.random() * PRESETS.length);
+    select3DPreset(PRESETS[randomIdx]);
+  }
+  renderPresetsCatalog();
+}
+
+shufflePresetBtn.addEventListener('click', pickRandomPreset);
+railShuffleBtn?.addEventListener('click', pickRandomPreset);
+loopPresetBtn.addEventListener('click', () => {
+  loopPresetBtn.classList.toggle('active');
+});
+
+// Topbar Mode Switcher: Visualizer vs Studio
+modeVisualizerBtn.addEventListener('click', () => {
+  modeVisualizerBtn.classList.add('active');
+  modeStudioBtn.classList.remove('active');
+  allPanels.forEach(p => p.classList.remove('open'));
+  presetsPanel.classList.add('open');
+});
+
+modeStudioBtn.addEventListener('click', () => {
+  modeStudioBtn.classList.add('active');
+  modeVisualizerBtn.classList.remove('active');
+  allPanels.forEach(p => p.classList.remove('open'));
+  studioPanel.classList.add('open');
+  select3DPreset(studioPreset);
 });
 
 // Build & Update Queue UI
@@ -140,10 +364,21 @@ function updateQueueUI(playlist: PlaylistTrack[], currentIdx: number) {
 
 audioEngine.onPlaylistChange = (pl, idx) => updateQueueUI(pl, idx);
 
+shuffleBtn.addEventListener('click', () => {
+  audioEngine.isShuffle = !audioEngine.isShuffle;
+  shuffleBtn.classList.toggle('active', audioEngine.isShuffle);
+});
+
+repeatBtn.addEventListener('click', () => {
+  audioEngine.isRepeat = !audioEngine.isRepeat;
+  repeatBtn.classList.toggle('active', audioEngine.isRepeat);
+});
+
 // Drawer Navigation Tabs
 railBtns.forEach(btn => {
   btn.addEventListener('click', () => {
     const tab = btn.getAttribute('data-tab');
+    if (!tab) return;
     railBtns.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
@@ -163,6 +398,7 @@ document.querySelector('.closeQueueBtn')?.addEventListener('click', () => queueP
 document.querySelector('.closeStudioBtn')?.addEventListener('click', () => studioPanel.classList.remove('open'));
 document.querySelector('.closeFxBtn')?.addEventListener('click', () => fxPanel.classList.remove('open'));
 document.querySelector('.closeAudioBtn')?.addEventListener('click', () => audioPanel.classList.remove('open'));
+dockQueueBtn?.addEventListener('click', () => queuePanel.classList.toggle('open'));
 
 // BPM & Tap Tempo
 bpmBtn.addEventListener('click', () => {
@@ -203,31 +439,13 @@ scrubber.addEventListener('click', (e) => {
 });
 
 playBtn.addEventListener('click', async () => {
+  initMilkdropIfNeeded();
   await audioEngine.togglePlay();
   updatePlayButton();
 });
 
-prevTrackBtn.addEventListener('click', () => {
-  audioEngine.prevTrack();
-  updatePlayButton();
-});
-
-nextTrackBtn.addEventListener('click', () => {
-  audioEngine.nextTrack();
-  updatePlayButton();
-});
-
-shuffleBtn.addEventListener('click', () => {
-  audioEngine.isShuffle = !audioEngine.isShuffle;
-  shuffleBtn.classList.toggle('active', audioEngine.isShuffle);
-});
-
-repeatBtn.addEventListener('click', () => {
-  audioEngine.isRepeat = !audioEngine.isRepeat;
-  repeatBtn.classList.toggle('active', audioEngine.isRepeat);
-});
-
 demoBtn.addEventListener('click', () => {
+  initMilkdropIfNeeded();
   if (audioEngine.isDemoPlaying) {
     audioEngine.stopDemo();
   } else {
@@ -236,7 +454,8 @@ demoBtn.addEventListener('click', () => {
   updatePlayButton();
 });
 
-audioFileInput.addEventListener('change', async (e) => {
+topUploadInput?.addEventListener('change', async (e) => {
+  initMilkdropIfNeeded();
   const file = (e.target as HTMLInputElement).files?.[0];
   if (file) {
     await audioEngine.loadAudioFile(file);
@@ -245,6 +464,7 @@ audioFileInput.addEventListener('change', async (e) => {
 });
 
 queueFileInput.addEventListener('change', (e) => {
+  initMilkdropIfNeeded();
   const files = (e.target as HTMLInputElement).files;
   if (files && files.length > 0) {
     audioEngine.addFilesToPlaylist(Array.from(files));
@@ -256,6 +476,7 @@ queueFileInput.addEventListener('change', (e) => {
 window.addEventListener('dragover', (e) => e.preventDefault());
 window.addEventListener('drop', (e) => {
   e.preventDefault();
+  initMilkdropIfNeeded();
   const files = e.dataTransfer?.files;
   if (files && files.length > 0) {
     const audioFiles = Array.from(files).filter(f => f.type.startsWith('audio/'));
@@ -267,6 +488,7 @@ window.addEventListener('drop', (e) => {
 });
 
 micBtn.addEventListener('click', async () => {
+  initMilkdropIfNeeded();
   const active = await audioEngine.toggleMic();
   micBtn.classList.toggle('active', active);
   updatePlayButton();
@@ -274,7 +496,6 @@ micBtn.addEventListener('click', async () => {
 
 function updatePlayButton() {
   trackTitle.textContent = audioEngine.currentTrackName;
-  trackArtist.textContent = audioEngine.currentArtistName;
   if (audioEngine.isPlaying || audioEngine.isDemoPlaying) {
     playIcon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
   } else {
@@ -340,8 +561,7 @@ const studioPreset = (PRESETS.find(p => p.id === 'studio-composer') as StudioCom
 
 const activateStudioBtn = document.getElementById('activateStudioBtn') as HTMLButtonElement;
 activateStudioBtn?.addEventListener('click', () => {
-  renderEngine.setPreset(studioPreset);
-  document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
+  select3DPreset(studioPreset);
 });
 
 const studioChromaSlider = document.getElementById('studioChromaSlider') as HTMLInputElement;
@@ -394,6 +614,7 @@ window.addEventListener('keydown', (e) => {
 });
 
 fsBtn.addEventListener('click', toggleFullscreen);
+dockFsBtn?.addEventListener('click', toggleFullscreen);
 
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
@@ -405,9 +626,10 @@ function toggleFullscreen() {
 
 // Screenshot Capture
 captureBtn.addEventListener('click', () => {
-  const dataUrl = renderEngine.captureScreenshot();
+  const activeCanvas = milkdropEngine.isActive ? milkdropCanvas : canvas;
+  const dataUrl = activeCanvas.toDataURL('image/png');
   const link = document.createElement('a');
-  link.download = `visualizor-${renderEngine.activePreset?.id}-${Date.now()}.png`;
+  link.download = `visuval-${activePresetId}-${Date.now()}.png`;
   link.href = dataUrl;
   link.click();
 });
@@ -498,7 +720,7 @@ startExportAction.addEventListener('click', async () => {
       (p, idx) => {
         document.getElementById('exportProgressText')!.textContent = `Batch [${idx + 1}/${batchPresets.length}]: ${p.name}`;
       },
-      (percent, timeLeft) => {
+      (percent, _timeLeft) => {
         exportProgressBar.style.width = `${percent}%`;
         exportPercent.textContent = `${percent}%`;
       },
@@ -510,7 +732,7 @@ startExportAction.addEventListener('click', async () => {
 
         const ext = format === 'gif' ? 'gif' : (format === 'mp4' ? 'mp4' : 'webm');
         const link = document.createElement('a');
-        link.download = `visualizor-batch-${ratio.replace(':', 'x')}-${Date.now()}.${ext}`;
+        link.download = `visuval-batch-${ratio.replace(':', 'x')}-${Date.now()}.${ext}`;
         link.href = downloadUrl;
         link.click();
       }
@@ -532,7 +754,7 @@ startExportAction.addEventListener('click', async () => {
 
         const ext = format === 'gif' ? 'gif' : (format === 'mp4' ? 'mp4' : 'webm');
         const link = document.createElement('a');
-        link.download = `visualizor-${renderEngine.activePreset?.id}-${ratio.replace(':', 'x')}-${Date.now()}.${ext}`;
+        link.download = `visuval-${activePresetId}-${ratio.replace(':', 'x')}-${Date.now()}.${ext}`;
         link.href = downloadUrl;
         link.click();
       }
@@ -540,29 +762,34 @@ startExportAction.addEventListener('click', async () => {
   }
 });
 
-// Main Animation Render Loop (60 FPS)
-const vuBars = vuMeter.querySelectorAll('.vu-bar') as NodeListOf<HTMLElement>;
+// Handle window resizing
+window.addEventListener('resize', () => {
+  renderEngine.resize(window.innerWidth, window.innerHeight);
+  milkdropEngine.resize(window.innerWidth, window.innerHeight);
+});
 
+// Initial catalog render
+renderPresetsCatalog();
+
+// Main Animation Render Loop (60 FPS)
 function animate() {
   requestAnimationFrame(animate);
 
   const features = audioEngine.getFeatures();
-  renderEngine.render(features);
+
+  // If MilkDrop preset is active, render via Butterchurn WebGL
+  if (milkdropEngine.isActive) {
+    milkdropEngine.render();
+  } else {
+    // Render 3D Three.js preset
+    renderEngine.render(features);
+  }
 
   // BPM pulse indicator
   if (features.beat) {
     bpmIndicator.classList.add('beat');
   } else {
     bpmIndicator.classList.remove('beat');
-  }
-
-  // Update VU meter visualization
-  if (vuBars.length > 0) {
-    vuBars[0].style.height = `${Math.min(100, Math.max(15, features.subBass * 100))}%`;
-    vuBars[1].style.height = `${Math.min(100, Math.max(15, features.bass * 100))}%`;
-    vuBars[2].style.height = `${Math.min(100, Math.max(15, features.mid * 100))}%`;
-    vuBars[3].style.height = `${Math.min(100, Math.max(15, features.treble * 100))}%`;
-    vuBars[4].style.height = `${Math.min(100, Math.max(15, features.rms * 100))}%`;
   }
 }
 

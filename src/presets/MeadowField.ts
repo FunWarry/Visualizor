@@ -86,7 +86,7 @@ export class MeadowFieldPreset implements VisualizerPreset {
     ctx.scene.add(this.group);
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, time: number, _delta: number) {
+  update(_ctx: PresetContext, audio: AudioFeatures, time: number, _delta: number) {
     this.skyMaterial.uniforms.uTime.value = time;
     this.skyMaterial.uniforms.uTreble.value = audio.treble;
 
@@ -117,3 +117,4 @@ export class MeadowFieldPreset implements VisualizerPreset {
     this.group.removeFromParent();
   }
 }
+

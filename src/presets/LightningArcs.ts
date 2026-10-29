@@ -93,3 +93,4 @@ export class LightningArcsPreset implements VisualizerPreset {
     this.group.removeFromParent();
   }
 }
+

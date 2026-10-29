@@ -119,3 +119,4 @@ export class DNAHelixPreset implements VisualizerPreset {
     this.group.removeFromParent();
   }
 }
+

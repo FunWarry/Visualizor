@@ -31,7 +31,7 @@ export class WaveFormPreset implements VisualizerPreset {
     ctx.scene.add(this.mesh);
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, time: number, _delta: number) {
+  update(_ctx: PresetContext, audio: AudioFeatures, time: number, _delta: number) {
     const pos = this.geometry.attributes.position.array as Float32Array;
 
     for (let i = 0; i < pos.length; i += 3) {

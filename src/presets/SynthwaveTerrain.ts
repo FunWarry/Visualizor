@@ -65,9 +65,8 @@ export class SynthwaveTerrainPreset implements VisualizerPreset {
     ctx.scene.add(this.group);
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
+  update(ctx: PresetContext, audio: AudioFeatures, time: number, _delta: number) {
     const pos = this.terrainGeom.attributes.position.array as Float32Array;
-    const scrollSpeed = 16.0 + audio.bass * 25.0;
 
     for (let i = 0; i < pos.length; i += 3) {
       const x = pos[i];
@@ -111,3 +110,4 @@ export class SynthwaveTerrainPreset implements VisualizerPreset {
     this.group.removeFromParent();
   }
 }
+

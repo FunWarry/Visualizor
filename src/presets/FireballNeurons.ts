@@ -12,7 +12,6 @@ export class FireballNeuronsPreset implements VisualizerPreset {
   private neuronLines!: THREE.LineSegments;
   private coreMaterial!: THREE.MeshStandardMaterial;
   private lineMaterial!: THREE.LineBasicMaterial;
-  private axonSegments: Float32Array[] = [];
 
   init(ctx: PresetContext) {
     this.group = new THREE.Group();
@@ -79,7 +78,7 @@ export class FireballNeuronsPreset implements VisualizerPreset {
     ctx.scene.add(this.group);
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
+  update(_ctx: PresetContext, audio: AudioFeatures, _time: number, delta: number) {
     this.group.rotation.y += delta * 0.25;
     this.group.rotation.z += delta * 0.15;
 

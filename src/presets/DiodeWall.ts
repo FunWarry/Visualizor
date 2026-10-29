@@ -72,7 +72,7 @@ export class DiodeWallPreset implements VisualizerPreset {
     }
   }
 
-  onThemeChange(theme: VisualizerTheme) {
+  onThemeChange(_theme: VisualizerTheme) {
     this.update({} as any, { frequencyData: new Uint8Array(1024) } as any, 0, 0);
   }
 
@@ -82,3 +82,4 @@ export class DiodeWallPreset implements VisualizerPreset {
     this.instancedMesh.removeFromParent();
   }
 }
+
