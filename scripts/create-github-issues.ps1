@@ -1,8 +1,27 @@
-# Visualizor - Automated GitHub Issues Creator
-# Requires: gh auth login or $env:GH_TOKEN
-
+# Visualizor - Automated GitHub Issues & Labels Creator
 $repo = "FunWarry/Visualizor"
 $ghPath = "C:\Program Files\GitHub CLI\gh.exe"
+
+$labels = @(
+  @{ Name = "preset"; Color = "7057ff"; Desc = "3D visualizer presets" },
+  @{ Name = "structures"; Color = "008672"; Desc = "Structures & Geometry presets" },
+  @{ Name = "abstract"; Color = "d876e3"; Desc = "Abstract & Space presets" },
+  @{ Name = "particles"; Color = "e4e669"; Desc = "Particles & Light presets" },
+  @{ Name = "fluids"; Color = "0075ca"; Desc = "Fluids & Heat presets" },
+  @{ Name = "tunnels"; Color = "cfd3d7"; Desc = "Tunnels presets" },
+  @{ Name = "retro"; Color = "a2eeef"; Desc = "Retro & Digital presets" },
+  @{ Name = "nature"; Color = "0e8a16"; Desc = "Organic & Nature presets" },
+  @{ Name = "audio"; Color = "fbca04"; Desc = "Audio engine & DSP" },
+  @{ Name = "shader"; Color = "fef2c0"; Desc = "Shaders & post-processing" },
+  @{ Name = "studio"; Color = "d93f0b"; Desc = "Visualizer studio mode" },
+  @{ Name = "export"; Color = "5319e7"; Desc = "Video & capture export" },
+  @{ Name = "ui"; Color = "1d76db"; Desc = "UI controls & panels" }
+)
+
+Write-Host "Creating GitHub Labels..."
+foreach ($l in $labels) {
+  & $ghPath label create $l.Name --repo $repo --color $l.Color --description $l.Desc --force 2>$null
+}
 
 $tickets = @(
   @{
@@ -181,8 +200,13 @@ Write-Host "Total tickets to create: $($tickets.Count)"
 
 foreach ($t in $tickets) {
   Write-Host "Creating issue: $($t.Title)..."
-  & $ghPath issue create --repo $repo --title $t.Title --body $t.Body --label $t.Labels
-  Start-Sleep -Milliseconds 600
+  $labelArgs = @()
+  foreach ($lbl in $t.Labels.Split(",")) {
+    $labelArgs += "--label"
+    $labelArgs += $lbl.Trim()
+  }
+  & $ghPath issue create --repo $repo --title $t.Title --body $t.Body @labelArgs
+  Start-Sleep -Milliseconds 400
 }
 
-Write-Host "All $($tickets.Count) tickets created successfully!"
+Write-Host "All $($tickets.Count) tickets created successfully on GitHub!"
