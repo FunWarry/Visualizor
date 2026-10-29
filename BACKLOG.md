@@ -13,12 +13,12 @@ Toutes les issues ci-dessous sont créées et suivies sur le dépôt GitHub [Fun
 - [x] **Core** `feat(preset): Implement Wave Form (continuous 3D audio terrain)`
 - [x] **Core** `feat(preset): Implement 3D Bars Grid (illuminated equalizer columns)`
 - [x] **Core** `feat(preset): Implement Obsidian Poly (dark glossy morphing polyhedron)`
-- [ ] [#2](https://github.com/FunWarry/Visualizor/issues/2) `feat(preset): Implement Ferrofluid magnetic spike sphere`
-- [ ] [#3](https://github.com/FunWarry/Visualizor/issues/3) `feat(preset): Implement DNA Helix rotating reactive strands`
+- [x] [#2](https://github.com/FunWarry/Visualizor/issues/2) `feat(preset): Implement Ferrofluid magnetic spike sphere`
+- [x] [#3](https://github.com/FunWarry/Visualizor/issues/3) `feat(preset): Implement DNA Helix rotating reactive strands`
 - [ ] [#4](https://github.com/FunWarry/Visualizor/issues/4) `feat(preset): Implement Topo Map & Cymatic standing waves`
 - [ ] [#5](https://github.com/FunWarry/Visualizor/issues/5) `feat(preset): Implement 3D Vinyl Turntable & Rings Orrery`
 - [ ] [#6](https://github.com/FunWarry/Visualizor/issues/6) `feat(preset): Implement Tesseract 4D & Hologram Glitch`
-- [ ] [#7](https://github.com/FunWarry/Visualizor/issues/7) `feat(preset): Implement Geodesic frequency sphere & Warp Grid`
+- [x] [#7](https://github.com/FunWarry/Visualizor/issues/7) `feat(preset): Implement Geodesic frequency sphere & Warp Grid`
 
 ### Epic: Abstrait & Espace
 - [x] **Core** `feat(preset): Implement Starfield Warp (warp-speed starfield flight)`
@@ -27,12 +27,12 @@ Toutes les issues ci-dessous sont créées et suivies sur le dépôt GitHub [Fun
 - [ ] [#9](https://github.com/FunWarry/Visualizor/issues/9) `feat(preset): Implement Mandel fractal zoom & Unfolding Matter`
 - [ ] [#10](https://github.com/FunWarry/Visualizor/issues/10) `feat(preset): Implement MilkDrop & Geiss feedback vortices`
 - [ ] [#11](https://github.com/FunWarry/Visualizor/issues/11) `feat(preset): Implement Aurora borealis & Sacred mandala`
-- [ ] [#12](https://github.com/FunWarry/Visualizor/issues/12) `feat(preset): Implement Synthwave Terrain flyover & Galaxy flight`
+- [x] [#12](https://github.com/FunWarry/Visualizor/issues/12) `feat(preset): Implement Synthwave Terrain flyover & Galaxy flight`
 
 ### Epic: Particules & Lumière
 - [x] **Core** `feat(preset): Implement Particle Swarm (reactive cosmic particle cloud)`
 - [ ] [#13](https://github.com/FunWarry/Visualizor/issues/13) `feat(preset): Implement Fireflies bioluminescent swarm`
-- [ ] [#14](https://github.com/FunWarry/Visualizor/issues/14) `feat(preset): Implement Lightning & Plasma Arcs electric network`
+- [x] [#14](https://github.com/FunWarry/Visualizor/issues/14) `feat(preset): Implement Lightning & Plasma Arcs electric network`
 
 ### Epic: Fluides & Chaleur
 - [x] **Core** `feat(preset): Implement Lava Plasma Sphere (molten energy fluid)`
@@ -42,14 +42,14 @@ Toutes les issues ci-dessous sont créées et suivies sur le dépôt GitHub [Fun
 
 ### Epic: Tunnels
 - [x] **Core** `feat(preset): Implement Neon Tunnel (infinite hexagonal corridor)`
-- [ ] [#18](https://github.com/FunWarry/Visualizor/issues/18) `feat(preset): Implement Box Tunnel & Ring Tunnel`
+- [x] [#18](https://github.com/FunWarry/Visualizor/issues/18) `feat(preset): Implement Box Tunnel & Ring Tunnel`
 - [ ] [#19](https://github.com/FunWarry/Visualizor/issues/19) `feat(preset): Implement Water Slide & Vein Tunnel`
-- [ ] [#20](https://github.com/FunWarry/Visualizor/issues/20) `feat(preset): Implement Kaleidoscope mirror mandala`
+- [x] [#20](https://github.com/FunWarry/Visualizor/issues/20) `feat(preset): Implement Kaleidoscope mirror mandala`
 
 ### Epic: Rétro & Numérique
 - [x] **Core** `feat(preset): Implement Matrix Digital Cascade (falling code stream)`
 - [ ] [#21](https://github.com/FunWarry/Visualizor/issues/21) `feat(preset): Implement The Spectrogram & Night Radar scopes`
-- [ ] [#22](https://github.com/FunWarry/Visualizor/issues/22) `feat(preset): Implement Diode Wall & Vod Lines`
+- [x] [#22](https://github.com/FunWarry/Visualizor/issues/22) `feat(preset): Implement Diode Wall & Vod Lines`
 - [ ] [#23](https://github.com/FunWarry/Visualizor/issues/23) `feat(preset): Implement LCD Deck CD player & Signal Lock`
 
 ### Epic: Organique & Nature
@@ -66,8 +66,8 @@ Toutes les issues ci-dessous sont créées et suivies sur le dépôt GitHub [Fun
 
 - [x] **Core** `feat(audio): Web Audio multi-band FFT (Sub-bass, Bass, Mid, Treble) & Kick detector`
 - [x] **Core** `feat(audio): Live microphone audio streaming and procedural demo synth`
-- [ ] [#30](https://github.com/FunWarry/Visualizor/issues/30) `feat(audio): Implement Autocorrelation BPM Detection & Tap Tempo`
-- [ ] [#31](https://github.com/FunWarry/Visualizor/issues/31) `feat(audio): Implement Playlist Queue Manager (multi-track, drag-and-drop, shuffle/repeat)`
+- [x] [#30](https://github.com/FunWarry/Visualizor/issues/30) `feat(audio): Implement Autocorrelation BPM Detection & Tap Tempo`
+- [x] [#31](https://github.com/FunWarry/Visualizor/issues/31) `feat(audio): Implement Playlist Queue Manager (multi-track, drag-and-drop, shuffle/repeat)`
 
 ---
 
@@ -80,7 +80,7 @@ Toutes les issues ci-dessous sont créées et suivies sur le dépôt GitHub [Fun
 ## ⚡ Shaders & Post-Processing
 
 - [x] **Core** `feat(shader): UnrealBloomPass glow & Master Uber-Shader (Aberration, Grain, CRT, Vignette)`
-- [ ] [#33](https://github.com/FunWarry/Visualizor/issues/33) `feat(shader): Implement Motion Persistence / Feedback buffer pass`
+- [x] [#33](https://github.com/FunWarry/Visualizor/issues/33) `feat(shader): Implement Motion Persistence / Feedback buffer pass`
 
 ---
 
@@ -89,4 +89,4 @@ Toutes les issues ci-dessous sont créées et suivies sur le dépôt GitHub [Fun
 - [x] **Core** `feat(export): Unlocked 60 FPS WebM/MP4 canvas + Web Audio stream recording`
 - [x] **Core** `feat(export): High-resolution PNG screenshot capture`
 - [ ] [#34](https://github.com/FunWarry/Visualizor/issues/34) `feat(export): Implement Batch Recording Mode (multi-preset sequence)`
-- [ ] [#35](https://github.com/FunWarry/Visualizor/issues/35) `feat(export): Implement Aspect Ratio Framing (16:9, 9:16, 1:1) & GIF export`
+- [x] [#35](https://github.com/FunWarry/Visualizor/issues/35) `feat(export): Implement Aspect Ratio Framing (16:9, 9:16, 1:1) & GIF export`

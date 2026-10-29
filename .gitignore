@@ -31,4 +31,6 @@ chunk.*.js
 main.*.js
 rendered.html
 *.txt
+.agents/teamwork/
+
 
