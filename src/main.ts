@@ -39,17 +39,63 @@ const bpmText = document.getElementById('bpmText') as HTMLElement;
 const bpmIndicator = document.getElementById('bpmIndicator') as HTMLElement;
 const resetBpmBtn = document.getElementById('resetBpmBtn') as HTMLButtonElement;
 
-// Drawers
-const presetsPanel = document.getElementById('presetsPanel') as HTMLElement;
-const themesPanel = document.getElementById('themesPanel') as HTMLElement;
-const queuePanel = document.getElementById('queuePanel') as HTMLElement;
-const studioPanel = document.getElementById('studioPanel') as HTMLElement;
-const fxPanel = document.getElementById('fxPanel') as HTMLElement;
-const audioPanel = document.getElementById('audioPanel') as HTMLElement;
-const allPanels = [presetsPanel, themesPanel, queuePanel, studioPanel, fxPanel, audioPanel];
+// Drawers & Modals (Canonical 15 Tools)
+const presetsPanel = document.getElementById('presetsPanel') as HTMLElement | null;
+const tuningPanel = document.getElementById('tuningPanel') as HTMLElement | null;
+const themesPanel = document.getElementById('themesPanel') as HTMLElement | null;
+const fxPanel = document.getElementById('fxPanel') as HTMLElement | null;
+const cameraPanel = document.getElementById('cameraPanel') as HTMLElement | null;
+const audioPanel = document.getElementById('audioPanel') as HTMLElement | null;
+const overlayPanel = document.getElementById('overlayPanel') as HTMLElement | null;
+const textOverlayPanel = document.getElementById('textOverlayPanel') as HTMLElement | null;
+const subtitlesPanel = document.getElementById('subtitlesPanel') as HTMLElement | null;
+const queuePanel = document.getElementById('queuePanel') as HTMLElement | null;
+const libraryPanel = document.getElementById('libraryPanel') as HTMLElement | null;
+const studioPanel = document.getElementById('studioPanel') as HTMLElement | null;
+const shortcutsModal = document.getElementById('shortcutsModal') as HTMLElement | null;
+const showUiBtn = document.getElementById('showUiBtn') as HTMLButtonElement | null;
+const hideUiBtn = document.getElementById('hideUiBtn') as HTMLButtonElement | null;
+const railMoreBtn = document.getElementById('railMoreBtn') as HTMLButtonElement | null;
+const railMoreWrapper = document.getElementById('railMoreWrapper') as HTMLElement | null;
+const ambientModeBtn = document.getElementById('ambientModeBtn') as HTMLButtonElement | null;
+const bugReportBtn = document.getElementById('bugReportBtn') as HTMLButtonElement | null;
+const closeShortcutsBtn = document.getElementById('closeShortcutsBtn') as HTMLButtonElement | null;
+const appRoot = (document.getElementById('app') || document.body) as HTMLElement;
 
-// Rail tabs
-const railBtns = document.querySelectorAll('.rail-btn');
+const PANEL_MAP: Record<string, HTMLElement | null> = {
+  presets: presetsPanel,
+  presetSettings: tuningPanel,
+  colors: themesPanel,
+  effects: fxPanel,
+  camera: cameraPanel,
+  audio: audioPanel,
+  overlay: overlayPanel,
+  text: textOverlayPanel,
+  subtitles: subtitlesPanel,
+  tracks: queuePanel,
+  library: libraryPanel,
+  myCreations: studioPanel
+};
+
+const allPanels: HTMLElement[] = [
+  presetsPanel,
+  tuningPanel,
+  themesPanel,
+  fxPanel,
+  cameraPanel,
+  audioPanel,
+  overlayPanel,
+  textOverlayPanel,
+  subtitlesPanel,
+  queuePanel,
+  libraryPanel,
+  studioPanel
+].filter((p): p is HTMLElement => p !== null);
+
+let activeToolId: string | null = 'presets';
+const ARIA_EXPANDED = 'aria-expanded';
+const AMBIENT_MODE_CLASS = 'ambient-mode';
+
 const railShuffleBtn = document.getElementById('railShuffleBtn');
 
 // Queue elements
@@ -111,6 +157,7 @@ function initMilkdropIfNeeded() {
 
 // Set initial 3D preset
 renderEngine.setPreset(PRESETS[0]);
+updateTuningButtonState(PRESETS[0]);
 
 // Build Color Themes List
 const themesList = document.getElementById('themesList') as HTMLElement;
@@ -246,11 +293,29 @@ function renderPresetsCatalog() {
   }
 }
 
+function updateTuningButtonState(preset: VisualizerPreset | null) {
+  const tuningBtn = document.querySelector('.preset-settings-link') as HTMLElement | null;
+  if (!tuningBtn) return;
+  const tunable = preset as (VisualizerPreset & { getCustomParameters?: () => unknown[] }) | null;
+  const hasParams = Boolean(tunable && typeof tunable.getCustomParameters === 'function' && (tunable.getCustomParameters()?.length ?? 0) > 0);
+  if (hasParams) {
+    tuningBtn.classList.remove('is-collapsed');
+  } else {
+    tuningBtn.classList.add('is-collapsed');
+    if (activeToolId === 'presetSettings') {
+      tuningPanel?.classList.remove('open');
+      tuningBtn.classList.remove('active');
+      activeToolId = null;
+    }
+  }
+}
+
 function select3DPreset(p: VisualizerPreset) {
   milkdropEngine.setActive(false);
   canvas.style.display = 'block';
   activePresetId = p.id;
   renderEngine.setPreset(p);
+  updateTuningButtonState(p);
   renderPresetsCatalog();
 }
 
@@ -259,6 +324,7 @@ function selectMilkdropPreset(name: string) {
   canvas.style.display = 'none';
   milkdropEngine.setActive(true);
   milkdropEngine.loadPreset(name, 2.0);
+  updateTuningButtonState(null);
   renderPresetsCatalog();
 }
 
@@ -323,19 +389,52 @@ loopPresetBtn.addEventListener('click', () => {
   loopPresetBtn.classList.toggle('active');
 });
 
+// Helper functions for drawer management
+function closeAllDrawers() {
+  allPanels.forEach(p => p.classList.remove('open'));
+  document.querySelectorAll('.rail-btn').forEach(b => b.classList.remove('active'));
+}
+
+function openDrawer(toolId: string) {
+  closeAllDrawers();
+  activeToolId = toolId;
+  const btn = document.querySelector(`.rail-btn[data-panel="${toolId}"]`) || document.querySelector(`.rail-btn[data-tab="${toolId}"]`);
+  btn?.classList.add('active');
+  const panel = PANEL_MAP[toolId];
+  if (panel) {
+    panel.classList.add('open');
+  }
+}
+
+function toggleDrawer(toolId: string) {
+  if (activeToolId === toolId) {
+    const panel = PANEL_MAP[toolId];
+    panel?.classList.remove('open');
+    const btn = document.querySelector(`.rail-btn[data-panel="${toolId}"]`) || document.querySelector(`.rail-btn[data-tab="${toolId}"]`);
+    btn?.classList.remove('active');
+    activeToolId = null;
+    return;
+  }
+  openDrawer(toolId);
+}
+
+function toggleHideUI() {
+  const isHidden = appRoot.classList.toggle('ui-hidden');
+  document.documentElement.classList.toggle('ui-hidden', isHidden);
+  document.body.classList.toggle('ui-hidden', isHidden);
+}
+
 // Topbar Mode Switcher: Visualizer vs Studio
 modeVisualizerBtn.addEventListener('click', () => {
   modeVisualizerBtn.classList.add('active');
   modeStudioBtn.classList.remove('active');
-  allPanels.forEach(p => p.classList.remove('open'));
-  presetsPanel.classList.add('open');
+  openDrawer('presets');
 });
 
 modeStudioBtn.addEventListener('click', () => {
   modeStudioBtn.classList.add('active');
   modeVisualizerBtn.classList.remove('active');
-  allPanels.forEach(p => p.classList.remove('open'));
-  studioPanel.classList.add('open');
+  openDrawer('myCreations');
   select3DPreset(studioPreset);
 });
 
@@ -374,31 +473,258 @@ repeatBtn.addEventListener('click', () => {
   repeatBtn.classList.toggle('active', audioEngine.isRepeat);
 });
 
-// Drawer Navigation Tabs
-railBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    const tab = (btn as HTMLElement).dataset.tab;
-    if (!tab) return;
-    railBtns.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+// More extras popover state manager
+function setRailMoreExpanded(expanded: boolean) {
+  if (expanded) {
+    railMoreWrapper?.classList.add('expanded');
+    railMoreBtn?.setAttribute(ARIA_EXPANDED, 'true');
+  } else {
+    railMoreWrapper?.classList.remove('expanded');
+    railMoreBtn?.setAttribute(ARIA_EXPANDED, 'false');
+  }
+}
 
-    allPanels.forEach(p => p.classList.remove('open'));
-    if (tab === 'presets') presetsPanel.classList.add('open');
-    if (tab === 'themes') themesPanel.classList.add('open');
-    if (tab === 'queue') queuePanel.classList.add('open');
-    if (tab === 'studio') studioPanel.classList.add('open');
-    if (tab === 'fx') fxPanel.classList.add('open');
-    if (tab === 'audio') audioPanel.classList.add('open');
+// 15 Navigation Rail Tool Switcher
+document.querySelectorAll('.rail-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const el = btn as HTMLElement;
+    const toolId = el.dataset.panel || el.dataset.tab;
+    if (!toolId) return;
+
+    if (toolId === 'more') {
+      const isExpanded = !railMoreWrapper?.classList.contains('expanded');
+      setRailMoreExpanded(isExpanded);
+      return;
+    }
+
+    if (toolId === 'shortcuts') {
+      shortcutsModal?.classList.toggle('open');
+      return;
+    }
+
+    if (toolId === 'hideUi') {
+      toggleHideUI();
+      return;
+    }
+
+    toggleDrawer(toolId);
   });
 });
 
-document.getElementById('closeDrawerBtn')?.addEventListener('click', () => presetsPanel.classList.remove('open'));
-document.querySelector('.closeThemeBtn')?.addEventListener('click', () => themesPanel.classList.remove('open'));
-document.querySelector('.closeQueueBtn')?.addEventListener('click', () => queuePanel.classList.remove('open'));
-document.querySelector('.closeStudioBtn')?.addEventListener('click', () => studioPanel.classList.remove('open'));
-document.querySelector('.closeFxBtn')?.addEventListener('click', () => fxPanel.classList.remove('open'));
-document.querySelector('.closeAudioBtn')?.addEventListener('click', () => audioPanel.classList.remove('open'));
-dockQueueBtn?.addEventListener('click', () => queuePanel.classList.toggle('open'));
+// Hide UI & Show UI Handlers
+hideUiBtn?.addEventListener('click', toggleHideUI);
+showUiBtn?.addEventListener('click', () => {
+  appRoot.classList.remove('ui-hidden');
+  document.documentElement.classList.remove('ui-hidden');
+  document.body.classList.remove('ui-hidden');
+});
+
+// Shortcuts Modal Handlers
+document.getElementById('shortcutHelpBtn')?.addEventListener('click', () => {
+  shortcutsModal?.classList.toggle('open');
+});
+closeShortcutsBtn?.addEventListener('click', () => {
+  shortcutsModal?.classList.remove('open');
+});
+shortcutsModal?.addEventListener('click', (e) => {
+  if (e.target === shortcutsModal) {
+    shortcutsModal.classList.remove('open');
+  }
+});
+
+// More Extras Popover Handlers
+railMoreBtn?.addEventListener('click', () => {
+  const isExpanded = !railMoreWrapper?.classList.contains('expanded');
+  setRailMoreExpanded(isExpanded);
+});
+ambientModeBtn?.addEventListener('click', () => {
+  document.body.classList.toggle(AMBIENT_MODE_CLASS);
+});
+bugReportBtn?.addEventListener('click', () => {
+  window.open('https://github.com/FunWarry/Visualizor/issues', '_blank');
+});
+document.addEventListener('click', (e: MouseEvent) => {
+  if (railMoreWrapper?.classList.contains('expanded') && !railMoreWrapper.contains(e.target as Node)) {
+    setRailMoreExpanded(false);
+  }
+});
+
+// Close Buttons for Drawer Panels
+document.querySelectorAll('.close-drawer-btn, .closeThemeBtn, .closeQueueBtn, .closeStudioBtn, .closeFxBtn, .closeAudioBtn, .closeCameraBtn, .closeOverlayBtn, .closeTextBtn, .closeSubtitlesBtn, .closeLibraryBtn, .closeTuningBtn, #closeDrawerBtn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    closeAllDrawers();
+    activeToolId = null;
+  });
+});
+dockQueueBtn?.addEventListener('click', () => queuePanel?.classList.toggle('open'));
+
+// Camera & 3D Viewpoints Controls
+const tiltUp = document.getElementById('tiltUp');
+const tiltDown = document.getElementById('tiltDown');
+const rotateLeft = document.getElementById('rotateLeft');
+const rotateRight = document.getElementById('rotateRight');
+const cameraReset = document.getElementById('cameraReset');
+const zoomSlider = document.getElementById('zoomSlider') as HTMLInputElement | null;
+const zoomIn = document.getElementById('zoomIn');
+const zoomOut = document.getElementById('zoomOut');
+const zoomValue = document.getElementById('zoomValue');
+const autoRotateToggle = document.getElementById('autoRotateToggle') as HTMLInputElement | null;
+const rotateSpeedSlider = document.getElementById('rotateSpeedSlider') as HTMLInputElement | null;
+const rotateSpeedValue = document.getElementById('rotateSpeedValue');
+const cameraShakeSegments = document.querySelectorAll('#cameraShakeSegments .opt-chip');
+const dofSegments = document.querySelectorAll('#dofSegments .opt-chip');
+
+let currentOrbitAngle = 0;
+let currentTiltAngle = 0;
+let currentZoom = 0.5;
+
+function updateCameraView() {
+  const dist = 6 + (1 - currentZoom) * 12;
+  renderEngine.camera.position.x = Math.sin(currentOrbitAngle) * Math.cos(currentTiltAngle) * dist;
+  renderEngine.camera.position.z = Math.cos(currentOrbitAngle) * Math.cos(currentTiltAngle) * dist;
+  renderEngine.camera.position.y = Math.sin(currentTiltAngle) * dist;
+  renderEngine.camera.lookAt(0, 0, 0);
+}
+
+rotateLeft?.addEventListener('click', () => {
+  currentOrbitAngle -= 0.2;
+  renderEngine.config.autoRotate = false;
+  if (autoRotateToggle) autoRotateToggle.checked = false;
+  updateCameraView();
+});
+
+rotateRight?.addEventListener('click', () => {
+  currentOrbitAngle += 0.2;
+  renderEngine.config.autoRotate = false;
+  if (autoRotateToggle) autoRotateToggle.checked = false;
+  updateCameraView();
+});
+
+tiltUp?.addEventListener('click', () => {
+  currentTiltAngle = Math.min(Math.PI / 2 - 0.05, currentTiltAngle + 0.15);
+  renderEngine.config.autoRotate = false;
+  if (autoRotateToggle) autoRotateToggle.checked = false;
+  updateCameraView();
+});
+
+tiltDown?.addEventListener('click', () => {
+  currentTiltAngle = Math.max(-Math.PI / 2 + 0.05, currentTiltAngle - 0.15);
+  renderEngine.config.autoRotate = false;
+  if (autoRotateToggle) autoRotateToggle.checked = false;
+  updateCameraView();
+});
+
+cameraReset?.addEventListener('click', () => {
+  currentOrbitAngle = 0;
+  currentTiltAngle = 0;
+  currentZoom = 0.5;
+  if (zoomSlider) zoomSlider.value = '0.5';
+  if (zoomValue) zoomValue.textContent = '50%';
+  renderEngine.config.autoRotate = true;
+  if (autoRotateToggle) autoRotateToggle.checked = true;
+  updateCameraView();
+});
+
+if (zoomSlider) {
+  zoomSlider.addEventListener('input', () => {
+    currentZoom = Number.parseFloat(zoomSlider.value);
+    if (zoomValue) zoomValue.textContent = `${Math.round(currentZoom * 100)}%`;
+    updateCameraView();
+  });
+}
+
+zoomIn?.addEventListener('click', () => {
+  if (zoomSlider) {
+    currentZoom = Math.min(1.0, currentZoom + 0.1);
+    zoomSlider.value = currentZoom.toString();
+    if (zoomValue) zoomValue.textContent = `${Math.round(currentZoom * 100)}%`;
+    updateCameraView();
+  }
+});
+
+zoomOut?.addEventListener('click', () => {
+  if (zoomSlider) {
+    currentZoom = Math.max(0.0, currentZoom - 0.1);
+    zoomSlider.value = currentZoom.toString();
+    if (zoomValue) zoomValue.textContent = `${Math.round(currentZoom * 100)}%`;
+    updateCameraView();
+  }
+});
+
+autoRotateToggle?.addEventListener('change', () => {
+  if (autoRotateToggle) {
+    renderEngine.config.autoRotate = autoRotateToggle.checked;
+  }
+});
+
+rotateSpeedSlider?.addEventListener('input', () => {
+  if (rotateSpeedSlider) {
+    const spd = Number.parseFloat(rotateSpeedSlider.value);
+    renderEngine.config.autoRotateSpeed = spd * 0.8;
+    if (rotateSpeedValue) rotateSpeedValue.textContent = `${Math.round(spd * 100)}%`;
+  }
+});
+
+cameraShakeSegments.forEach(chip => {
+  chip.addEventListener('click', () => {
+    cameraShakeSegments.forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    const val = Number.parseFloat((chip as HTMLElement).dataset.value || '0');
+    renderEngine.config.cameraShake = val > 0;
+  });
+});
+
+dofSegments.forEach(chip => {
+  chip.addEventListener('click', () => {
+    dofSegments.forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  });
+});
+
+function handleKeyboardHotkey(key: string, isShift: boolean): boolean {
+  switch (key.toLowerCase()) {
+    case 'h':
+      toggleHideUI();
+      return true;
+    case 'f':
+      toggleFullscreen();
+      return true;
+    case ' ':
+      initMilkdropIfNeeded();
+      void audioEngine.togglePlay();
+      updatePlayButton();
+      return true;
+    case 'r':
+      pickRandomPreset();
+      return true;
+    case 'b':
+      bpmText.textContent = `${audioEngine.bpmDetector.tap()} BPM (Tap)`;
+      bpmBtn.style.borderColor = 'var(--primary)';
+      return true;
+    case '?':
+      shortcutsModal?.classList.toggle('open');
+      return true;
+    case '/':
+      if (isShift) {
+        shortcutsModal?.classList.toggle('open');
+        return true;
+      }
+      return false;
+    default:
+      return false;
+  }
+}
+
+// Keyboard Hotkeys
+window.addEventListener('keydown', (e: KeyboardEvent) => {
+  const target = e.target as HTMLElement | null;
+  const isInput = Boolean(target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable));
+  if (isInput) return;
+
+  if (handleKeyboardHotkey(e.key, e.shiftKey)) {
+    e.preventDefault();
+  }
+});
 
 // BPM & Tap Tempo
 bpmBtn.addEventListener('click', () => {
@@ -602,15 +928,7 @@ studioForceSlider?.addEventListener('input', () => {
 
 // Zen / Ambient Mode
 ambientBtn.addEventListener('click', () => {
-  document.body.classList.toggle('ambient-mode');
-});
-
-window.addEventListener('keydown', (e) => {
-  if (e.key === 'h' || e.key === 'H') {
-    document.body.classList.toggle('ambient-mode');
-  } else if (e.key === 'f' || e.key === 'F') {
-    toggleFullscreen();
-  }
+  document.body.classList.toggle(AMBIENT_MODE_CLASS);
 });
 
 fsBtn.addEventListener('click', toggleFullscreen);
