@@ -10,6 +10,8 @@
   <!-- 3D Canvas Background -->
   <div id="canvas-container">
     <canvas id="webgl-canvas"></canvas>
+    <!-- Framing Guides for Aspect Ratios -->
+    <div id="framingGuide" class="framing-guide hidden"></div>
   </div>
 
   <!-- Topbar -->
@@ -19,6 +21,12 @@
       <span>Visualizor</span>
     </div>
     <div class="topbar-actions">
+      <!-- BPM Badge with Tap Tempo -->
+      <button class="bpm-pill" id="bpmBtn" title="Click to Tap Tempo (Lock BPM)">
+        <span class="bpm-indicator" id="bpmIndicator"></span>
+        <span id="bpmText">120 BPM</span>
+      </button>
+
       <button class="btn-icon" id="micBtn" title="Microphone Live Input">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
       </button>
@@ -47,6 +55,10 @@
     <button class="rail-btn" data-tab="themes">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a7 7 0 0 1 0 14c-1.5 0-2 .5-2 1.5 0 .8.7 1.5 1.5 1.5H12"/></svg>
       Themes
+    </button>
+    <button class="rail-btn" data-tab="queue">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      Queue
     </button>
     <button class="rail-btn" data-tab="fx">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
@@ -80,6 +92,29 @@
     </div>
   </div>
 
+  <!-- Queue / Playlist Drawer Panel -->
+  <div class="drawer-panel glass-panel" id="queuePanel">
+    <div class="panel-header">
+      <span>Playback Queue</span>
+      <div style="display:flex;gap:6px;">
+        <button class="btn-icon" style="width:28px;height:28px;" id="shuffleBtn" title="Shuffle">🔀</button>
+        <button class="btn-icon" style="width:28px;height:28px;" id="repeatBtn" title="Repeat">🔁</button>
+        <button class="btn-icon" style="width:28px;height:28px;" class="closeQueueBtn">✕</button>
+      </div>
+    </div>
+    <div class="panel-content">
+      <div style="margin-bottom:12px;">
+        <label class="btn-primary" style="justify-content:center;font-size:12px;cursor:pointer;">
+          <input type="file" id="queueFileInput" accept="audio/*" multiple style="display:none;">
+          + Add Audio Tracks
+        </label>
+      </div>
+      <div class="cards-grid" id="queueList">
+        <div style="font-size:12px;color:var(--text-muted);text-align:center;padding:20px 0;">No tracks in queue. Add tracks or drop files here.</div>
+      </div>
+    </div>
+  </div>
+
   <!-- FX Drawer Panel -->
   <div class="drawer-panel glass-panel" id="fxPanel">
     <div class="panel-header">
@@ -90,6 +125,10 @@
       <div class="control-row">
         <div class="control-label"><span>Bloom / Glow</span><span id="bloomVal">1.2</span></div>
         <input class="ui-slider" type="range" id="bloomSlider" min="0" max="3" step="0.1" value="1.2">
+      </div>
+      <div class="control-row">
+        <div class="control-label"><span>Motion Trails (Persistence)</span><span id="persistVal">0.0</span></div>
+        <input class="ui-slider" type="range" id="persistSlider" min="0" max="0.9" step="0.05" value="0.0">
       </div>
       <div class="control-row">
         <div class="control-label"><span>Chromatic Aberration</span><span id="chromaVal">0.35</span></div>
@@ -125,6 +164,9 @@
         <div class="control-label"><span>Audio Sensitivity</span><span id="sensVal">100%</span></div>
         <input class="ui-slider" type="range" id="sensSlider" min="0.5" max="2.5" step="0.1" value="1.0">
       </div>
+      <div class="control-row" style="margin-top:16px;">
+        <button class="btn-primary" style="width:100%;justify-content:center;" id="resetBpmBtn">Auto-Detect BPM (Reset Tap)</button>
+      </div>
       <p style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-top:10px;">
         Visualizor analyzes frequencies across Sub-Bass (20-60Hz), Bass (60-250Hz), Mid (250-4000Hz), and Treble (4-16kHz) with automatic kick detection.
       </p>
@@ -140,8 +182,14 @@
 
     <div class="dock-controls">
       <div class="dock-buttons">
+        <button class="btn-icon" id="prevTrackBtn" title="Previous Track">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2"/></svg>
+        </button>
         <button class="btn-icon" id="playBtn">
           <svg id="playIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </button>
+        <button class="btn-icon" id="nextTrackBtn" title="Next Track">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"/></svg>
         </button>
         <button class="btn-primary" style="padding: 6px 12px; font-size: 12px;" id="demoBtn">
           Play Demo
@@ -176,8 +224,22 @@
   <!-- Export Modal (Unlocked 100%) -->
   <div class="modal-overlay" id="exportModal">
     <div class="modal-content glass-panel">
-      <div class="modal-title">Export High-Def Video</div>
+      <div class="modal-title">Export High-Def Video & GIF</div>
       <div class="modal-desc">Render full 60 FPS video directly in your browser without watermarks or paywalls.</div>
+
+      <div style="font-size:12px;margin-bottom:6px;color:#fff;">Format</div>
+      <div class="chip-group" id="formatChips">
+        <div class="opt-chip active" data-val="webm">WebM (Fast)</div>
+        <div class="opt-chip" data-val="mp4">MP4</div>
+        <div class="opt-chip" data-val="gif">GIF Loop</div>
+      </div>
+
+      <div style="font-size:12px;margin-bottom:6px;color:#fff;">Aspect Ratio</div>
+      <div class="chip-group" id="aspectChips">
+        <div class="opt-chip active" data-val="16:9">16:9 Landscape</div>
+        <div class="opt-chip" data-val="9:16">9:16 Vertical (Shorts/TikTok)</div>
+        <div class="opt-chip" data-val="1:1">1:1 Square (Instagram)</div>
+      </div>
 
       <div style="font-size:12px;margin-bottom:6px;color:#fff;">Resolution</div>
       <div class="chip-group" id="resChips">
@@ -220,4 +282,3 @@
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
-

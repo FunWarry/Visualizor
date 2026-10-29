@@ -1,4 +1,4 @@
-import { AudioEngine } from './audio/AudioEngine';
+import { AudioEngine, PlaylistTrack } from './audio/AudioEngine';
 import { RenderEngine } from './engine/RenderEngine';
 import { ExportManager } from './export/ExportManager';
 import { THEMES, getTheme } from './themes/themes';
@@ -7,10 +7,14 @@ import { ExportSettings } from './types';
 
 // DOM Elements
 const canvas = document.getElementById('webgl-canvas') as HTMLCanvasElement;
+const framingGuide = document.getElementById('framingGuide') as HTMLElement;
 const playBtn = document.getElementById('playBtn') as HTMLButtonElement;
 const playIcon = document.getElementById('playIcon') as HTMLElement;
+const prevTrackBtn = document.getElementById('prevTrackBtn') as HTMLButtonElement;
+const nextTrackBtn = document.getElementById('nextTrackBtn') as HTMLButtonElement;
 const demoBtn = document.getElementById('demoBtn') as HTMLButtonElement;
 const audioFileInput = document.getElementById('audioFileInput') as HTMLInputElement;
+const queueFileInput = document.getElementById('queueFileInput') as HTMLInputElement;
 const micBtn = document.getElementById('micBtn') as HTMLButtonElement;
 const captureBtn = document.getElementById('captureBtn') as HTMLButtonElement;
 const ambientBtn = document.getElementById('ambientBtn') as HTMLButtonElement;
@@ -24,15 +28,27 @@ const trackArtist = document.getElementById('trackArtist') as HTMLElement;
 const volumeSlider = document.getElementById('volumeSlider') as HTMLInputElement;
 const vuMeter = document.getElementById('vuMeter') as HTMLElement;
 
+// BPM Elements
+const bpmBtn = document.getElementById('bpmBtn') as HTMLButtonElement;
+const bpmText = document.getElementById('bpmText') as HTMLElement;
+const bpmIndicator = document.getElementById('bpmIndicator') as HTMLElement;
+const resetBpmBtn = document.getElementById('resetBpmBtn') as HTMLButtonElement;
+
 // Drawers
 const presetsPanel = document.getElementById('presetsPanel') as HTMLElement;
 const themesPanel = document.getElementById('themesPanel') as HTMLElement;
+const queuePanel = document.getElementById('queuePanel') as HTMLElement;
 const fxPanel = document.getElementById('fxPanel') as HTMLElement;
 const audioPanel = document.getElementById('audioPanel') as HTMLElement;
-const allPanels = [presetsPanel, themesPanel, fxPanel, audioPanel];
+const allPanels = [presetsPanel, themesPanel, queuePanel, fxPanel, audioPanel];
 
 // Rail tabs
 const railBtns = document.querySelectorAll('.rail-btn');
+
+// Queue elements
+const queueList = document.getElementById('queueList') as HTMLElement;
+const shuffleBtn = document.getElementById('shuffleBtn') as HTMLButtonElement;
+const repeatBtn = document.getElementById('repeatBtn') as HTMLButtonElement;
 
 // Export Modal
 const exportModal = document.getElementById('exportModal') as HTMLElement;
@@ -45,6 +61,7 @@ const exportProgressSection = document.getElementById('exportProgressSection') a
 
 // Sliders
 const bloomSlider = document.getElementById('bloomSlider') as HTMLInputElement;
+const persistSlider = document.getElementById('persistSlider') as HTMLInputElement;
 const chromaSlider = document.getElementById('chromaSlider') as HTMLInputElement;
 const grainSlider = document.getElementById('grainSlider') as HTMLInputElement;
 const vigSlider = document.getElementById('vigSlider') as HTMLInputElement;
@@ -96,6 +113,31 @@ THEMES.forEach(t => {
   themesList.appendChild(card);
 });
 
+// Build & Update Queue UI
+function updateQueueUI(playlist: PlaylistTrack[], currentIdx: number) {
+  queueList.innerHTML = '';
+  if (playlist.length === 0) {
+    queueList.innerHTML = '<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:20px 0;">No tracks in queue. Add tracks or drop files here.</div>';
+    return;
+  }
+
+  playlist.forEach((track, i) => {
+    const item = document.createElement('div');
+    item.className = `queue-item ${i === currentIdx ? 'active' : ''}`;
+    item.innerHTML = `
+      <div class="queue-item-title">${track.name}</div>
+      <div class="queue-item-artist">${track.artist}</div>
+    `;
+    item.addEventListener('click', () => {
+      audioEngine.playPlaylistIndex(i);
+      updatePlayButton();
+    });
+    queueList.appendChild(item);
+  });
+}
+
+audioEngine.onPlaylistChange = (pl, idx) => updateQueueUI(pl, idx);
+
 // Drawer Navigation Tabs
 railBtns.forEach(btn => {
   btn.addEventListener('click', () => {
@@ -106,6 +148,7 @@ railBtns.forEach(btn => {
     allPanels.forEach(p => p.classList.remove('open'));
     if (tab === 'presets') presetsPanel.classList.add('open');
     if (tab === 'themes') themesPanel.classList.add('open');
+    if (tab === 'queue') queuePanel.classList.add('open');
     if (tab === 'fx') fxPanel.classList.add('open');
     if (tab === 'audio') audioPanel.classList.add('open');
   });
@@ -113,8 +156,26 @@ railBtns.forEach(btn => {
 
 document.getElementById('closeDrawerBtn')?.addEventListener('click', () => presetsPanel.classList.remove('open'));
 document.querySelector('.closeThemeBtn')?.addEventListener('click', () => themesPanel.classList.remove('open'));
+document.querySelector('.closeQueueBtn')?.addEventListener('click', () => queuePanel.classList.remove('open'));
 document.querySelector('.closeFxBtn')?.addEventListener('click', () => fxPanel.classList.remove('open'));
 document.querySelector('.closeAudioBtn')?.addEventListener('click', () => audioPanel.classList.remove('open'));
+
+// BPM & Tap Tempo
+bpmBtn.addEventListener('click', () => {
+  const bpm = audioEngine.bpmDetector.tap();
+  bpmText.textContent = `${bpm} BPM (Tap)`;
+  bpmBtn.style.borderColor = 'var(--primary)';
+});
+
+resetBpmBtn.addEventListener('click', () => {
+  audioEngine.bpmDetector.resetManual();
+  bpmText.textContent = `${audioEngine.bpmDetector.detectedBPM} BPM`;
+  bpmBtn.style.borderColor = '';
+});
+
+audioEngine.onBpmChange = (bpm, isManual) => {
+  bpmText.textContent = `${bpm} BPM${isManual ? ' (Lock)' : ''}`;
+};
 
 // Audio & Player Controls
 function formatTime(sec: number): string {
@@ -142,6 +203,26 @@ playBtn.addEventListener('click', async () => {
   updatePlayButton();
 });
 
+prevTrackBtn.addEventListener('click', () => {
+  audioEngine.prevTrack();
+  updatePlayButton();
+});
+
+nextTrackBtn.addEventListener('click', () => {
+  audioEngine.nextTrack();
+  updatePlayButton();
+});
+
+shuffleBtn.addEventListener('click', () => {
+  audioEngine.isShuffle = !audioEngine.isShuffle;
+  shuffleBtn.classList.toggle('active', audioEngine.isShuffle);
+});
+
+repeatBtn.addEventListener('click', () => {
+  audioEngine.isRepeat = !audioEngine.isRepeat;
+  repeatBtn.classList.toggle('active', audioEngine.isRepeat);
+});
+
 demoBtn.addEventListener('click', () => {
   if (audioEngine.isDemoPlaying) {
     audioEngine.stopDemo();
@@ -156,6 +237,28 @@ audioFileInput.addEventListener('change', async (e) => {
   if (file) {
     await audioEngine.loadAudioFile(file);
     updatePlayButton();
+  }
+});
+
+queueFileInput.addEventListener('change', (e) => {
+  const files = (e.target as HTMLInputElement).files;
+  if (files && files.length > 0) {
+    audioEngine.addFilesToPlaylist(Array.from(files));
+    updatePlayButton();
+  }
+});
+
+// Drag and drop audio files onto window
+window.addEventListener('dragover', (e) => e.preventDefault());
+window.addEventListener('drop', (e) => {
+  e.preventDefault();
+  const files = e.dataTransfer?.files;
+  if (files && files.length > 0) {
+    const audioFiles = Array.from(files).filter(f => f.type.startsWith('audio/'));
+    if (audioFiles.length > 0) {
+      audioEngine.addFilesToPlaylist(audioFiles);
+      updatePlayButton();
+    }
   }
 });
 
@@ -184,6 +287,12 @@ bloomSlider.addEventListener('input', () => {
   const val = parseFloat(bloomSlider.value);
   document.getElementById('bloomVal')!.textContent = val.toFixed(1);
   renderEngine.updateConfig({ bloomStrength: val });
+});
+
+persistSlider.addEventListener('input', () => {
+  const val = parseFloat(persistSlider.value);
+  document.getElementById('persistVal')!.textContent = val.toFixed(2);
+  renderEngine.updateConfig({ persistence: val });
 });
 
 chromaSlider.addEventListener('input', () => {
@@ -254,33 +363,50 @@ captureBtn.addEventListener('click', () => {
   link.click();
 });
 
-// Export Video Modal
+// Export Video Modal & Aspect Ratio Framing
 openExportBtn.addEventListener('click', () => exportModal.classList.add('open'));
 cancelExportBtn.addEventListener('click', () => {
   exportModal.classList.remove('open');
+  framingGuide.className = 'framing-guide hidden';
   exportManager.stopExport();
 });
 
 // Chip selection handlers
-function setupChips(containerId: string) {
+function setupChips(containerId: string, onChange?: (val: string) => void) {
   const chips = document.querySelectorAll(`#${containerId} .opt-chip`);
   chips.forEach(c => {
     c.addEventListener('click', () => {
       chips.forEach(x => x.classList.remove('active'));
       c.classList.add('active');
+      const val = c.getAttribute('data-val') || '';
+      onChange?.(val);
     });
   });
 }
+setupChips('formatChips');
 setupChips('resChips');
 setupChips('fpsChips');
 setupChips('durChips');
 
+setupChips('aspectChips', (ratio) => {
+  if (ratio === '9:16') {
+    framingGuide.className = 'framing-guide ratio-9-16';
+  } else if (ratio === '1:1') {
+    framingGuide.className = 'framing-guide ratio-1-1';
+  } else {
+    framingGuide.className = 'framing-guide hidden';
+  }
+});
+
 startExportAction.addEventListener('click', async () => {
+  const format = (document.querySelector('#formatChips .opt-chip.active')?.getAttribute('data-val') || 'webm') as 'webm' | 'mp4' | 'gif';
+  const ratio = (document.querySelector('#aspectChips .opt-chip.active')?.getAttribute('data-val') || '16:9') as '16:9' | '9:16' | '1:1';
   const fps = parseInt(document.querySelector('#fpsChips .opt-chip.active')?.getAttribute('data-val') || '60') as 30 | 60;
   const duration = parseInt(document.querySelector('#durChips .opt-chip.active')?.getAttribute('data-val') || '15');
 
   const settings: ExportSettings = {
-    format: 'webm',
+    format,
+    aspectRatio: ratio,
     resolution: '1080p',
     fps,
     quality: 'ultra',
@@ -293,7 +419,6 @@ startExportAction.addEventListener('click', async () => {
   exportProgressSection.style.display = 'block';
   startExportAction.textContent = 'Rendering...';
 
-  // Ensure audio is playing for the export
   if (!audioEngine.isPlaying && !audioEngine.isDemoPlaying) {
     audioEngine.playDemo();
     updatePlayButton();
@@ -311,10 +436,11 @@ startExportAction.addEventListener('click', async () => {
       exportProgressSection.style.display = 'none';
       startExportAction.textContent = 'Start Export';
       exportModal.classList.remove('open');
+      framingGuide.className = 'framing-guide hidden';
 
-      // Trigger automatic download
+      const ext = format === 'gif' ? 'gif' : (format === 'mp4' ? 'mp4' : 'webm');
       const link = document.createElement('a');
-      link.download = `visualizor-render-${Date.now()}.webm`;
+      link.download = `visualizor-${renderEngine.activePreset?.id}-${ratio.replace(':', 'x')}-${Date.now()}.${ext}`;
       link.href = downloadUrl;
       link.click();
     }
@@ -330,6 +456,13 @@ function animate() {
   const features = audioEngine.getFeatures();
   renderEngine.render(features);
 
+  // BPM pulse indicator
+  if (features.beat) {
+    bpmIndicator.classList.add('beat');
+  } else {
+    bpmIndicator.classList.remove('beat');
+  }
+
   // Update VU meter visualization
   if (vuBars.length > 0) {
     vuBars[0].style.height = `${Math.min(100, Math.max(15, features.subBass * 100))}%`;
@@ -342,4 +475,3 @@ function animate() {
 
 // Start loop
 animate();
-

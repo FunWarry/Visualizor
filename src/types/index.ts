@@ -48,6 +48,7 @@ export interface PostProcessingConfig {
   bloomStrength: number;       // 0.0 - 3.0
   bloomRadius: number;         // 0.0 - 1.0
   bloomThreshold: number;      // 0.0 - 1.0
+  persistence: number;         // 0.0 - 0.95 (Motion persistence / trails)
   chromaticAberration: number; // 0.0 - 1.0
   filmGrain: number;           // 0.0 - 1.0
   vignette: number;            // 0.0 - 1.0
@@ -59,7 +60,8 @@ export interface PostProcessingConfig {
 }
 
 export interface ExportSettings {
-  format: 'webm' | 'mp4';
+  format: 'webm' | 'mp4' | 'gif';
+  aspectRatio: '16:9' | '9:16' | '1:1';
   resolution: '720p' | '1080p' | '1440p' | '4k';
   fps: 30 | 60;
   quality: 'medium' | 'high' | 'ultra';

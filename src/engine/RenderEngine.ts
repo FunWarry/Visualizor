@@ -8,6 +8,8 @@ import { VisualizerPreset, VisualizerTheme, AudioFeatures, PostProcessingConfig 
 const MasterShader = {
   uniforms: {
     tDiffuse: { value: null },
+    tFeedback: { value: null },
+    uPersistence: { value: 0.0 },
     uTime: { value: 0 },
     uVignette: { value: 0.5 },
     uFilmGrain: { value: 0.15 },
@@ -25,6 +27,8 @@ const MasterShader = {
   `,
   fragmentShader: `
     uniform sampler2D tDiffuse;
+    uniform sampler2D tFeedback;
+    uniform float uPersistence;
     uniform float uTime;
     uniform float uVignette;
     uniform float uFilmGrain;
@@ -60,6 +64,12 @@ const MasterShader = {
       float b = texture2D(tDiffuse, uv - dir * split).b;
       vec3 color = vec3(r, g, b);
 
+      // Motion Persistence (Feedback trails)
+      if (uPersistence > 0.01) {
+        vec3 fb = texture2D(tFeedback, uv).rgb;
+        color = max(color, fb * uPersistence);
+      }
+
       // CRT Scanlines
       if (uScanlines > 0.01) {
         float scanline = sin(uv.y * 700.0) * 0.5 + 0.5;
@@ -93,6 +103,13 @@ export class RenderEngine {
   private bloomPass: UnrealBloomPass;
   private masterPass: ShaderPass;
 
+  // Feedback targets for motion persistence
+  private feedbackTargets: [THREE.WebGLRenderTarget, THREE.WebGLRenderTarget];
+  private currentFeedbackIndex = 0;
+  private copyScene: THREE.Scene;
+  private copyCamera: THREE.OrthographicCamera;
+  private copyMaterial: THREE.MeshBasicMaterial;
+
   public activePreset: VisualizerPreset | null = null;
   public currentTheme: VisualizerTheme;
   public config: PostProcessingConfig;
@@ -108,6 +125,7 @@ export class RenderEngine {
       bloomStrength: 1.2,
       bloomRadius: 0.45,
       bloomThreshold: 0.15,
+      persistence: 0.0,
       chromaticAberration: 0.35,
       filmGrain: 0.12,
       vignette: 0.45,
@@ -133,7 +151,7 @@ export class RenderEngine {
       canvas,
       antialias: true,
       powerPreference: 'high-performance',
-      preserveDrawingBuffer: true // Required for screenshot & video export
+      preserveDrawingBuffer: true
     });
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -158,6 +176,24 @@ export class RenderEngine {
     this.masterPass = new ShaderPass(MasterShader);
     this.composer.addPass(this.masterPass);
 
+    // Ping-pong targets for motion persistence
+    const targetOptions = {
+      minFilter: THREE.LinearFilter,
+      magFilter: THREE.LinearFilter,
+      format: THREE.RGBAFormat
+    };
+    this.feedbackTargets = [
+      new THREE.WebGLRenderTarget(width, height, targetOptions),
+      new THREE.WebGLRenderTarget(width, height, targetOptions)
+    ];
+
+    // Ortho copy scene for ping-pong blit
+    this.copyScene = new THREE.Scene();
+    this.copyCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    this.copyMaterial = new THREE.MeshBasicMaterial({ transparent: false });
+    const copyQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.copyMaterial);
+    this.copyScene.add(copyQuad);
+
     // Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     this.scene.add(ambientLight);
@@ -172,7 +208,6 @@ export class RenderEngine {
   public setPreset(preset: VisualizerPreset) {
     if (this.activePreset) {
       this.activePreset.dispose();
-      // Remove all custom objects from scene except lights
       const toRemove: THREE.Object3D[] = [];
       this.scene.children.forEach(child => {
         if (!(child instanceof THREE.Light)) {
@@ -256,7 +291,10 @@ export class RenderEngine {
       }, audio, time, delta);
     }
 
-    // Update master post-processing uniforms
+    // Motion Persistence: feed previous target texture to shader
+    const currentReadTarget = this.feedbackTargets[this.currentFeedbackIndex];
+    const currentWriteTarget = this.feedbackTargets[1 - this.currentFeedbackIndex];
+
     const uniforms = this.masterPass.uniforms;
     uniforms.uTime.value = time;
     uniforms.uVignette.value = this.config.vignette;
@@ -265,8 +303,19 @@ export class RenderEngine {
     uniforms.uScanlines.value = this.config.scanlines;
     uniforms.uCrtBend.value = this.config.crtBend;
     uniforms.uAudioBass.value = audio.bass;
+    uniforms.uPersistence.value = this.config.persistence;
+    uniforms.tFeedback.value = currentReadTarget.texture;
 
     this.composer.render();
+
+    // If persistence active, copy output to write target and swap
+    if (this.config.persistence > 0.01) {
+      this.renderer.setRenderTarget(currentWriteTarget);
+      this.copyMaterial.map = this.renderer.domElement as any; // canvas source
+      this.renderer.render(this.copyScene, this.copyCamera);
+      this.renderer.setRenderTarget(null);
+      this.currentFeedbackIndex = 1 - this.currentFeedbackIndex;
+    }
   }
 
   public resize(width: number, height: number) {
@@ -275,6 +324,8 @@ export class RenderEngine {
 
     this.renderer.setSize(width, height);
     this.composer.setSize(width, height);
+    this.feedbackTargets[0].setSize(width, height);
+    this.feedbackTargets[1].setSize(width, height);
 
     if (this.activePreset?.resize) {
       this.activePreset.resize(width, height);

@@ -36,6 +36,75 @@ export class BeatDetector {
   }
 }
 
+export class BPMDetector {
+  private tapTimes: number[] = [];
+  public manualBPM: number | null = null;
+  public detectedBPM = 120;
+  private peakTimestamps: number[] = [];
+
+  recordBeat(timeSeconds: number) {
+    if (this.manualBPM !== null) return;
+    this.peakTimestamps.push(timeSeconds);
+    if (this.peakTimestamps.length > 20) {
+      this.peakTimestamps.shift();
+    }
+
+    if (this.peakTimestamps.length >= 4) {
+      const intervals: number[] = [];
+      for (let i = 1; i < this.peakTimestamps.length; i++) {
+        const dt = this.peakTimestamps[i] - this.peakTimestamps[i - 1];
+        if (dt >= 0.25 && dt <= 1.2) { // 50 to 240 BPM range
+          intervals.push(dt);
+        }
+      }
+      if (intervals.length >= 3) {
+        intervals.sort((a, b) => a - b);
+        const medianDt = intervals[Math.floor(intervals.length / 2)];
+        const bpm = Math.round(60 / medianDt);
+        if (bpm >= 60 && bpm <= 200) {
+          this.detectedBPM = Math.round(this.detectedBPM * 0.75 + bpm * 0.25);
+        }
+      }
+    }
+  }
+
+  tap(): number {
+    const now = performance.now() / 1000;
+    if (this.tapTimes.length > 0 && now - this.tapTimes[this.tapTimes.length - 1] > 2.5) {
+      this.tapTimes = [];
+    }
+    this.tapTimes.push(now);
+    if (this.tapTimes.length > 8) this.tapTimes.shift();
+
+    if (this.tapTimes.length >= 2) {
+      let sum = 0;
+      for (let i = 1; i < this.tapTimes.length; i++) {
+        sum += this.tapTimes[i] - this.tapTimes[i - 1];
+      }
+      const avgDt = sum / (this.tapTimes.length - 1);
+      const bpm = Math.round(60 / avgDt);
+      if (bpm >= 50 && bpm <= 240) {
+        this.manualBPM = bpm;
+        this.detectedBPM = bpm;
+      }
+    }
+    return this.detectedBPM;
+  }
+
+  resetManual() {
+    this.manualBPM = null;
+    this.tapTimes = [];
+  }
+}
+
+export interface PlaylistTrack {
+  id: string;
+  name: string;
+  artist: string;
+  file?: File;
+  url?: string;
+}
+
 export class AudioEngine {
   private ctx: AudioContext | null = null;
   private analyser: AnalyserNode | null = null;
@@ -52,10 +121,17 @@ export class AudioEngine {
   private demoInterval: any = null;
   public isDemoPlaying = false;
 
-  // Analysis Buffers
+  // Analysis Buffers & Detectors
   private freqData!: Uint8Array;
   private timeData!: Uint8Array;
   private beatDetector = new BeatDetector();
+  public bpmDetector = new BPMDetector();
+
+  // Playlist Queue
+  public playlist: PlaylistTrack[] = [];
+  public currentTrackIndex = -1;
+  public isShuffle = false;
+  public isRepeat = false;
 
   public isMicActive = false;
   public currentTrackName = 'No track loaded';
@@ -69,6 +145,8 @@ export class AudioEngine {
   // Callbacks
   public onTrackEnded?: () => void;
   public onTimeUpdate?: (current: number, total: number) => void;
+  public onPlaylistChange?: (playlist: PlaylistTrack[], currentIndex: number) => void;
+  public onBpmChange?: (bpm: number, isManual: boolean) => void;
 
   constructor() {
     this.audioElement = new Audio();
@@ -84,7 +162,7 @@ export class AudioEngine {
 
     this.audioElement.addEventListener('ended', () => {
       this.isPlaying = false;
-      this.onTrackEnded?.();
+      this.handleTrackEnded();
     });
   }
 
@@ -120,19 +198,81 @@ export class AudioEngine {
     }
   }
 
-  public async loadAudioFile(file: File) {
+  // Playlist Management
+  public addFilesToPlaylist(files: File[]) {
+    files.forEach(file => {
+      const track: PlaylistTrack = {
+        id: `track-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+        name: file.name.replace(/\.[^/.]+$/, ''),
+        artist: 'Local Audio',
+        file
+      };
+      this.playlist.push(track);
+    });
+
+    if (this.currentTrackIndex === -1 && this.playlist.length > 0) {
+      this.playPlaylistIndex(0);
+    } else {
+      this.onPlaylistChange?.(this.playlist, this.currentTrackIndex);
+    }
+  }
+
+  public async playPlaylistIndex(index: number) {
+    if (index < 0 || index >= this.playlist.length) return;
+    this.currentTrackIndex = index;
+    const track = this.playlist[index];
+
     this.stopDemo();
     this.disableMic();
     this.initContext();
 
-    const objectUrl = URL.createObjectURL(file);
-    if (this.audioElement) {
-      this.audioElement.src = objectUrl;
-      this.currentTrackName = file.name.replace(/\.[^/.]+$/, '');
-      this.currentArtistName = 'Local Audio';
-      await this.audioElement.play();
-      this.isPlaying = true;
+    if (track.file && this.audioElement) {
+      this.audioElement.src = URL.createObjectURL(track.file);
+      this.currentTrackName = track.name;
+      this.currentArtistName = track.artist;
+      try {
+        await this.audioElement.play();
+        this.isPlaying = true;
+      } catch (err) {
+        console.warn('Playback error:', err);
+      }
     }
+    this.onPlaylistChange?.(this.playlist, this.currentTrackIndex);
+  }
+
+  public nextTrack() {
+    if (this.playlist.length === 0) return;
+    if (this.isShuffle) {
+      const nextIdx = Math.floor(Math.random() * this.playlist.length);
+      this.playPlaylistIndex(nextIdx);
+    } else {
+      const nextIdx = (this.currentTrackIndex + 1) % this.playlist.length;
+      this.playPlaylistIndex(nextIdx);
+    }
+  }
+
+  public prevTrack() {
+    if (this.playlist.length === 0) return;
+    if (this.currentTime > 3) {
+      this.seek(0);
+      return;
+    }
+    const prevIdx = (this.currentTrackIndex - 1 + this.playlist.length) % this.playlist.length;
+    this.playPlaylistIndex(prevIdx);
+  }
+
+  private handleTrackEnded() {
+    this.onTrackEnded?.();
+    if (this.isRepeat) {
+      this.seek(0);
+      this.togglePlay();
+    } else if (this.playlist.length > 1) {
+      this.nextTrack();
+    }
+  }
+
+  public async loadAudioFile(file: File) {
+    this.addFilesToPlaylist([file]);
   }
 
   public async togglePlay() {
@@ -227,13 +367,12 @@ export class AudioEngine {
     this.currentArtistName = 'Visuval Procedural Audio';
 
     let step = 0;
-    const scale = [130.81, 155.56, 174.61, 196.00, 233.08, 261.63, 311.13, 392.00]; // C Minor Pentatonic
+    const scale = [130.81, 155.56, 174.61, 196.00, 233.08, 261.63, 311.13, 392.00];
 
     this.demoInterval = setInterval(() => {
       if (!this.ctx || !this.gainNode) return;
       const t = this.ctx.currentTime;
 
-      // 4-on-the-floor kick drum
       if (step % 4 === 0) {
         const osc = this.ctx.createOscillator();
         const g = this.ctx.createGain();
@@ -247,7 +386,6 @@ export class AudioEngine {
         osc.stop(t + 0.22);
       }
 
-      // Snare on beat 2 & 4
       if (step % 8 === 4) {
         const osc = this.ctx.createOscillator();
         const g = this.ctx.createGain();
@@ -261,7 +399,6 @@ export class AudioEngine {
         osc.stop(t + 0.15);
       }
 
-      // Melodic arpeggio
       const note = scale[step % scale.length];
       const oscPluck = this.ctx.createOscillator();
       const gPluck = this.ctx.createGain();
@@ -275,7 +412,7 @@ export class AudioEngine {
       oscPluck.stop(t + 0.18);
 
       step = (step + 1) % 16;
-    }, 125); // 120 BPM
+    }, 125);
   }
 
   public stopDemo() {
@@ -302,7 +439,7 @@ export class AudioEngine {
         rms: 0,
         beat: false,
         beatEnergy: 0,
-        bpm: 120
+        bpm: this.bpmDetector.detectedBPM
       };
     }
 
@@ -314,7 +451,6 @@ export class AudioEngine {
     const mid = this.calcBand(14, 180) * this.sensitivity;
     const treble = this.calcBand(180, 600) * this.sensitivity;
 
-    // RMS calculation from waveform
     let sumSquares = 0;
     for (let i = 0; i < this.timeData.length; i++) {
       const norm = (this.timeData[i] - 128) / 128.0;
@@ -323,6 +459,10 @@ export class AudioEngine {
     const rms = Math.min(1.0, Math.sqrt(sumSquares / this.timeData.length) * 2.0 * this.sensitivity);
 
     const beat = this.beatDetector.update(bass);
+    if (beat && this.ctx) {
+      this.bpmDetector.recordBeat(this.ctx.currentTime);
+      this.onBpmChange?.(this.bpmDetector.detectedBPM, this.bpmDetector.manualBPM !== null);
+    }
 
     return {
       frequencyData: this.freqData,
@@ -334,7 +474,7 @@ export class AudioEngine {
       rms,
       beat,
       beatEnergy: this.beatDetector.beatEnergy,
-      bpm: 120
+      bpm: this.bpmDetector.detectedBPM
     };
   }
 

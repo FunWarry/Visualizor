@@ -45,6 +45,33 @@ body, html {
   display: block;
 }
 
+/* Framing Guides for 9:16 and 1:1 */
+.framing-guide {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px dashed rgba(255, 92, 0, 0.6);
+  pointer-events: none;
+  z-index: 2;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
+}
+
+.framing-guide.hidden {
+  display: none;
+}
+
+.framing-guide.ratio-9-16 {
+  height: 90vh;
+  width: calc(90vh * (9 / 16));
+}
+
+.framing-guide.ratio-1-1 {
+  height: 85vh;
+  width: 85vh;
+}
+
 /* Glassmorphic UI Containers */
 .glass-panel {
   background: var(--surface);
@@ -92,6 +119,40 @@ body, html {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* BPM Pill Badge */
+.bpm-pill {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bpm-pill:hover {
+  background: rgba(255, 92, 0, 0.15);
+  border-color: var(--primary);
+}
+
+.bpm-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  transition: transform 0.08s ease;
+}
+
+.bpm-indicator.beat {
+  transform: scale(1.6);
+  box-shadow: 0 0 10px var(--primary);
 }
 
 /* Icon Buttons */
@@ -232,7 +293,7 @@ body, html {
   gap: 8px;
 }
 
-.preset-card {
+.preset-card, .queue-item {
   padding: 10px 12px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.03);
@@ -241,17 +302,17 @@ body, html {
   transition: all 0.2s;
 }
 
-.preset-card:hover {
+.preset-card:hover, .queue-item:hover {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-.preset-card.active {
+.preset-card.active, .queue-item.active {
   background: rgba(255, 92, 0, 0.12);
   border-color: var(--primary);
 }
 
-.preset-card-title {
+.preset-card-title, .queue-item-title {
   font-weight: 600;
   font-size: 13px;
   color: #fff;
@@ -263,7 +324,7 @@ body, html {
   margin-top: 2px;
 }
 
-.preset-card-desc {
+.preset-card-desc, .queue-item-artist {
   font-size: 11px;
   color: var(--text-muted);
   margin-top: 4px;
@@ -519,4 +580,3 @@ body.ambient-mode .app-dock {
   pointer-events: none !important;
   transform: translateY(20px);
 }
-
