@@ -16,7 +16,7 @@ Toutes les issues ci-dessous sont créées et suivies sur le dépôt GitHub [Fun
 - [x] [#2](https://github.com/FunWarry/Visualizor/issues/2) `feat(preset): Implement Ferrofluid magnetic spike sphere`
 - [x] [#3](https://github.com/FunWarry/Visualizor/issues/3) `feat(preset): Implement DNA Helix rotating reactive strands`
 - [x] [#4](https://github.com/FunWarry/Visualizor/issues/4) `feat(preset): Implement Topo Map & Cymatic standing waves`
-- [ ] [#5](https://github.com/FunWarry/Visualizor/issues/5) `feat(preset): Implement 3D Vinyl Turntable & Rings Orrery`
+- [x] [#5](https://github.com/FunWarry/Visualizor/issues/5) `feat(preset): Implement 3D Vinyl Turntable & Rings Orrery`
 - [x] [#6](https://github.com/FunWarry/Visualizor/issues/6) `feat(preset): Implement Tesseract 4D & Hologram Glitch`
 - [x] [#7](https://github.com/FunWarry/Visualizor/issues/7) `feat(preset): Implement Geodesic frequency sphere & Warp Grid`
 
@@ -53,12 +53,12 @@ Toutes les issues ci-dessous sont créées et suivies sur le dépôt GitHub [Fun
 - [x] [#23](https://github.com/FunWarry/Visualizor/issues/23) `feat(preset): Implement LCD Deck CD player & Signal Lock`
 
 ### Epic: Organique & Nature
-- [ ] [#24](https://github.com/FunWarry/Visualizor/issues/24) `feat(preset): Implement Bloom flower opening & Ink drop diffusion`
-- [ ] [#25](https://github.com/FunWarry/Visualizor/issues/25) `feat(preset): Implement Meadow grass field & Up Cloud sky`
-- [ ] [#26](https://github.com/FunWarry/Visualizor/issues/26) `feat(preset): Implement Ocean wave surface & Rain Room downpour`
-- [ ] [#27](https://github.com/FunWarry/Visualizor/issues/27) `feat(preset): Implement Forest raymarched tree & Storm Cell`
-- [ ] [#28](https://github.com/FunWarry/Visualizor/issues/28) `feat(preset): Implement Jellyfish bioluminescent pulse & Mycelium`
-- [ ] [#29](https://github.com/FunWarry/Visualizor/issues/29) `feat(preset): Implement Erupting Volcano mountain`
+- [x] [#24](https://github.com/FunWarry/Visualizor/issues/24) `feat(preset): Implement Bloom flower opening & Ink drop diffusion`
+- [x] [#25](https://github.com/FunWarry/Visualizor/issues/25) `feat(preset): Implement Meadow grass field & Up Cloud sky`
+- [x] [#26](https://github.com/FunWarry/Visualizor/issues/26) `feat(preset): Implement Ocean wave surface & Rain Room downpour`
+- [x] [#27](https://github.com/FunWarry/Visualizor/issues/27) `feat(preset): Implement Forest raymarched tree & Storm Cell`
+- [x] [#28](https://github.com/FunWarry/Visualizor/issues/28) `feat(preset): Implement Jellyfish bioluminescent pulse & Mycelium`
+- [x] [#29](https://github.com/FunWarry/Visualizor/issues/29) `feat(preset): Implement Erupting Volcano mountain`
 
 ---
 

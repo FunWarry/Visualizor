@@ -7,6 +7,7 @@ import { FerrofluidPreset } from './Ferrofluid';
 import { DNAHelixPreset } from './DNAHelix';
 import { GeodesicSpherePreset } from './GeodesicSphere';
 import { TopoMapPreset } from './TopoMap';
+import { VinylPlayerPreset } from './VinylPlayer';
 import { Tesseract4DPreset } from './Tesseract4D';
 import { StarfieldPreset } from './Starfield';
 import { BlackHolePreset } from './BlackHole';
@@ -30,6 +31,12 @@ import { MatrixRainPreset } from './MatrixRain';
 import { SpectrogramPreset } from './Spectrogram';
 import { DiodeWallPreset } from './DiodeWall';
 import { LCDDeckPreset } from './LCDDeck';
+import { BloomFlowerPreset } from './BloomFlower';
+import { MeadowFieldPreset } from './MeadowField';
+import { OceanWavesPreset } from './OceanWaves';
+import { ForestStormPreset } from './ForestStorm';
+import { JellyfishPreset } from './Jellyfish';
+import { VolcanoPreset } from './Volcano';
 
 export const PRESETS: VisualizerPreset[] = [
   new CircularSpectrumPreset(),
@@ -40,6 +47,7 @@ export const PRESETS: VisualizerPreset[] = [
   new DNAHelixPreset(),
   new GeodesicSpherePreset(),
   new TopoMapPreset(),
+  new VinylPlayerPreset(),
   new Tesseract4DPreset(),
   new StarfieldPreset(),
   new BlackHolePreset(),
@@ -62,7 +70,13 @@ export const PRESETS: VisualizerPreset[] = [
   new MatrixRainPreset(),
   new SpectrogramPreset(),
   new DiodeWallPreset(),
-  new LCDDeckPreset()
+  new LCDDeckPreset(),
+  new BloomFlowerPreset(),
+  new MeadowFieldPreset(),
+  new OceanWavesPreset(),
+  new ForestStormPreset(),
+  new JellyfishPreset(),
+  new VolcanoPreset()
 ];
 
 export function getPreset(id: string): VisualizerPreset {
