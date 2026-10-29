@@ -105,7 +105,7 @@ Toutes les issues ci-dessous sont créées et suivies sur le dépôt GitHub [Fun
 - [ ] [#38](https://github.com/FunWarry/Visualizor/issues/38) `feat(preset): Implement complete 71-preset catalog across all 7 categories`
 - [x] [#39](https://github.com/FunWarry/Visualizor/issues/39) `feat(theme): Implement 16 missing color themes for 28 total themes`
 - [x] [#40](https://github.com/FunWarry/Visualizor/issues/40) `feat(ui): Complete 15-tool left navigation rail with matching icons and drawers`
-- [ ] [#41](https://github.com/FunWarry/Visualizor/issues/41) `feat(tuning): Implement Preset Fine-Tuning drawer with live parameter controls`
+- [x] [#41](https://github.com/FunWarry/Visualizor/issues/41) `feat(tuning): Implement Preset Fine-Tuning drawer with live parameter controls`
 - [ ] [#42](https://github.com/FunWarry/Visualizor/issues/42) `feat(camera): Implement Camera & 3D Viewpoints drawer with orbit and cinematic angles`
 - [ ] [#43](https://github.com/FunWarry/Visualizor/issues/43) `feat(overlay): Implement animated text and typography overlays ("T" rail icon)`
 - [ ] [#44](https://github.com/FunWarry/Visualizor/issues/44) `feat(studio): Implement Studio Forge Recipe Builder and Engine Modes`

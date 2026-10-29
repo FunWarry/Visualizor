@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme, ParameterDefinition } from '../types';
+import { ParameterStore } from '../tuning/ParameterStore';
 
 export class ParticleFieldPreset implements VisualizerPreset {
   id = 'particle-field';
@@ -12,6 +13,13 @@ export class ParticleFieldPreset implements VisualizerPreset {
   private material!: THREE.PointsMaterial;
   private readonly count = 6000;
   private basePositions!: Float32Array;
+
+  private readonly paramStore = new ParameterStore([
+    { id: 'speed', name: 'Swirl Speed', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
+    { id: 'reactivity', name: 'Reactivity', min: 0.1, max: 2.5, step: 0.05, defaultValue: 1.0 },
+    { id: 'particleScale', name: 'Particle Size', min: 0.05, max: 0.5, step: 0.01, defaultValue: 0.16 },
+    { id: 'density', name: 'Particle Density', min: 0.2, max: 1.0, step: 0.1, defaultValue: 1.0 }
+  ]);
 
   init(ctx: PresetContext) {
     this.geometry = new THREE.BufferGeometry();
@@ -40,7 +48,7 @@ export class ParticleFieldPreset implements VisualizerPreset {
 
     this.material = new THREE.PointsMaterial({
       color: new THREE.Color(ctx.theme.primary),
-      size: 0.16,
+      size: this.paramStore.getValue('particleScale'),
       transparent: true,
       opacity: 0.85,
       blending: THREE.AdditiveBlending
@@ -52,14 +60,23 @@ export class ParticleFieldPreset implements VisualizerPreset {
 
   update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
     const pos = this.geometry.attributes.position.array as Float32Array;
-    const expansion = 1.0 + audio.bass * 0.8 + audio.beatEnergy * 0.5;
+    const speed = this.paramStore.getValue('speed');
+    const reactivity = this.paramStore.getValue('reactivity');
+    const particleScale = this.paramStore.getValue('particleScale');
+    const density = this.paramStore.getValue('density');
 
-    for (let i = 0; i < this.count; i++) {
+    this.material.size = particleScale;
+    const activeCount = Math.floor(this.count * Math.max(0.01, Math.min(1.0, density)));
+    this.geometry.setDrawRange(0, activeCount);
+
+    const expansion = 1.0 + (audio.bass * 0.8 + audio.beatEnergy * 0.5) * reactivity;
+
+    for (let i = 0; i < activeCount; i++) {
       const bx = this.basePositions[i * 3];
       const by = this.basePositions[i * 3 + 1];
       const bz = this.basePositions[i * 3 + 2];
 
-      const wave = Math.sin(time * 2.0 + i * 0.05) * (0.2 + audio.mid * 0.5);
+      const wave = Math.sin(time * 2.0 * speed + i * 0.05) * (0.2 + audio.mid * 0.5 * reactivity);
 
       pos[i * 3] = bx * expansion + wave;
       pos[i * 3 + 1] = by * expansion + wave;
@@ -67,8 +84,24 @@ export class ParticleFieldPreset implements VisualizerPreset {
     }
 
     this.geometry.attributes.position.needsUpdate = true;
-    this.points.rotation.y += delta * (0.2 + audio.treble * 0.5);
-    this.points.rotation.x += delta * (0.1 + audio.mid * 0.3);
+    this.points.rotation.y += delta * (0.2 + audio.treble * 0.5) * speed;
+    this.points.rotation.x += delta * (0.1 + audio.mid * 0.3) * speed;
+  }
+
+  getCustomParameters(): ParameterDefinition[] {
+    return this.paramStore.getDefinitions();
+  }
+
+  setCustomParameter(id: string, value: number): void {
+    this.paramStore.setValue(id, value);
+  }
+
+  getCustomParameterValue(id: string): number | undefined {
+    return this.paramStore.getValue(id);
+  }
+
+  resetCustomParameters(): void {
+    this.paramStore.reset();
   }
 
   onThemeChange(theme: VisualizerTheme) {

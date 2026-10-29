@@ -32,6 +32,18 @@ export interface PresetContext {
   theme: VisualizerTheme;
 }
 
+export interface ParameterDefinition {
+  id: string;
+  name: string;
+  min: number;
+  max: number;
+  step: number;
+  defaultValue: number;
+  currentValue?: number;
+  category?: string;
+  description?: string;
+}
+
 export interface VisualizerPreset {
   id: string;
   name: string;
@@ -42,6 +54,12 @@ export interface VisualizerPreset {
   onThemeChange?(theme: VisualizerTheme): void;
   resize?(width: number, height: number): void;
   dispose(): void;
+
+  // Milestone 3: Dynamic parameter tuning methods
+  getCustomParameters?(): ParameterDefinition[];
+  setCustomParameter?(id: string, value: number): void;
+  getCustomParameterValue?(id: string): number | undefined;
+  resetCustomParameters?(): void;
 }
 
 export interface PostProcessingConfig {

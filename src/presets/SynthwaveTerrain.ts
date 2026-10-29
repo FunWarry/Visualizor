@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme, ParameterDefinition } from '../types';
+import { ParameterStore } from '../tuning/ParameterStore';
 
 export class SynthwaveTerrainPreset implements VisualizerPreset {
   id = 'synthwave-terrain';
@@ -16,6 +17,13 @@ export class SynthwaveTerrainPreset implements VisualizerPreset {
   private baseHeights!: Float32Array;
   private readonly cols = 48;
   private readonly rows = 64;
+
+  private readonly paramStore = new ParameterStore([
+    { id: 'speed', name: 'Flyover Speed', min: 0.2, max: 3.0, step: 0.1, defaultValue: 1.0 },
+    { id: 'reactivity', name: 'Bass Reactivity', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
+    { id: 'deformation', name: 'Mountain Height', min: 0.2, max: 3.0, step: 0.1, defaultValue: 1.0 },
+    { id: 'density', name: 'Grid Density', min: 0.2, max: 1.0, step: 0.1, defaultValue: 1.0 }
+  ]);
 
   init(ctx: PresetContext) {
     this.group = new THREE.Group();
@@ -66,6 +74,11 @@ export class SynthwaveTerrainPreset implements VisualizerPreset {
   }
 
   update(ctx: PresetContext, audio: AudioFeatures, time: number, _delta: number) {
+    const speed = this.paramStore.getValue('speed');
+    const reactivity = this.paramStore.getValue('reactivity');
+    const deformation = this.paramStore.getValue('deformation');
+    const density = this.paramStore.getValue('density');
+
     const pos = this.terrainGeom.attributes.position.array as Float32Array;
 
     for (let i = 0; i < pos.length; i += 3) {
@@ -73,27 +86,44 @@ export class SynthwaveTerrainPreset implements VisualizerPreset {
       const distFromCenter = Math.abs(x) / 16;
 
       // Scrolling terrain waves
-      const noise = Math.sin(pos[i + 1] * 0.4 + time * 4.0) * audio.bass * 1.5;
+      const noise = Math.sin(pos[i + 1] * 0.4 + time * 4.0 * speed) * audio.bass * 1.5 * reactivity;
       if (distFromCenter > 0.3) {
-        pos[i + 2] = this.baseHeights[i + 2] * (1.0 + audio.bass * 0.8) + noise;
+        pos[i + 2] = this.baseHeights[i + 2] * (1.0 + audio.bass * 0.8 * reactivity) * deformation + noise;
       } else {
         // Center highway react to sub-bass wave
-        pos[i + 2] = Math.sin(pos[i + 1] * 0.5 + time * 5.0) * audio.subBass * 0.6;
+        pos[i + 2] = Math.sin(pos[i + 1] * 0.5 + time * 5.0 * speed) * audio.subBass * 0.6 * reactivity;
       }
     }
 
     this.terrainGeom.attributes.position.needsUpdate = true;
+    this.terrainMat.opacity = Math.max(0.3, density);
 
     // Sun scale pulse on kick
-    const sunScale = 1.0 + audio.bass * 0.3 + audio.beatEnergy * 0.4;
+    const sunScale = 1.0 + (audio.bass * 0.3 + audio.beatEnergy * 0.4) * reactivity;
     this.sunMesh.scale.set(sunScale, sunScale, 1);
 
     if (audio.beat) {
       this.terrainMat.emissive.set(ctx.theme.glow);
-      this.terrainMat.emissiveIntensity = 1.0;
+      this.terrainMat.emissiveIntensity = 1.0 * reactivity;
     } else {
       this.terrainMat.emissiveIntensity *= 0.93;
     }
+  }
+
+  getCustomParameters(): ParameterDefinition[] {
+    return this.paramStore.getDefinitions();
+  }
+
+  setCustomParameter(id: string, value: number): void {
+    this.paramStore.setValue(id, value);
+  }
+
+  getCustomParameterValue(id: string): number | undefined {
+    return this.paramStore.getValue(id);
+  }
+
+  resetCustomParameters(): void {
+    this.paramStore.reset();
   }
 
   onThemeChange(theme: VisualizerTheme) {
@@ -110,4 +140,3 @@ export class SynthwaveTerrainPreset implements VisualizerPreset {
     this.group.removeFromParent();
   }
 }
-

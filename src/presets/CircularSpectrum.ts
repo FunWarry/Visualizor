@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme, ParameterDefinition } from '../types';
+import { ParameterStore } from '../tuning/ParameterStore';
 
 export class CircularSpectrumPreset implements VisualizerPreset {
   id = 'circular-spectrum';
@@ -13,6 +14,13 @@ export class CircularSpectrumPreset implements VisualizerPreset {
   private readonly ringMaterials: THREE.LineBasicMaterial[] = [];
   private readonly numRings = 16;
   private readonly segments = 128;
+
+  private readonly paramStore = new ParameterStore([
+    { id: 'speed', name: 'Rotation Speed', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
+    { id: 'reactivity', name: 'Audio Reactivity', min: 0.1, max: 2.5, step: 0.05, defaultValue: 1.0 },
+    { id: 'radius', name: 'Ring Radius', min: 1.0, max: 5.0, step: 0.2, defaultValue: 3.0 },
+    { id: 'density', name: 'Ring Count', min: 4, max: 16, step: 1, defaultValue: 16 }
+  ]);
 
   init(ctx: PresetContext) {
     this.group = new THREE.Group();
@@ -54,12 +62,24 @@ export class CircularSpectrumPreset implements VisualizerPreset {
   }
 
   update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
-    this.group.rotation.z += delta * (0.15 + audio.mid * 0.3);
+    const speed = this.paramStore.getValue('speed');
+    const reactivity = this.paramStore.getValue('reactivity');
+    const radiusMultiplier = this.paramStore.getValue('radius') / 3.0;
+    const activeRings = Math.floor(this.paramStore.getValue('density'));
+
+    this.group.rotation.z += delta * (0.15 + audio.mid * 0.3 * reactivity) * speed;
 
     for (let r = 0; r < this.numRings; r++) {
+      const line = this.rings[r];
+      if (r >= activeRings) {
+        line.visible = false;
+        continue;
+      }
+      line.visible = true;
+
       const geom = this.ringGeometries[r];
       const pos = geom.attributes.position.array as Float32Array;
-      const baseRadius = 1.2 + r * 0.45;
+      const baseRadius = (1.2 + r * 0.45) * radiusMultiplier;
       const freqIndex = Math.floor((r / this.numRings) * (audio.frequencyData.length * 0.4));
       const freqVal = (audio.frequencyData[freqIndex] || 0) / 255.0;
 
@@ -68,16 +88,32 @@ export class CircularSpectrumPreset implements VisualizerPreset {
         const waveIndex = Math.floor((s / this.segments) * audio.timeDomainData.length);
         const waveVal = ((audio.timeDomainData[waveIndex] || 128) - 128) / 128.0;
 
-        const displacement = freqVal * 0.6 + waveVal * (0.2 + audio.bass * 0.4);
+        const displacement = (freqVal * 0.6 + waveVal * (0.2 + audio.bass * 0.4)) * reactivity;
         const currentRadius = baseRadius + displacement;
 
         pos[s * 3] = Math.cos(theta) * currentRadius;
         pos[s * 3 + 1] = Math.sin(theta) * currentRadius;
-        pos[s * 3 + 2] = Math.sin(theta * 6 + time * 3) * freqVal * 0.5;
+        pos[s * 3 + 2] = Math.sin(theta * 6 + time * 3 * speed) * freqVal * 0.5 * reactivity;
       }
 
       geom.attributes.position.needsUpdate = true;
     }
+  }
+
+  getCustomParameters(): ParameterDefinition[] {
+    return this.paramStore.getDefinitions();
+  }
+
+  setCustomParameter(id: string, value: number): void {
+    this.paramStore.setValue(id, value);
+  }
+
+  getCustomParameterValue(id: string): number | undefined {
+    return this.paramStore.getValue(id);
+  }
+
+  resetCustomParameters(): void {
+    this.paramStore.reset();
   }
 
   onThemeChange(theme: VisualizerTheme) {

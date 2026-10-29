@@ -6,6 +6,7 @@ import { THEMES, getTheme } from './themes/themes';
 import { PRESETS, getPreset } from './presets';
 import { StudioComposerPreset } from './studio/StudioComposer';
 import { ExportSettings, VisualizerPreset } from './types';
+import { renderTuningPanel, updateTuningButtonState as syncTuningButtonState } from './tuning/TuningPanel';
 
 // DOM Elements
 const canvas = document.getElementById('webgl-canvas') as HTMLCanvasElement;
@@ -158,6 +159,7 @@ function initMilkdropIfNeeded() {
 // Set initial 3D preset
 renderEngine.setPreset(PRESETS[0]);
 updateTuningButtonState(PRESETS[0]);
+renderTuningPanel(PRESETS[0]);
 
 // Build Color Themes List
 const themesList = document.getElementById('themesList') as HTMLElement;
@@ -295,19 +297,9 @@ function renderPresetsCatalog() {
 
 function updateTuningButtonState(preset: VisualizerPreset | null) {
   const tuningBtn = document.querySelector('.preset-settings-link') as HTMLElement | null;
-  if (!tuningBtn) return;
-  const tunable = preset as (VisualizerPreset & { getCustomParameters?: () => unknown[] }) | null;
-  const hasParams = Boolean(tunable && typeof tunable.getCustomParameters === 'function' && (tunable.getCustomParameters()?.length ?? 0) > 0);
-  if (hasParams) {
-    tuningBtn.classList.remove('is-collapsed');
-  } else {
-    tuningBtn.classList.add('is-collapsed');
-    if (activeToolId === 'presetSettings') {
-      tuningPanel?.classList.remove('open');
-      tuningBtn.classList.remove('active');
-      activeToolId = null;
-    }
-  }
+  syncTuningButtonState(preset, tuningBtn, tuningPanel, () => {
+    activeToolId = null;
+  });
 }
 
 function select3DPreset(p: VisualizerPreset) {
@@ -316,6 +308,7 @@ function select3DPreset(p: VisualizerPreset) {
   activePresetId = p.id;
   renderEngine.setPreset(p);
   updateTuningButtonState(p);
+  renderTuningPanel(p);
   renderPresetsCatalog();
 }
 
@@ -325,6 +318,7 @@ function selectMilkdropPreset(name: string) {
   milkdropEngine.setActive(true);
   milkdropEngine.loadPreset(name, 2.0);
   updateTuningButtonState(null);
+  renderTuningPanel(null);
   renderPresetsCatalog();
 }
 

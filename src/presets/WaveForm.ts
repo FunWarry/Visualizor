@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme, ParameterDefinition } from '../types';
+import { ParameterStore } from '../tuning/ParameterStore';
 
 export class WaveFormPreset implements VisualizerPreset {
   id = 'waveform';
@@ -12,6 +13,13 @@ export class WaveFormPreset implements VisualizerPreset {
   private material!: THREE.MeshStandardMaterial;
   private readonly cols = 64;
   private readonly rows = 64;
+
+  private readonly paramStore = new ParameterStore([
+    { id: 'speed', name: 'Wave Speed', min: 0.2, max: 3.0, step: 0.1, defaultValue: 1.0 },
+    { id: 'reactivity', name: 'Audio Reactivity', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
+    { id: 'deformation', name: 'Wave Height', min: 0.2, max: 3.0, step: 0.1, defaultValue: 1.0 },
+    { id: 'density', name: 'Mesh Density', min: 32, max: 256, step: 16, defaultValue: 128 }
+  ]);
 
   init(ctx: PresetContext) {
     this.geometry = new THREE.PlaneGeometry(16, 16, this.cols - 1, this.rows - 1);
@@ -33,8 +41,14 @@ export class WaveFormPreset implements VisualizerPreset {
 
   update(_ctx: PresetContext, audio: AudioFeatures, time: number, _delta: number) {
     const pos = this.geometry.attributes.position.array as Float32Array;
+    const speed = this.paramStore.getValue('speed');
+    const reactivity = this.paramStore.getValue('reactivity');
+    const deformation = this.paramStore.getValue('deformation');
+    const density = this.paramStore.getValue('density');
 
-    for (let i = 0; i < pos.length; i += 3) {
+    const stepStride = density >= 128 ? 1 : 2;
+
+    for (let i = 0; i < pos.length; i += 3 * stepStride) {
       const x = pos[i];
       const z = pos[i + 1];
 
@@ -45,18 +59,37 @@ export class WaveFormPreset implements VisualizerPreset {
       const freq = (audio.frequencyData[freqIndex] || 0) / 255.0;
 
       // Calculate reactive 3D elevation
-      const elevation = wave * (1.5 + audio.bass * 2.0) + Math.sin(x * 0.8 + time * 3) * freq * 1.8;
+      const elevation = (wave * (1.5 + audio.bass * 2.0 * reactivity) + Math.sin(x * 0.8 + time * 3 * speed) * freq * 1.8 * reactivity) * deformation;
       pos[i + 2] = elevation;
+      if (stepStride > 1 && i + 5 < pos.length) {
+        pos[i + 5] = elevation;
+      }
     }
 
     this.geometry.attributes.position.needsUpdate = true;
     this.geometry.computeVertexNormals();
 
     if (audio.beat) {
-      this.material.emissiveIntensity = 0.8;
+      this.material.emissiveIntensity = 0.8 * reactivity;
     } else {
       this.material.emissiveIntensity *= 0.94;
     }
+  }
+
+  getCustomParameters(): ParameterDefinition[] {
+    return this.paramStore.getDefinitions();
+  }
+
+  setCustomParameter(id: string, value: number): void {
+    this.paramStore.setValue(id, value);
+  }
+
+  getCustomParameterValue(id: string): number | undefined {
+    return this.paramStore.getValue(id);
+  }
+
+  resetCustomParameters(): void {
+    this.paramStore.reset();
   }
 
   onThemeChange(theme: VisualizerTheme) {

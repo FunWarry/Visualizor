@@ -484,8 +484,32 @@ body, html {
   pointer-events: none;
 }
 
-.is-collapsed {
+.is-collapsed,
+.preset-settings-link.is-collapsed {
   display: none !important;
+}
+
+/* Preset Fine-Tuning Drawer Styles */
+.tuning-val-readout {
+  font-family: monospace;
+  font-variant-numeric: tabular-nums;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 11px;
+}
+
+#resetTuningBtn {
+  cursor: pointer;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  transition: all 0.2s ease;
+}
+
+#resetTuningBtn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
 }
 
 /* Slide-out Drawer Panel */

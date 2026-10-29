@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme, ParameterDefinition } from '../types';
+import { ParameterStore } from '../tuning/ParameterStore';
 
 export class FerrofluidPreset implements VisualizerPreset {
   id = 'ferrofluid';
@@ -13,6 +14,13 @@ export class FerrofluidPreset implements VisualizerPreset {
   private basePositions!: Float32Array;
   private spikeDirections!: Float32Array;
   private numVertices = 0;
+
+  private readonly paramStore = new ParameterStore([
+    { id: 'speed', name: 'Rotation Speed', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
+    { id: 'reactivity', name: 'Pulse Reactivity', min: 0.1, max: 2.0, step: 0.05, defaultValue: 1.0 },
+    { id: 'deformation', name: 'Spike Height', min: 0.2, max: 3.0, step: 0.1, defaultValue: 1.0 },
+    { id: 'density', name: 'Spike Density', min: 0.2, max: 1.0, step: 0.1, defaultValue: 1.0 }
+  ]);
 
   init(ctx: PresetContext) {
     this.geometry = new THREE.SphereGeometry(2.4, 72, 72);
@@ -44,11 +52,17 @@ export class FerrofluidPreset implements VisualizerPreset {
   }
 
   update(ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
-    this.mesh.rotation.y += delta * (0.2 + audio.mid * 0.4);
-    this.mesh.rotation.x += delta * (0.1 + audio.treble * 0.3);
+    const speed = this.paramStore.getValue('speed');
+    const reactivity = this.paramStore.getValue('reactivity');
+    const deformation = this.paramStore.getValue('deformation');
+    const density = this.paramStore.getValue('density');
+
+    this.mesh.rotation.y += delta * (0.2 + audio.mid * 0.4) * speed;
+    this.mesh.rotation.x += delta * (0.1 + audio.treble * 0.3) * speed;
 
     const pos = this.geometry.attributes.position.array as Float32Array;
-    const spikePower = audio.bass * 2.2 + audio.beatEnergy * 2.8;
+    const spikePower = (audio.bass * 2.2 + audio.beatEnergy * 2.8) * reactivity;
+    const freqDensity = 8.0 * (0.5 + density * 0.5);
 
     for (let i = 0; i < this.numVertices; i++) {
       const bx = this.basePositions[i * 3];
@@ -60,8 +74,8 @@ export class FerrofluidPreset implements VisualizerPreset {
       const dz = this.spikeDirections[i * 3 + 2];
 
       // Sharp conical spike function
-      const spikeNoise = Math.pow(Math.max(0, Math.sin(dx * 8.0 + time * 3.0) * Math.cos(dy * 8.0 + time * 2.5) * Math.sin(dz * 8.0)), 2.5);
-      const spikeLen = spikeNoise * spikePower * 1.6;
+      const spikeNoise = Math.pow(Math.max(0, Math.sin(dx * freqDensity + time * 3.0 * speed) * Math.cos(dy * freqDensity + time * 2.5 * speed) * Math.sin(dz * freqDensity)), 2.5);
+      const spikeLen = spikeNoise * spikePower * 1.6 * deformation;
 
       pos[i * 3] = bx + dx * spikeLen;
       pos[i * 3 + 1] = by + dy * spikeLen;
@@ -73,10 +87,26 @@ export class FerrofluidPreset implements VisualizerPreset {
 
     if (audio.beat) {
       this.material.emissive.set(ctx.theme.accent);
-      this.material.emissiveIntensity = 1.0;
+      this.material.emissiveIntensity = 1.0 * reactivity;
     } else {
       this.material.emissiveIntensity *= 0.93;
     }
+  }
+
+  getCustomParameters(): ParameterDefinition[] {
+    return this.paramStore.getDefinitions();
+  }
+
+  setCustomParameter(id: string, value: number): void {
+    this.paramStore.setValue(id, value);
+  }
+
+  getCustomParameterValue(id: string): number | undefined {
+    return this.paramStore.getValue(id);
+  }
+
+  resetCustomParameters(): void {
+    this.paramStore.reset();
   }
 
   onThemeChange(theme: VisualizerTheme) {
@@ -89,4 +119,3 @@ export class FerrofluidPreset implements VisualizerPreset {
     this.mesh.removeFromParent();
   }
 }
-

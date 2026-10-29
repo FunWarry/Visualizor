@@ -241,25 +241,7 @@
       <button class="btn-icon close-drawer-btn closeTuningBtn" style="width:28px;height:28px;" aria-label="Close tuning panel">✕</button>
     </div>
     <div class="panel-content" id="presetSettingsContent">
-      <div style="font-size:11px;color:var(--text-muted);margin-bottom:14px;line-height:1.4;">
-        Dynamic parameter controls for real-time vertex deformation, speed, and particle density.
-      </div>
-      <div class="control-row">
-        <label for="tuningDeformSlider" class="control-label"><span>Deformation</span><span id="tuningDeformVal">0.35</span></label>
-        <input class="ui-slider" type="range" id="tuningDeformSlider" min="0" max="1" step="0.05" value="0.35" aria-label="Deformation">
-      </div>
-      <div class="control-row">
-        <label for="tuningSpeedSlider" class="control-label"><span>Speed Multiplier</span><span id="tuningSpeedVal">1.0</span></label>
-        <input class="ui-slider" type="range" id="tuningSpeedSlider" min="0.1" max="2.5" step="0.1" value="1.0" aria-label="Speed Multiplier">
-      </div>
-      <div class="control-row">
-        <label for="tuningPulseSlider" class="control-label"><span>Audio Reactivity</span><span id="tuningPulseVal">0.6</span></label>
-        <input class="ui-slider" type="range" id="tuningPulseSlider" min="0" max="1" step="0.05" value="0.6" aria-label="Audio Reactivity">
-      </div>
-      <div class="control-row">
-        <label for="tuningDensitySlider" class="control-label"><span>Mesh / Particle Count</span><span id="tuningDensityVal">1.0</span></label>
-        <input class="ui-slider" type="range" id="tuningDensitySlider" min="0.2" max="2.0" step="0.1" value="1.0" aria-label="Mesh Particle Count">
-      </div>
+      <!-- Dynamically generated via renderTuningPanel() in main.ts -->
     </div>
   </div>
 
