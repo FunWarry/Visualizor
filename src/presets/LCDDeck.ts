@@ -10,7 +10,7 @@ export class LCDDeckPreset implements VisualizerPreset {
   private group!: THREE.Group;
   private cdDisc!: THREE.Mesh;
   private deckChassis!: THREE.Mesh;
-  private vuBars: THREE.Mesh[] = [];
+  private readonly vuBars: THREE.Mesh[] = [];
   private cdMaterial!: THREE.MeshPhysicalMaterial;
   private vuMaterial!: THREE.MeshBasicMaterial;
 

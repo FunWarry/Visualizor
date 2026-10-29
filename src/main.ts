@@ -355,7 +355,7 @@ function updateQueueUI(playlist: PlaylistTrack[], currentIdx: number) {
       <div class="queue-item-artist">${track.artist}</div>
     `;
     item.addEventListener('click', () => {
-      audioEngine.playPlaylistIndex(i);
+      void audioEngine.playPlaylistIndex(i);
       updatePlayButton();
     });
     queueList.appendChild(item);
@@ -618,9 +618,9 @@ dockFsBtn?.addEventListener('click', toggleFullscreen);
 
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen();
+    void document.documentElement.requestFullscreen();
   } else {
-    document.exitFullscreen();
+    void document.exitFullscreen();
   }
 }
 

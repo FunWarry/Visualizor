@@ -98,26 +98,26 @@ export class RenderEngine {
   public scene: THREE.Scene;
   public camera: THREE.PerspectiveCamera;
   public renderer: THREE.WebGLRenderer;
-  private composer: EffectComposer;
-  private renderPass: RenderPass;
-  private bloomPass: UnrealBloomPass;
-  private masterPass: ShaderPass;
+  private readonly composer: EffectComposer;
+  private readonly renderPass: RenderPass;
+  private readonly bloomPass: UnrealBloomPass;
+  private readonly masterPass: ShaderPass;
 
   // Feedback targets for motion persistence
-  private feedbackTargets: [THREE.WebGLRenderTarget, THREE.WebGLRenderTarget];
+  private readonly feedbackTargets: [THREE.WebGLRenderTarget, THREE.WebGLRenderTarget];
   private currentFeedbackIndex = 0;
-  private copyScene: THREE.Scene;
-  private copyCamera: THREE.OrthographicCamera;
-  private copyMaterial: THREE.MeshBasicMaterial;
+  private readonly copyScene: THREE.Scene;
+  private readonly copyCamera: THREE.OrthographicCamera;
+  private readonly copyMaterial: THREE.MeshBasicMaterial;
 
   public activePreset: VisualizerPreset | null = null;
   public currentTheme: VisualizerTheme;
   public config: PostProcessingConfig;
 
-  private cameraBasePos = new THREE.Vector3(0, 0, 12);
-  private cameraShake = new THREE.Vector3();
+  private readonly cameraBasePos = new THREE.Vector3(0, 0, 12);
+  private readonly cameraShake = new THREE.Vector3();
   private shakeIntensity = 0;
-  private clock = new THREE.Clock();
+  private readonly clock = new THREE.Clock();
 
   constructor(canvas: HTMLCanvasElement, initialTheme: VisualizerTheme) {
     this.currentTheme = initialTheme;

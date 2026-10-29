@@ -8,13 +8,13 @@ export class BloomFlowerPreset implements VisualizerPreset {
   description = 'Phyllotaxis blooming lotus petals unfolding with floating ink diffusion swirls.';
 
   private group!: THREE.Group;
-  private petals: THREE.Mesh[] = [];
+  private readonly petals: THREE.Mesh[] = [];
   private inkParticles!: THREE.Points;
   private petalMaterial!: THREE.MeshStandardMaterial;
   private inkMaterial!: THREE.PointsMaterial;
-  private petalBaseRotations: number[] = [];
+  private readonly petalBaseRotations: number[] = [];
   private inkPositions!: Float32Array;
-  private inkCount = 600;
+  private readonly inkCount = 600;
 
   init(ctx: PresetContext) {
     this.group = new THREE.Group();

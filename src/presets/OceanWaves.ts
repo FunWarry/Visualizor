@@ -12,7 +12,7 @@ export class OceanWavesPreset implements VisualizerPreset {
   private rainStreaks!: THREE.LineSegments;
   private oceanMaterial!: THREE.ShaderMaterial;
   private rainMaterial!: THREE.LineBasicMaterial;
-  private rainCount = 1000;
+  private readonly rainCount = 1000;
   private rainPositions!: Float32Array;
 
   init(ctx: PresetContext) {

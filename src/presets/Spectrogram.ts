@@ -13,8 +13,8 @@ export class SpectrogramPreset implements VisualizerPreset {
   private waterfallMaterial!: THREE.ShaderMaterial;
   private radarMaterial!: THREE.LineBasicMaterial;
   private historyBuffer!: Float32Array;
-  private rows = 64;
-  private cols = 64;
+  private readonly rows = 64;
+  private readonly cols = 64;
 
   init(ctx: PresetContext) {
     this.group = new THREE.Group();

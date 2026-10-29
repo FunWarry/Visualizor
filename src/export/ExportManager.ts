@@ -8,8 +8,8 @@ export class ExportManager {
   public isRecording = false;
 
   constructor(
-    private renderEngine: RenderEngine,
-    private audioEngine: AudioEngine
+    private readonly renderEngine: RenderEngine,
+    private readonly audioEngine: AudioEngine
   ) {}
 
   public async startExport(

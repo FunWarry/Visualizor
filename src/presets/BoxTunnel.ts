@@ -8,10 +8,10 @@ export class BoxTunnelPreset implements VisualizerPreset {
   description = 'Infinite geometric square corridor accelerating through glowing audio frames.';
 
   private group!: THREE.Group;
-  private frames: THREE.LineSegments[] = [];
-  private numFrames = 36;
-  private spacing = 2.2;
-  private materials: THREE.LineBasicMaterial[] = [];
+  private readonly frames: THREE.LineSegments[] = [];
+  private readonly numFrames = 36;
+  private readonly spacing = 2.2;
+  private readonly materials: THREE.LineBasicMaterial[] = [];
 
   init(ctx: PresetContext) {
     this.group = new THREE.Group();

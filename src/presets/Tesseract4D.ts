@@ -132,8 +132,7 @@ export class Tesseract4DPreset implements VisualizerPreset {
     // Update 32 edge segments
     const linePos = (this.edgeLines.geometry as THREE.BufferGeometry).attributes.position.array as Float32Array;
     let ptr = 0;
-    for (let e = 0; e < this.edges.length; e++) {
-      const [p1Idx, p2Idx] = this.edges[e];
+    for (const [p1Idx, p2Idx] of this.edges) {
       const p1 = projected[p1Idx];
       const p2 = projected[p2Idx];
 

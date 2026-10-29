@@ -8,7 +8,7 @@ export interface MilkdropPresetItem {
 
 export class MilkdropEngine {
   private visualizer: ButterchurnVisualizer | null = null;
-  private canvas: HTMLCanvasElement;
+  private readonly canvas: HTMLCanvasElement;
   private audioNode: AudioNode | null = null;
   private presets: Record<string, unknown> = {};
   public presetNames: string[] = [];

@@ -8,11 +8,11 @@ export class ThreeDBarsPreset implements VisualizerPreset {
   description = 'Matrix of illuminated 3D columns jumping to frequency bands.';
 
   private instancedMesh!: THREE.InstancedMesh;
-  private dummy = new THREE.Object3D();
+  private readonly dummy = new THREE.Object3D();
   private colors!: Float32Array;
-  private cols = 16;
-  private rows = 16;
-  private count = 256;
+  private readonly cols = 16;
+  private readonly rows = 16;
+  private readonly count = 256;
 
   init(ctx: PresetContext) {
     const geometry = new THREE.BoxGeometry(0.5, 1, 0.5);

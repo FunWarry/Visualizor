@@ -8,11 +8,11 @@ export class LightningArcsPreset implements VisualizerPreset {
   description = 'High-voltage electric arcs discharging and branching on audio transients.';
 
   private group!: THREE.Group;
-  private boltLines: THREE.Line[] = [];
-  private boltGeometries: THREE.BufferGeometry[] = [];
-  private boltMaterials: THREE.LineBasicMaterial[] = [];
-  private numBolts = 14;
-  private segmentsPerBolt = 24;
+  private readonly boltLines: THREE.Line[] = [];
+  private readonly boltGeometries: THREE.BufferGeometry[] = [];
+  private readonly boltMaterials: THREE.LineBasicMaterial[] = [];
+  private readonly numBolts = 14;
+  private readonly segmentsPerBolt = 24;
 
   init(ctx: PresetContext) {
     this.group = new THREE.Group();

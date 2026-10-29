@@ -10,7 +10,7 @@ export class StarfieldPreset implements VisualizerPreset {
   private points!: THREE.Points;
   private geometry!: THREE.BufferGeometry;
   private material!: THREE.PointsMaterial;
-  private count = 4000;
+  private readonly count = 4000;
   private speeds!: Float32Array;
 
   init(ctx: PresetContext) {

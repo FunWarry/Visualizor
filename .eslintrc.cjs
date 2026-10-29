@@ -13,13 +13,17 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 'latest',
-    sourceType: 'module'
+    sourceType: 'module',
+    project: ['./tsconfig.json']
   },
   plugins: [
     '@typescript-eslint',
     'sonarjs'
   ],
   rules: {
-    '@typescript-eslint/no-unused-vars': ['error', { 'argsIgnorePattern': '^_', 'varsIgnorePattern': '^_' }]
+    '@typescript-eslint/no-unused-vars': ['error', { 'argsIgnorePattern': '^_', 'varsIgnorePattern': '^_' }],
+    '@typescript-eslint/prefer-readonly': 'error',
+    '@typescript-eslint/prefer-for-of': 'error',
+    '@typescript-eslint/no-floating-promises': 'error'
   }
 };

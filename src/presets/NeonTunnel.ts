@@ -8,10 +8,10 @@ export class NeonTunnelPreset implements VisualizerPreset {
   description = 'Infinite neon geometric corridor rushing forward with audio glow.';
 
   private group!: THREE.Group;
-  private rings: THREE.LineSegments[] = [];
-  private numRings = 40;
-  private ringSpacing = 1.8;
-  private materials: THREE.LineBasicMaterial[] = [];
+  private readonly rings: THREE.LineSegments[] = [];
+  private readonly numRings = 40;
+  private readonly ringSpacing = 1.8;
+  private readonly materials: THREE.LineBasicMaterial[] = [];
 
   init(ctx: PresetContext) {
     this.group = new THREE.Group();

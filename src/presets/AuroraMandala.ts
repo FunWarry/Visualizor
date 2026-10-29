@@ -9,7 +9,7 @@ export class AuroraMandalaPreset implements VisualizerPreset {
 
   private group!: THREE.Group;
   private auroraMesh!: THREE.Mesh;
-  private mandalaRings: THREE.LineLoop[] = [];
+  private readonly mandalaRings: THREE.LineLoop[] = [];
   private auroraMaterial!: THREE.ShaderMaterial;
   private ringMaterial!: THREE.LineBasicMaterial;
 

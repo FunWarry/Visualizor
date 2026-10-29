@@ -8,11 +8,11 @@ export class MatrixRainPreset implements VisualizerPreset {
   description = 'Cascading cyber code columns with reactive luminescent drops.';
 
   private instancedMesh!: THREE.InstancedMesh;
-  private dummy = new THREE.Object3D();
-  private count = 1200;
+  private readonly dummy = new THREE.Object3D();
+  private readonly count = 1200;
   private speeds!: Float32Array;
-  private cols = 40;
-  private rows = 30;
+  private readonly cols = 40;
+  private readonly rows = 30;
 
   init(ctx: PresetContext) {
     const geometry = new THREE.BoxGeometry(0.12, 0.45, 0.05);

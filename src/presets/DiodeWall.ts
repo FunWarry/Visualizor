@@ -8,11 +8,11 @@ export class DiodeWallPreset implements VisualizerPreset {
   description = 'Wall of pulsing LED club diodes mapping multi-band audio spectrums.';
 
   private instancedMesh!: THREE.InstancedMesh;
-  private dummy = new THREE.Object3D();
+  private readonly dummy = new THREE.Object3D();
   private colors!: Float32Array;
-  private cols = 32;
-  private rows = 20;
-  private count = 640;
+  private readonly cols = 32;
+  private readonly rows = 20;
+  private readonly count = 640;
 
   init(ctx: PresetContext) {
     const geometry = new THREE.CylinderGeometry(0.18, 0.18, 0.08, 16);

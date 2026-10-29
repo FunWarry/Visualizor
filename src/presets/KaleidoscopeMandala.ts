@@ -8,10 +8,10 @@ export class KaleidoscopeMandalaPreset implements VisualizerPreset {
   description = 'Symmetrical multi-fold kaleidoscopic mandala unfolding to audio harmonics.';
 
   private group!: THREE.Group;
-  private rings: THREE.LineSegments[] = [];
-  private numArms = 8;
-  private numRings = 16;
-  private materials: THREE.LineBasicMaterial[] = [];
+  private readonly rings: THREE.LineSegments[] = [];
+  private readonly numArms = 8;
+  private readonly numRings = 16;
+  private readonly materials: THREE.LineBasicMaterial[] = [];
 
   init(ctx: PresetContext) {
     this.group = new THREE.Group();

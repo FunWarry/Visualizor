@@ -10,7 +10,7 @@ export class VinylPlayerPreset implements VisualizerPreset {
   private group!: THREE.Group;
   private vinylDisc!: THREE.Mesh;
   private toneArm!: THREE.Group;
-  private orreryRings: THREE.LineLoop[] = [];
+  private readonly orreryRings: THREE.LineLoop[] = [];
   private vinylMaterial!: THREE.MeshPhysicalMaterial;
   private ringMaterial!: THREE.LineBasicMaterial;
 

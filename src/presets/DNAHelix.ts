@@ -10,8 +10,8 @@ export class DNAHelixPreset implements VisualizerPreset {
   private group!: THREE.Group;
   private sphereMesh!: THREE.InstancedMesh;
   private rungsMesh!: THREE.InstancedMesh;
-  private numPairs = 64;
-  private dummy = new THREE.Object3D();
+  private readonly numPairs = 64;
+  private readonly dummy = new THREE.Object3D();
   private sphereColors!: Float32Array;
 
   init(ctx: PresetContext) {

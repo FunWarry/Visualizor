@@ -16,7 +16,7 @@ export class VolcanoPreset implements VisualizerPreset {
   private sparkMaterial!: THREE.PointsMaterial;
   private sparkPositions!: Float32Array;
   private sparkVelocities!: Float32Array;
-  private sparkCount = 1000;
+  private readonly sparkCount = 1000;
 
   init(ctx: PresetContext) {
     this.group = new THREE.Group();

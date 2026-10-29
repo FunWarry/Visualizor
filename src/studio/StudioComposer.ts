@@ -31,15 +31,15 @@ export class StudioComposerPreset implements VisualizerPreset {
 
   // Layer 2: Tunnel Corridor Frames
   private tunnelGroup!: THREE.Group;
-  private tunnelFrames: THREE.LineLoop[] = [];
-  private frameCount = 16;
+  private readonly tunnelFrames: THREE.LineLoop[] = [];
+  private readonly frameCount = 16;
 
   // Layer 3: Volume Particle Cloud & The Force Physics
   private volumeParticles!: THREE.Points;
   private volumePositions!: Float32Array;
   private volumeVelocities!: Float32Array;
   private volumeMaterial!: THREE.PointsMaterial;
-  private particleCount = 2000;
+  private readonly particleCount = 2000;
 
   // Layer 4: The Force Singularity Attractor
   private forceCore!: THREE.Mesh;

@@ -12,7 +12,7 @@ export class FirefliesPreset implements VisualizerPreset {
   private positions!: Float32Array;
   private velocities!: Float32Array;
   private phases!: Float32Array;
-  private count = 1200;
+  private readonly count = 1200;
 
   init(ctx: PresetContext) {
     const geom = new THREE.BufferGeometry();

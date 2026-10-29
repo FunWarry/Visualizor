@@ -12,7 +12,7 @@ export class BlackHolePreset implements VisualizerPreset {
   private diskPoints!: THREE.Points;
   private diskGeometry!: THREE.BufferGeometry;
   private diskMaterial!: THREE.PointsMaterial;
-  private count = 5000;
+  private readonly count = 5000;
   private angles!: Float32Array;
   private radii!: Float32Array;
 

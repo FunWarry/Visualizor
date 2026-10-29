@@ -8,11 +8,11 @@ export class CircularSpectrumPreset implements VisualizerPreset {
   description = 'Concentric circular rings expanding and vibrating to frequency bands.';
 
   private group!: THREE.Group;
-  private rings: THREE.Line[] = [];
-  private ringGeometries: THREE.BufferGeometry[] = [];
-  private ringMaterials: THREE.LineBasicMaterial[] = [];
-  private numRings = 16;
-  private segments = 128;
+  private readonly rings: THREE.Line[] = [];
+  private readonly ringGeometries: THREE.BufferGeometry[] = [];
+  private readonly ringMaterials: THREE.LineBasicMaterial[] = [];
+  private readonly numRings = 16;
+  private readonly segments = 128;
 
   init(ctx: PresetContext) {
     this.group = new THREE.Group();

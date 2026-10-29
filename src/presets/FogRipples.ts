@@ -13,7 +13,7 @@ export class FogRipplesPreset implements VisualizerPreset {
   private waterMaterial!: THREE.ShaderMaterial;
   private smokeMaterial!: THREE.PointsMaterial;
   private smokePositions!: Float32Array;
-  private smokeCount = 800;
+  private readonly smokeCount = 800;
 
   init(ctx: PresetContext) {
     this.group = new THREE.Group();

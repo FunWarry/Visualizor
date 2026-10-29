@@ -10,7 +10,7 @@ export class ParticleFieldPreset implements VisualizerPreset {
   private points!: THREE.Points;
   private geometry!: THREE.BufferGeometry;
   private material!: THREE.PointsMaterial;
-  private count = 6000;
+  private readonly count = 6000;
   private basePositions!: Float32Array;
 
   init(ctx: PresetContext) {

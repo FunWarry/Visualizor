@@ -12,8 +12,8 @@ export class MeadowFieldPreset implements VisualizerPreset {
   private skyCloud!: THREE.Mesh;
   private grassMaterial!: THREE.MeshStandardMaterial;
   private skyMaterial!: THREE.ShaderMaterial;
-  private bladeCount = 1500;
-  private dummy = new THREE.Object3D();
+  private readonly bladeCount = 1500;
+  private readonly dummy = new THREE.Object3D();
   private basePositions: { x: number; z: number; rotY: number }[] = [];
 
   init(ctx: PresetContext) {

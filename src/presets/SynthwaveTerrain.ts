@@ -14,8 +14,8 @@ export class SynthwaveTerrainPreset implements VisualizerPreset {
   private sunMesh!: THREE.Mesh;
   private sunMat!: THREE.MeshBasicMaterial;
   private baseHeights!: Float32Array;
-  private cols = 48;
-  private rows = 64;
+  private readonly cols = 48;
+  private readonly rows = 64;
 
   init(ctx: PresetContext) {
     this.group = new THREE.Group();

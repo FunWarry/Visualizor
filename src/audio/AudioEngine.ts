@@ -8,14 +8,14 @@ export class BeatDetector {
 
   update(bassEnergy: number, decay: number = 0.9): boolean {
     let sum = 0;
-    for (let i = 0; i < this.history.length; i++) {
-      sum += this.history[i];
+    for (const val of this.history) {
+      sum += val;
     }
     const avg = sum / this.history.length;
 
     let variance = 0;
-    for (let i = 0; i < this.history.length; i++) {
-      variance += Math.pow(this.history[i] - avg, 2);
+    for (const val of this.history) {
+      variance += Math.pow(val - avg, 2);
     }
     variance /= this.history.length;
 
@@ -40,7 +40,7 @@ export class BPMDetector {
   private tapTimes: number[] = [];
   public manualBPM: number | null = null;
   public detectedBPM = 120;
-  private peakTimestamps: number[] = [];
+  private readonly peakTimestamps: number[] = [];
 
   recordBeat(timeSeconds: number) {
     if (this.manualBPM !== null) return;
@@ -70,7 +70,7 @@ export class BPMDetector {
 
   tap(): number {
     const now = performance.now() / 1000;
-    if (this.tapTimes.length > 0 && now - this.tapTimes[this.tapTimes.length - 1] > 2.5) {
+    if (this.tapTimes.length > 0 && now - (this.tapTimes.at(-1) ?? 0) > 2.5) {
       this.tapTimes = [];
     }
     this.tapTimes.push(now);
@@ -112,7 +112,7 @@ export class AudioEngine {
   private streamDestination: MediaStreamAudioDestinationNode | null = null;
 
   // Audio Sources
-  private audioElement: HTMLAudioElement | null = null;
+  private readonly audioElement: HTMLAudioElement | null = null;
   private audioSourceNode: MediaElementAudioSourceNode | null = null;
   private micStream: MediaStream | null = null;
   private micSourceNode: MediaStreamAudioSourceNode | null = null;
@@ -124,7 +124,7 @@ export class AudioEngine {
   // Analysis Buffers & Detectors
   private freqData!: Uint8Array<ArrayBuffer>;
   private timeData!: Uint8Array<ArrayBuffer>;
-  private beatDetector = new BeatDetector();
+  private readonly beatDetector = new BeatDetector();
   public bpmDetector = new BPMDetector();
 
   // Playlist Queue
@@ -197,7 +197,7 @@ export class AudioEngine {
     }
 
     if (this.ctx.state === 'suspended') {
-      this.ctx.resume();
+      void this.ctx.resume();
     }
   }
 
@@ -205,7 +205,7 @@ export class AudioEngine {
   public addFilesToPlaylist(files: File[]) {
     files.forEach(file => {
       const track: PlaylistTrack = {
-        id: `track-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+        id: `track-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         name: file.name.replace(/\.[^/.]+$/, ''),
         artist: 'Local Audio',
         file
@@ -214,7 +214,7 @@ export class AudioEngine {
     });
 
     if (this.currentTrackIndex === -1 && this.playlist.length > 0) {
-      this.playPlaylistIndex(0);
+      void this.playPlaylistIndex(0);
     } else {
       this.onPlaylistChange?.(this.playlist, this.currentTrackIndex);
     }
@@ -247,10 +247,10 @@ export class AudioEngine {
     if (this.playlist.length === 0) return;
     if (this.isShuffle) {
       const nextIdx = Math.floor(Math.random() * this.playlist.length);
-      this.playPlaylistIndex(nextIdx);
+      void this.playPlaylistIndex(nextIdx);
     } else {
       const nextIdx = (this.currentTrackIndex + 1) % this.playlist.length;
-      this.playPlaylistIndex(nextIdx);
+      void this.playPlaylistIndex(nextIdx);
     }
   }
 
@@ -261,14 +261,14 @@ export class AudioEngine {
       return;
     }
     const prevIdx = (this.currentTrackIndex - 1 + this.playlist.length) % this.playlist.length;
-    this.playPlaylistIndex(prevIdx);
+    void this.playPlaylistIndex(prevIdx);
   }
 
   private handleTrackEnded() {
     this.onTrackEnded?.();
     if (this.isRepeat) {
       this.seek(0);
-      this.togglePlay();
+      void this.togglePlay();
     } else if (this.playlist.length > 1) {
       this.nextTrack();
     }
@@ -465,8 +465,8 @@ export class AudioEngine {
     const treble = this.calcBand(180, 600) * this.sensitivity;
 
     let sumSquares = 0;
-    for (let i = 0; i < this.timeData.length; i++) {
-      const norm = (this.timeData[i] - 128) / 128.0;
+    for (const val of this.timeData) {
+      const norm = (val - 128) / 128.0;
       sumSquares += norm * norm;
     }
     const rms = Math.min(1.0, Math.sqrt(sumSquares / this.timeData.length) * 2.0 * this.sensitivity);

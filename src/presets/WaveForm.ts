@@ -10,8 +10,8 @@ export class WaveFormPreset implements VisualizerPreset {
   private mesh!: THREE.Mesh;
   private geometry!: THREE.PlaneGeometry;
   private material!: THREE.MeshStandardMaterial;
-  private cols = 64;
-  private rows = 64;
+  private readonly cols = 64;
+  private readonly rows = 64;
 
   init(ctx: PresetContext) {
     this.geometry = new THREE.PlaneGeometry(16, 16, this.cols - 1, this.rows - 1);

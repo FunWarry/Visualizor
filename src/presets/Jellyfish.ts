@@ -9,11 +9,11 @@ export class JellyfishPreset implements VisualizerPreset {
 
   private group!: THREE.Group;
   private bellMesh!: THREE.Mesh;
-  private tentacles: THREE.Line[] = [];
+  private readonly tentacles: THREE.Line[] = [];
   private bellMaterial!: THREE.MeshPhysicalMaterial;
   private tentacleMaterial!: THREE.LineBasicMaterial;
-  private tentacleCount = 12;
-  private nodesPerTentacle = 24;
+  private readonly tentacleCount = 12;
+  private readonly nodesPerTentacle = 24;
 
   init(ctx: PresetContext) {
     this.group = new THREE.Group();
