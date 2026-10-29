@@ -93,7 +93,7 @@ export class TopoMapPreset implements VisualizerPreset {
 
       // Chladni 2D nodal equation: cos(n*x)*cos(m*y) - cos(m*x)*cos(n*y)
       const chladni = Math.cos(n * x) * Math.cos(m * y) - Math.cos(m * x) * Math.cos(n * y);
-      const wave = Math.sin(Math.sqrt(x * x + y * y) * 5.0 - time * 3.0) * 0.2 * audio.treble;
+      const wave = Math.sin(Math.hypot(x, y) * 5.0 - time * 3.0) * 0.2 * audio.treble;
 
       pos[i + 2] = (chladni * 0.5 + wave) * amp;
     }

@@ -678,6 +678,12 @@ setupChips('aspectChips', (ratio) => {
   }
 });
 
+function getExportExtension(format: 'webm' | 'mp4' | 'gif'): string {
+  if (format === 'gif') return 'gif';
+  if (format === 'mp4') return 'mp4';
+  return 'webm';
+}
+
 startExportAction.addEventListener('click', () => {
   const format = ((document.querySelector('#formatChips .opt-chip.active') as HTMLElement)?.dataset.val || 'webm') as 'webm' | 'mp4' | 'gif';
   const ratio = ((document.querySelector('#aspectChips .opt-chip.active') as HTMLElement)?.dataset.val || '16:9') as '16:9' | '9:16' | '1:1';
@@ -731,7 +737,7 @@ startExportAction.addEventListener('click', () => {
         exportModal.classList.remove('open');
         framingGuide.className = FRAMING_GUIDE_HIDDEN;
 
-        const ext = format === 'gif' ? 'gif' : (format === 'mp4' ? 'mp4' : 'webm');
+        const ext = getExportExtension(format);
         const link = document.createElement('a');
         link.download = `visuval-batch-${ratio.replace(':', 'x')}-${Date.now()}.${ext}`;
         link.href = downloadUrl;
@@ -753,7 +759,7 @@ startExportAction.addEventListener('click', () => {
         exportModal.classList.remove('open');
         framingGuide.className = FRAMING_GUIDE_HIDDEN;
 
-        const ext = format === 'gif' ? 'gif' : (format === 'mp4' ? 'mp4' : 'webm');
+        const ext = getExportExtension(format);
         const link = document.createElement('a');
         link.download = `visuval-${activePresetId}-${ratio.replace(':', 'x')}-${Date.now()}.${ext}`;
         link.href = downloadUrl;

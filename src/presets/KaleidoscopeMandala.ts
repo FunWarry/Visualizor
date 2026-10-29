@@ -33,8 +33,7 @@ export class KaleidoscopeMandalaPreset implements VisualizerPreset {
         const x3 = Math.cos(theta3) * radius;
         const y3 = Math.sin(theta3) * radius;
 
-        vertices.push(x1, y1, 0, x2, y2, 0);
-        vertices.push(x2, y2, 0, x3, y3, 0);
+        vertices.push(x1, y1, 0, x2, y2, 0, x2, y2, 0, x3, y3, 0);
       }
 
       geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));

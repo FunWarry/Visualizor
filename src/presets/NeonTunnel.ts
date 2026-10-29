@@ -26,8 +26,10 @@ export class NeonTunnelPreset implements VisualizerPreset {
       for (let s = 0; s < sides; s++) {
         const a1 = (s / sides) * Math.PI * 2;
         const a2 = ((s + 1) / sides) * Math.PI * 2;
-        vertices.push(Math.cos(a1) * radius, Math.sin(a1) * radius, 0);
-        vertices.push(Math.cos(a2) * radius, Math.sin(a2) * radius, 0);
+        vertices.push(
+          Math.cos(a1) * radius, Math.sin(a1) * radius, 0,
+          Math.cos(a2) * radius, Math.sin(a2) * radius, 0
+        );
       }
       geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
 

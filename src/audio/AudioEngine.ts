@@ -285,7 +285,7 @@ export class AudioEngine {
       return;
     }
 
-    if (!this.audioElement || !this.audioElement.src) {
+    if (!this.audioElement?.src) {
       this.playDemo();
       return;
     }

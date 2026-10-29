@@ -54,7 +54,7 @@ export class ThreeDBarsPreset implements VisualizerPreset {
         // Distance from center determines frequency mapping
         const dx = x - this.cols / 2;
         const dz = z - this.rows / 2;
-        const dist = Math.sqrt(dx * dx + dz * dz);
+        const dist = Math.hypot(dx, dz);
         const freqIndex = Math.floor((dist / (this.cols / 1.4)) * (audio.frequencyData.length * 0.4));
         const freq = (audio.frequencyData[freqIndex] || 0) / 255.0;
 
