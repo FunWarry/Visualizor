@@ -270,18 +270,20 @@ const THEME_ALIASES: Record<string, string> = {
 };
 
 export function getTheme(id: string): VisualizerTheme {
-  if (!id) return THEMES[0];
-  const directMatch = THEMES.find(t => t.id === id);
+  if (!id || typeof id !== 'string') return THEMES[0];
+  const trimmed = id.trim();
+  if (!trimmed) return THEMES[0];
+  const directMatch = THEMES.find(t => t.id === trimmed);
   if (directMatch) return directMatch;
 
-  const normalized = id.toLowerCase().replace(/[-_]/g, '');
-  const aliasTarget = THEME_ALIASES[normalized] || THEME_ALIASES[id.toLowerCase()];
+  const normalized = trimmed.toLowerCase().replace(/[-_\s]/g, '');
+  const aliasTarget = THEME_ALIASES[normalized] || THEME_ALIASES[trimmed.toLowerCase()];
   if (aliasTarget) {
     const aliasMatch = THEMES.find(t => t.id === aliasTarget);
     if (aliasMatch) return aliasMatch;
   }
 
-  return THEMES.find(t => t.id.toLowerCase().replace(/[-_]/g, '') === normalized) || THEMES[0];
+  return THEMES.find(t => t.id.toLowerCase().replace(/[-_\s]/g, '') === normalized) || THEMES[0];
 }
 
 export interface ThemeColorVectors {
