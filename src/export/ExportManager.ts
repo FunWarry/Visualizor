@@ -1,4 +1,4 @@
-import { ExportSettings } from '../types';
+import { ExportSettings, VisualizerPreset } from '../types';
 import { RenderEngine } from '../engine/RenderEngine';
 import { AudioEngine } from '../audio/AudioEngine';
 
@@ -57,6 +57,7 @@ export class ExportManager {
       videoBitsPerSecond: bitrateMap[settings.quality] || 12_000_000
     });
 
+    this.recordedChunks = [];
     this.mediaRecorder.ondataavailable = (e) => {
       if (e.data && e.data.size > 0) {
         this.recordedChunks.push(e.data);
@@ -92,10 +93,55 @@ export class ExportManager {
     }, 250);
   }
 
+  /**
+   * Batch Recording Mode: Cycles sequentially through presets during a single recording
+   */
+  public async startBatchExport(
+    settings: ExportSettings,
+    presetList: VisualizerPreset[],
+    secondsPerPreset: number,
+    onPresetSwitch: (preset: VisualizerPreset, index: number) => void,
+    onProgress: (percent: number, timeLeft: number) => void,
+    onComplete: (videoBlob: Blob, downloadUrl: string) => void
+  ) {
+    if (this.isRecording || presetList.length === 0) return;
+
+    const totalDuration = presetList.length * secondsPerPreset;
+    let currentPresetIdx = 0;
+
+    // Set first preset immediately
+    this.renderEngine.setPreset(presetList[0]);
+    onPresetSwitch(presetList[0], 0);
+
+    const switchInterval = setInterval(() => {
+      if (!this.isRecording) {
+        clearInterval(switchInterval);
+        return;
+      }
+      currentPresetIdx++;
+      if (currentPresetIdx < presetList.length) {
+        const nextPreset = presetList[currentPresetIdx];
+        this.renderEngine.setPreset(nextPreset);
+        onPresetSwitch(nextPreset, currentPresetIdx);
+      } else {
+        clearInterval(switchInterval);
+      }
+    }, secondsPerPreset * 1000);
+
+    await this.startExport(
+      settings,
+      totalDuration,
+      onProgress,
+      (blob, downloadUrl) => {
+        clearInterval(switchInterval);
+        onComplete(blob, downloadUrl);
+      }
+    );
+  }
+
   public stopExport() {
     if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
       this.mediaRecorder.stop();
     }
   }
 }
-

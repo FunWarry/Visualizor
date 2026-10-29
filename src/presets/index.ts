@@ -37,6 +37,7 @@ import { OceanWavesPreset } from './OceanWaves';
 import { ForestStormPreset } from './ForestStorm';
 import { JellyfishPreset } from './Jellyfish';
 import { VolcanoPreset } from './Volcano';
+import { StudioComposerPreset } from '../studio/StudioComposer';
 
 export const PRESETS: VisualizerPreset[] = [
   new CircularSpectrumPreset(),
@@ -76,7 +77,8 @@ export const PRESETS: VisualizerPreset[] = [
   new OceanWavesPreset(),
   new ForestStormPreset(),
   new JellyfishPreset(),
-  new VolcanoPreset()
+  new VolcanoPreset(),
+  new StudioComposerPreset()
 ];
 
 export function getPreset(id: string): VisualizerPreset {

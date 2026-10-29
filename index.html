@@ -60,6 +60,10 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
       Queue
     </button>
+    <button class="rail-btn" data-tab="studio">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Studio
+    </button>
     <button class="rail-btn" data-tab="fx">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
       Effects
@@ -112,6 +116,50 @@
       <div class="cards-grid" id="queueList">
         <div style="font-size:12px;color:var(--text-muted);text-align:center;padding:20px 0;">No tracks in queue. Add tracks or drop files here.</div>
       </div>
+    </div>
+  </div>
+
+  <!-- Studio Stage Composer Panel -->
+  <div class="drawer-panel glass-panel" id="studioPanel">
+    <div class="panel-header">
+      <span>Studio Stage Composer</span>
+      <button class="btn-icon" style="width:28px;height:28px;" class="closeStudioBtn">✕</button>
+    </div>
+    <div class="panel-content">
+      <div class="control-row">
+        <button class="btn-primary" style="width:100%;justify-content:center;margin-bottom:12px;" id="activateStudioBtn">
+          Launch Studio Stage Preset
+        </button>
+      </div>
+
+      <div class="control-row">
+        <div class="control-label"><span>Chroma Intensity</span><span id="studioChromaVal">1.0</span></div>
+        <input class="ui-slider" type="range" id="studioChromaSlider" min="0" max="2" step="0.1" value="1.0">
+      </div>
+
+      <div class="control-row">
+        <div class="control-label"><span>Liquid Warp</span><span id="studioLiquidVal">1.0</span></div>
+        <input class="ui-slider" type="range" id="studioLiquidSlider" min="0" max="2" step="0.1" value="1.0">
+      </div>
+
+      <div class="control-row">
+        <div class="control-label"><span>Tunnel Depth</span><span id="studioTunnelVal">1.0</span></div>
+        <input class="ui-slider" type="range" id="studioTunnelSlider" min="0" max="2" step="0.1" value="1.0">
+      </div>
+
+      <div class="control-row">
+        <div class="control-label"><span>Volume Particle Density</span><span id="studioVolumeVal">1.0</span></div>
+        <input class="ui-slider" type="range" id="studioVolumeSlider" min="0" max="2" step="0.1" value="1.0">
+      </div>
+
+      <div class="control-row">
+        <div class="control-label"><span>The Force (Gravity / Vortex)</span><span id="studioForceVal">1.0</span></div>
+        <input class="ui-slider" type="range" id="studioForceSlider" min="-2" max="2" step="0.2" value="1.0">
+      </div>
+
+      <p style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-top:10px;">
+        Visualizer Studio enables real-time composition of 5 blended visual dimensions: Chroma, Liquid, Tunnel, Volume, and The Force attractor physics.
+      </p>
     </div>
   </div>
 
@@ -260,6 +308,21 @@
         <div class="opt-chip active" data-val="15">15s Preview</div>
         <div class="opt-chip" data-val="30">30s Short</div>
         <div class="opt-chip" data-val="60">60s Reel</div>
+      </div>
+
+      <div style="margin-top:14px;padding:10px;background:rgba(255,255,255,0.03);border:1px solid var(--border-glass);border-radius:8px;">
+        <div style="font-size:12px;color:#fff;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+          <span>Batch Recording Mode (Multi-Preset)</span>
+          <input type="checkbox" id="batchModeToggle" style="accent-color:var(--primary);cursor:pointer;width:16px;height:16px;">
+        </div>
+        <div id="batchOptions" style="display:none;margin-top:8px;">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Cycles through flagship presets during recording:</div>
+          <div class="chip-group" id="batchDurChips">
+            <div class="opt-chip active" data-val="5">5s per preset</div>
+            <div class="opt-chip" data-val="10">10s per preset</div>
+            <div class="opt-chip" data-val="15">15s per preset</div>
+          </div>
+        </div>
       </div>
 
       <div id="exportProgressSection" style="display:none;margin-top:16px;">

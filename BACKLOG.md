@@ -73,7 +73,7 @@ Toutes les issues ci-dessous sont créées et suivies sur le dépôt GitHub [Fun
 
 ## 🛠️ Mode Visualizer Studio
 
-- [ ] [#32](https://github.com/FunWarry/Visualizor/issues/32) `feat(studio): Implement Visualizer Studio stage composer (Chroma, Liquid, Tunnel, Volume, The Force)`
+- [x] [#32](https://github.com/FunWarry/Visualizor/issues/32) `feat(studio): Implement Visualizer Studio stage composer (Chroma, Liquid, Tunnel, Volume, The Force)`
 
 ---
 
@@ -88,5 +88,5 @@ Toutes les issues ci-dessous sont créées et suivies sur le dépôt GitHub [Fun
 
 - [x] **Core** `feat(export): Unlocked 60 FPS WebM/MP4 canvas + Web Audio stream recording`
 - [x] **Core** `feat(export): High-resolution PNG screenshot capture`
-- [ ] [#34](https://github.com/FunWarry/Visualizor/issues/34) `feat(export): Implement Batch Recording Mode (multi-preset sequence)`
+- [x] [#34](https://github.com/FunWarry/Visualizor/issues/34) `feat(export): Implement Batch Recording Mode (multi-preset sequence)`
 - [x] [#35](https://github.com/FunWarry/Visualizor/issues/35) `feat(export): Implement Aspect Ratio Framing (16:9, 9:16, 1:1) & GIF export`

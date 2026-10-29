@@ -3,7 +3,8 @@ import { RenderEngine } from './engine/RenderEngine';
 import { ExportManager } from './export/ExportManager';
 import { THEMES, getTheme } from './themes/themes';
 import { PRESETS, getPreset } from './presets';
-import { ExportSettings } from './types';
+import { StudioComposerPreset } from './studio/StudioComposer';
+import { ExportSettings, VisualizerPreset } from './types';
 
 // DOM Elements
 const canvas = document.getElementById('webgl-canvas') as HTMLCanvasElement;
@@ -38,9 +39,10 @@ const resetBpmBtn = document.getElementById('resetBpmBtn') as HTMLButtonElement;
 const presetsPanel = document.getElementById('presetsPanel') as HTMLElement;
 const themesPanel = document.getElementById('themesPanel') as HTMLElement;
 const queuePanel = document.getElementById('queuePanel') as HTMLElement;
+const studioPanel = document.getElementById('studioPanel') as HTMLElement;
 const fxPanel = document.getElementById('fxPanel') as HTMLElement;
 const audioPanel = document.getElementById('audioPanel') as HTMLElement;
-const allPanels = [presetsPanel, themesPanel, queuePanel, fxPanel, audioPanel];
+const allPanels = [presetsPanel, themesPanel, queuePanel, studioPanel, fxPanel, audioPanel];
 
 // Rail tabs
 const railBtns = document.querySelectorAll('.rail-btn');
@@ -149,6 +151,7 @@ railBtns.forEach(btn => {
     if (tab === 'presets') presetsPanel.classList.add('open');
     if (tab === 'themes') themesPanel.classList.add('open');
     if (tab === 'queue') queuePanel.classList.add('open');
+    if (tab === 'studio') studioPanel.classList.add('open');
     if (tab === 'fx') fxPanel.classList.add('open');
     if (tab === 'audio') audioPanel.classList.add('open');
   });
@@ -157,6 +160,7 @@ railBtns.forEach(btn => {
 document.getElementById('closeDrawerBtn')?.addEventListener('click', () => presetsPanel.classList.remove('open'));
 document.querySelector('.closeThemeBtn')?.addEventListener('click', () => themesPanel.classList.remove('open'));
 document.querySelector('.closeQueueBtn')?.addEventListener('click', () => queuePanel.classList.remove('open'));
+document.querySelector('.closeStudioBtn')?.addEventListener('click', () => studioPanel.classList.remove('open'));
 document.querySelector('.closeFxBtn')?.addEventListener('click', () => fxPanel.classList.remove('open'));
 document.querySelector('.closeAudioBtn')?.addEventListener('click', () => audioPanel.classList.remove('open'));
 
@@ -331,6 +335,51 @@ sensSlider.addEventListener('input', () => {
   audioEngine.sensitivity = val;
 });
 
+// Studio Stage Composer Controls
+const studioPreset = (PRESETS.find(p => p.id === 'studio-composer') as StudioComposerPreset) || new StudioComposerPreset();
+
+const activateStudioBtn = document.getElementById('activateStudioBtn') as HTMLButtonElement;
+activateStudioBtn?.addEventListener('click', () => {
+  renderEngine.setPreset(studioPreset);
+  document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
+});
+
+const studioChromaSlider = document.getElementById('studioChromaSlider') as HTMLInputElement;
+const studioLiquidSlider = document.getElementById('studioLiquidSlider') as HTMLInputElement;
+const studioTunnelSlider = document.getElementById('studioTunnelSlider') as HTMLInputElement;
+const studioVolumeSlider = document.getElementById('studioVolumeSlider') as HTMLInputElement;
+const studioForceSlider = document.getElementById('studioForceSlider') as HTMLInputElement;
+
+studioChromaSlider?.addEventListener('input', () => {
+  const val = parseFloat(studioChromaSlider.value);
+  document.getElementById('studioChromaVal')!.textContent = val.toFixed(1);
+  studioPreset.config.chromaIntensity = val;
+});
+
+studioLiquidSlider?.addEventListener('input', () => {
+  const val = parseFloat(studioLiquidSlider.value);
+  document.getElementById('studioLiquidVal')!.textContent = val.toFixed(1);
+  studioPreset.config.liquidWarp = val;
+});
+
+studioTunnelSlider?.addEventListener('input', () => {
+  const val = parseFloat(studioTunnelSlider.value);
+  document.getElementById('studioTunnelVal')!.textContent = val.toFixed(1);
+  studioPreset.config.tunnelDepth = val;
+});
+
+studioVolumeSlider?.addEventListener('input', () => {
+  const val = parseFloat(studioVolumeSlider.value);
+  document.getElementById('studioVolumeVal')!.textContent = val.toFixed(1);
+  studioPreset.config.volumeDensity = val;
+});
+
+studioForceSlider?.addEventListener('input', () => {
+  const val = parseFloat(studioForceSlider.value);
+  document.getElementById('studioForceVal')!.textContent = val.toFixed(1);
+  studioPreset.config.theForceAttraction = val;
+});
+
 // Zen / Ambient Mode
 ambientBtn.addEventListener('click', () => {
   document.body.classList.toggle('ambient-mode');
@@ -387,6 +436,14 @@ setupChips('formatChips');
 setupChips('resChips');
 setupChips('fpsChips');
 setupChips('durChips');
+setupChips('batchDurChips');
+
+// Batch Recording Mode UI
+const batchModeToggle = document.getElementById('batchModeToggle') as HTMLInputElement;
+const batchOptions = document.getElementById('batchOptions') as HTMLElement;
+batchModeToggle?.addEventListener('change', () => {
+  batchOptions.style.display = batchModeToggle.checked ? 'block' : 'none';
+});
 
 setupChips('aspectChips', (ratio) => {
   if (ratio === '9:16') {
@@ -424,27 +481,63 @@ startExportAction.addEventListener('click', async () => {
     updatePlayButton();
   }
 
-  await exportManager.startExport(
-    settings,
-    duration,
-    (percent, timeLeft) => {
-      exportProgressBar.style.width = `${percent}%`;
-      exportPercent.textContent = `${percent}%`;
-      document.getElementById('exportProgressText')!.textContent = `Rendering: ${timeLeft}s remaining...`;
-    },
-    (_blob, downloadUrl) => {
-      exportProgressSection.style.display = 'none';
-      startExportAction.textContent = 'Start Export';
-      exportModal.classList.remove('open');
-      framingGuide.className = 'framing-guide hidden';
+  if (batchModeToggle?.checked) {
+    const secondsPerPreset = parseInt(document.querySelector('#batchDurChips .opt-chip.active')?.getAttribute('data-val') || '5');
+    const batchPresets = [
+      getPreset('circular-spectrum'),
+      getPreset('lava-energy'),
+      getPreset('synthwave-terrain'),
+      getPreset('tesseract-4d'),
+      studioPreset
+    ];
 
-      const ext = format === 'gif' ? 'gif' : (format === 'mp4' ? 'mp4' : 'webm');
-      const link = document.createElement('a');
-      link.download = `visualizor-${renderEngine.activePreset?.id}-${ratio.replace(':', 'x')}-${Date.now()}.${ext}`;
-      link.href = downloadUrl;
-      link.click();
-    }
-  );
+    await exportManager.startBatchExport(
+      settings,
+      batchPresets,
+      secondsPerPreset,
+      (p, idx) => {
+        document.getElementById('exportProgressText')!.textContent = `Batch [${idx + 1}/${batchPresets.length}]: ${p.name}`;
+      },
+      (percent, timeLeft) => {
+        exportProgressBar.style.width = `${percent}%`;
+        exportPercent.textContent = `${percent}%`;
+      },
+      (_blob, downloadUrl) => {
+        exportProgressSection.style.display = 'none';
+        startExportAction.textContent = 'Start Export';
+        exportModal.classList.remove('open');
+        framingGuide.className = 'framing-guide hidden';
+
+        const ext = format === 'gif' ? 'gif' : (format === 'mp4' ? 'mp4' : 'webm');
+        const link = document.createElement('a');
+        link.download = `visualizor-batch-${ratio.replace(':', 'x')}-${Date.now()}.${ext}`;
+        link.href = downloadUrl;
+        link.click();
+      }
+    );
+  } else {
+    await exportManager.startExport(
+      settings,
+      duration,
+      (percent, timeLeft) => {
+        exportProgressBar.style.width = `${percent}%`;
+        exportPercent.textContent = `${percent}%`;
+        document.getElementById('exportProgressText')!.textContent = `Rendering: ${timeLeft}s remaining...`;
+      },
+      (_blob, downloadUrl) => {
+        exportProgressSection.style.display = 'none';
+        startExportAction.textContent = 'Start Export';
+        exportModal.classList.remove('open');
+        framingGuide.className = 'framing-guide hidden';
+
+        const ext = format === 'gif' ? 'gif' : (format === 'mp4' ? 'mp4' : 'webm');
+        const link = document.createElement('a');
+        link.download = `visualizor-${renderEngine.activePreset?.id}-${ratio.replace(':', 'x')}-${Date.now()}.${ext}`;
+        link.href = downloadUrl;
+        link.click();
+      }
+    );
+  }
 });
 
 // Main Animation Render Loop (60 FPS)
