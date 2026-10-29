@@ -1157,6 +1157,100 @@ body.ui-hidden .sidebar-pill,
   background: rgba(255, 255, 255, 0.2);
 }
 
+/* D-Pad Buttons Active and Glide States */
+.camera-pad__arrow:active,
+.camera-pad__arrow.is-holding {
+  background: var(--primary) !important;
+  color: #fff !important;
+  box-shadow: 0 0 10px var(--primary-glow);
+  transform: scale(0.95);
+}
+
+.camera-pad__hub:active {
+  background: var(--primary);
+  color: #fff;
+  transform: scale(0.92);
+}
+
+/* Cinematic Viewpoints Grid (5-column layout) */
+.viewpoints-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  width: 100%;
+}
+
+.viewpoint-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 52px;
+}
+
+.viewpoint-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.viewpoint-btn.active {
+  background: rgba(255, 92, 0, 0.2);
+  border-color: var(--primary);
+  color: #fff;
+  box-shadow: 0 0 12px var(--primary-glow);
+}
+
+.viewpoint-name {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Direction Segmented Control (CW / CCW) */
+.camera-dir {
+  display: inline-flex;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.camera-dir .seg-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  width: 32px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.camera-dir .seg-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.camera-dir .seg-btn.active {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 0 8px var(--primary-glow);
+}
+
 /* Viewport Responsive Detents (< 900px Height) */
 @media (min-width: 641px) and (max-height: 900px) {
   .icon-rail {

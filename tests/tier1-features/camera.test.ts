@@ -104,4 +104,179 @@ describe('Tier 1: Camera & 3D Viewpoints (#42)', () => {
     expect(radius1).toBeCloseTo(12, 0.1);
     expect(radius2).toBeCloseTo(12, 0.1);
   });
+
+  test('T1.Camera.7: D-pad UI buttons (orbit and tilt) adjust camera angles and clamp correctly', () => {
+    const canvas = document.getElementById('webgl-canvas') as unknown as HTMLCanvasElement;
+    const engine = new RenderEngine(canvas, getTheme('ember'));
+    const ctrl = engine.cameraController;
+
+    const initialRot = ctrl.getRotAngle();
+    const initialTilt = ctrl.getTiltAngle();
+
+    // Orbit Right
+    ctrl.nudgeOrbit(0.1);
+    expect(ctrl.getRotAngle()).toBeCloseTo(initialRot + 0.1);
+
+    // Orbit Left
+    ctrl.nudgeOrbit(-0.1);
+    expect(ctrl.getRotAngle()).toBeCloseTo(initialRot);
+
+    // Tilt Up
+    ctrl.nudgeTilt(0.1);
+    expect(ctrl.getTiltAngle()).toBeCloseTo(initialTilt + 0.1);
+
+    // Tilt Down
+    ctrl.nudgeTilt(-0.1);
+    expect(ctrl.getTiltAngle()).toBeCloseTo(initialTilt);
+
+    // Reset restores base angles
+    ctrl.nudgeOrbit(0.5);
+    ctrl.nudgeTilt(0.3);
+    ctrl.reset();
+    expect(ctrl.getRotAngle()).toBeCloseTo(0);
+    expect(ctrl.getTiltAngle()).toBeCloseTo(0);
+    expect(ctrl.getZoom()).toBeCloseTo(0.5);
+  });
+
+  test('T1.Camera.8: Zoom slider maps normalized values to clamped camera distances', () => {
+    const canvas = document.getElementById('webgl-canvas') as unknown as HTMLCanvasElement;
+    const engine = new RenderEngine(canvas, getTheme('ember'));
+    const ctrl = engine.cameraController;
+
+    // Minimum zoom (0.0) -> minimum distance
+    ctrl.setZoom(0.0, true);
+    expect(ctrl.getZoom()).toBeCloseTo(0.0);
+    const minDistance = ctrl.getDistance();
+    expect(minDistance).toBeCloseTo(computeZoomDistance(0.0) * 12 / 1.6, 0.5);
+
+    // Maximum zoom (1.0) -> maximum distance
+    ctrl.setZoom(1.0, true);
+    expect(ctrl.getZoom()).toBeCloseTo(1.0);
+    const maxDistance = ctrl.getDistance();
+    expect(maxDistance).toBeGreaterThan(minDistance);
+
+    // Out-of-bounds clamping
+    ctrl.setZoom(-1.5, true);
+    expect(ctrl.getZoom()).toBe(0.0);
+    ctrl.setZoom(2.5, true);
+    expect(ctrl.getZoom()).toBe(1.0);
+  });
+
+  test('T1.Camera.9: Auto-orbit toggle, speed, and CW/CCW direction modulate camera trajectory', () => {
+    const canvas = document.getElementById('webgl-canvas') as unknown as HTMLCanvasElement;
+    const engine = new RenderEngine(canvas, getTheme('ember'));
+    const ctrl = engine.cameraController;
+
+    ctrl.setAutoRotate(true);
+    ctrl.setAutoRotateSpeed(0.5);
+    ctrl.setRotationDirection(1); // Clockwise
+
+    const startRot = ctrl.getRotAngle();
+    ctrl.update(0.1); // 100ms delta
+    const cwRot = ctrl.getRotAngle();
+    expect(cwRot).toBeGreaterThan(startRot);
+
+    // Switch to Counter-Clockwise (-1)
+    ctrl.setRotationDirection(-1);
+    ctrl.update(0.1);
+    expect(ctrl.getRotAngle()).toBeLessThan(cwRot);
+
+    // Pause Auto-Orbit
+    ctrl.setAutoRotate(false);
+    const pausedRot = ctrl.getRotAngle();
+    ctrl.update(0.5);
+    expect(ctrl.getRotAngle()).toBeCloseTo(pausedRot);
+  });
+
+  test('T1.Camera.10: Cinematic viewpoints (Default, Top, Low, Iso, Side) snap/lerp to predefined coordinates', () => {
+    const canvas = document.getElementById('webgl-canvas') as unknown as HTMLCanvasElement;
+    const engine = new RenderEngine(canvas, getTheme('ember'));
+    const ctrl = engine.cameraController;
+
+    // Top View (Bird's eye, tilt near +PI/2)
+    ctrl.setViewpoint('top');
+    expect(ctrl.getActiveViewpoint()).toBe('top');
+    for (let i = 0; i < 30; i++) ctrl.update(0.033);
+    expect(ctrl.getTiltAngle()).toBeCloseTo(Math.PI / 2 - 0.05, 0.05);
+
+    // Low View (Worm's eye, tilt negative)
+    ctrl.setViewpoint('low');
+    expect(ctrl.getActiveViewpoint()).toBe('low');
+    for (let i = 0; i < 30; i++) ctrl.update(0.033);
+    expect(ctrl.getTiltAngle()).toBeLessThan(-0.5);
+
+    // Iso View (45 deg orbit, positive tilt)
+    ctrl.setViewpoint('iso');
+    expect(ctrl.getActiveViewpoint()).toBe('iso');
+    for (let i = 0; i < 30; i++) ctrl.update(0.033);
+    expect(ctrl.getRotAngle()).toBeCloseTo(Math.PI / 4, 0.1);
+
+    // Side View (90 deg orbit)
+    ctrl.setViewpoint('side');
+    expect(ctrl.getActiveViewpoint()).toBe('side');
+    for (let i = 0; i < 30; i++) ctrl.update(0.033);
+    expect(ctrl.getRotAngle()).toBeCloseTo(Math.PI / 2, 0.1);
+
+    // Default View (0 orbit, 0 tilt)
+    ctrl.setViewpoint('default');
+    for (let i = 0; i < 30; i++) ctrl.update(0.033);
+    expect(ctrl.getRotAngle()).toBeCloseTo(0, 0.05);
+    expect(ctrl.getTiltAngle()).toBeCloseTo(0, 0.05);
+  });
+
+  test('T1.Camera.11: Camera shake sensitivity and mode controls modulate kick impulse magnitude', () => {
+    const canvas = document.getElementById('webgl-canvas') as unknown as HTMLCanvasElement;
+    const engine = new RenderEngine(canvas, getTheme('ember'));
+    const ctrl = engine.cameraController;
+
+    // Disabled shake produces zero displacement
+    ctrl.setCameraShakeEnabled(false);
+    ctrl.triggerShake(1.0);
+    expect(ctrl.getShakeOffset().length()).toBe(0);
+
+    // Subtle shake (0.3 intensity)
+    ctrl.setCameraShakeEnabled(true);
+    ctrl.setCameraShakeIntensity(0.3);
+    ctrl.triggerShake(1.0);
+    const subtleMag = ctrl.getShakeOffset().length();
+    expect(subtleMag).toBeGreaterThan(0);
+
+    // Strong shake (1.0 intensity)
+    ctrl.setCameraShakeIntensity(1.0);
+    ctrl.triggerShake(1.0);
+    const strongMag = ctrl.getShakeOffset().length();
+    expect(strongMag).toBeGreaterThan(subtleMag);
+
+    // Exponential decay clears shake over time
+    for (let i = 0; i < 30; i++) ctrl.update(0.033);
+    expect(ctrl.getShakeOffset().length()).toBeCloseTo(0, 0.05);
+  });
+
+  test('T1.Camera.12: Polar angle clamping prevents gimbal flips and camera inversion at Zenith and Nadir', () => {
+    const canvas = document.getElementById('webgl-canvas') as unknown as HTMLCanvasElement;
+    const engine = new RenderEngine(canvas, getTheme('ember'));
+    const ctrl = engine.cameraController;
+
+    // Rapid tilt up attempts to exceed +PI/2
+    for (let i = 0; i < 50; i++) {
+      ctrl.nudgeTilt(0.2);
+    }
+    const maxTilt = ctrl.getTiltAngle();
+    expect(maxTilt).toBeLessThanOrEqual(Math.PI / 2 - 0.04);
+    expect(maxTilt).toBeGreaterThan(1.4);
+
+    // Rapid tilt down attempts to fall below -PI/2
+    for (let i = 0; i < 50; i++) {
+      ctrl.nudgeTilt(-0.2);
+    }
+    const minTilt = ctrl.getTiltAngle();
+    expect(minTilt).toBeGreaterThanOrEqual(-Math.PI / 2 + 0.04);
+    expect(minTilt).toBeLessThan(-1.4);
+
+    // Ensure camera coordinates remain strictly finite
+    expect(isFinite(engine.camera.position.x)).toBe(true);
+    expect(isFinite(engine.camera.position.y)).toBe(true);
+    expect(isFinite(engine.camera.position.z)).toBe(true);
+    expect(isNaN(engine.camera.position.x)).toBe(false);
+  });
 });

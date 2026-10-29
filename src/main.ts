@@ -552,111 +552,161 @@ document.querySelectorAll('.close-drawer-btn, .closeThemeBtn, .closeQueueBtn, .c
 });
 dockQueueBtn?.addEventListener('click', () => queuePanel?.classList.toggle('open'));
 
-// Camera & 3D Viewpoints Controls
-const tiltUp = document.getElementById('tiltUp');
-const tiltDown = document.getElementById('tiltDown');
-const rotateLeft = document.getElementById('rotateLeft');
-const rotateRight = document.getElementById('rotateRight');
-const cameraReset = document.getElementById('cameraReset');
-const zoomSlider = document.getElementById('zoomSlider') as HTMLInputElement | null;
+// Camera & 3D Views Drawer Controls (Ticket #42)
+const tiltUp = document.getElementById('tiltUp') || document.querySelector('[data-alias="camUpBtn"]');
+const tiltDown = document.getElementById('tiltDown') || document.querySelector('[data-alias="camDownBtn"]');
+const rotateLeft = document.getElementById('rotateLeft') || document.querySelector('[data-alias="camLeftBtn"]');
+const rotateRight = document.getElementById('rotateRight') || document.querySelector('[data-alias="camRightBtn"]');
+const cameraReset = document.getElementById('cameraReset') || document.querySelector('[data-alias="camResetBtn"]');
+const zoomSlider = (document.getElementById('zoomSlider') || document.querySelector('[data-alias="camZoomSlider"]')) as HTMLInputElement | null;
 const zoomIn = document.getElementById('zoomIn');
 const zoomOut = document.getElementById('zoomOut');
 const zoomValue = document.getElementById('zoomValue');
-const autoRotateToggle = document.getElementById('autoRotateToggle') as HTMLInputElement | null;
-const rotateSpeedSlider = document.getElementById('rotateSpeedSlider') as HTMLInputElement | null;
+const autoRotateToggle = (document.getElementById('autoRotateToggle') || document.querySelector('[data-alias="camAutoOrbitToggle"]')) as HTMLInputElement | null;
+const rotateSpeedSlider = (document.getElementById('rotateSpeedSlider') || document.querySelector('[data-alias="camOrbitSpeedSlider"]')) as HTMLInputElement | null;
 const rotateSpeedValue = document.getElementById('rotateSpeedValue');
+const camDirCcwBtn = document.getElementById('camDirCcwBtn');
+const camDirCwBtn = document.getElementById('camDirCwBtn');
+const viewpointBtns = document.querySelectorAll('.viewpoint-btn');
+const camShakeToggle = document.getElementById('camShakeToggle') as HTMLInputElement | null;
+const camShakeSlider = document.getElementById('camShakeIntensitySlider') as HTMLInputElement | null;
+const camShakeVal = document.getElementById('camShakeIntensityVal');
 const cameraShakeSegments = document.querySelectorAll('#cameraShakeSegments .opt-chip');
 const dofSegments = document.querySelectorAll('#dofSegments .opt-chip');
 
-let currentOrbitAngle = 0;
-let currentTiltAngle = 0;
-let currentZoom = 0.5;
+function setupDpadArrow(btn: Element | null, axis: 'orbit' | 'tilt', direction: 1 | -1) {
+  if (!btn) return;
 
-function updateCameraView() {
-  const dist = 6 + (1 - currentZoom) * 12;
-  renderEngine.camera.position.x = Math.sin(currentOrbitAngle) * Math.cos(currentTiltAngle) * dist;
-  renderEngine.camera.position.z = Math.cos(currentOrbitAngle) * Math.cos(currentTiltAngle) * dist;
-  renderEngine.camera.position.y = Math.sin(currentTiltAngle) * dist;
-  renderEngine.camera.lookAt(0, 0, 0);
+  let glideInterval: number | null = null;
+  let glideTimeout: number | null = null;
+
+  const startGlide = () => {
+    btn.classList.add('is-holding');
+    if (autoRotateToggle) {
+      autoRotateToggle.checked = false;
+    }
+    renderEngine.cameraController.setAutoRotate(false);
+    renderEngine.cameraController.nudge(axis, direction, 0.1);
+
+    glideTimeout = window.setTimeout(() => {
+      glideInterval = window.setInterval(() => {
+        renderEngine.cameraController.nudge(axis, direction, 0.03);
+      }, 30);
+    }, 250);
+  };
+
+  const stopGlide = () => {
+    btn.classList.remove('is-holding');
+    if (glideTimeout !== null) {
+      window.clearTimeout(glideTimeout);
+      glideTimeout = null;
+    }
+    if (glideInterval !== null) {
+      window.clearInterval(glideInterval);
+      glideInterval = null;
+    }
+  };
+
+  btn.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    startGlide();
+    try {
+      (btn as HTMLElement).setPointerCapture((e as PointerEvent).pointerId);
+    } catch {
+      // Ignore if pointer capture fails in mock environment
+    }
+  });
+
+  btn.addEventListener('pointerup', stopGlide);
+  btn.addEventListener('pointercancel', stopGlide);
+  btn.addEventListener('pointerleave', stopGlide);
 }
 
-rotateLeft?.addEventListener('click', () => {
-  currentOrbitAngle -= 0.2;
-  renderEngine.config.autoRotate = false;
-  if (autoRotateToggle) autoRotateToggle.checked = false;
-  updateCameraView();
-});
-
-rotateRight?.addEventListener('click', () => {
-  currentOrbitAngle += 0.2;
-  renderEngine.config.autoRotate = false;
-  if (autoRotateToggle) autoRotateToggle.checked = false;
-  updateCameraView();
-});
-
-tiltUp?.addEventListener('click', () => {
-  currentTiltAngle = Math.min(Math.PI / 2 - 0.05, currentTiltAngle + 0.15);
-  renderEngine.config.autoRotate = false;
-  if (autoRotateToggle) autoRotateToggle.checked = false;
-  updateCameraView();
-});
-
-tiltDown?.addEventListener('click', () => {
-  currentTiltAngle = Math.max(-Math.PI / 2 + 0.05, currentTiltAngle - 0.15);
-  renderEngine.config.autoRotate = false;
-  if (autoRotateToggle) autoRotateToggle.checked = false;
-  updateCameraView();
-});
+setupDpadArrow(rotateLeft, 'orbit', -1);
+setupDpadArrow(rotateRight, 'orbit', 1);
+setupDpadArrow(tiltUp, 'tilt', 1);
+setupDpadArrow(tiltDown, 'tilt', -1);
 
 cameraReset?.addEventListener('click', () => {
-  currentOrbitAngle = 0;
-  currentTiltAngle = 0;
-  currentZoom = 0.5;
+  renderEngine.resetCamera();
   if (zoomSlider) zoomSlider.value = '0.5';
   if (zoomValue) zoomValue.textContent = '50%';
-  renderEngine.config.autoRotate = true;
   if (autoRotateToggle) autoRotateToggle.checked = true;
-  updateCameraView();
+  viewpointBtns.forEach(b => b.classList.remove('active'));
+  document.getElementById('viewDefaultBtn')?.classList.add('active');
 });
 
-if (zoomSlider) {
-  zoomSlider.addEventListener('input', () => {
-    currentZoom = Number.parseFloat(zoomSlider.value);
-    if (zoomValue) zoomValue.textContent = `${Math.round(currentZoom * 100)}%`;
-    updateCameraView();
-  });
+function updateZoomReadout(val: number) {
+  const clamped = Math.max(0, Math.min(1, val));
+  if (zoomSlider) zoomSlider.value = clamped.toString();
+  if (zoomValue) zoomValue.textContent = `${Math.round(clamped * 100)}%`;
+  renderEngine.cameraController.setZoom(clamped);
 }
 
+zoomSlider?.addEventListener('input', () => {
+  const val = Number.parseFloat(zoomSlider.value);
+  updateZoomReadout(val);
+});
+
 zoomIn?.addEventListener('click', () => {
-  if (zoomSlider) {
-    currentZoom = Math.min(1.0, currentZoom + 0.1);
-    zoomSlider.value = currentZoom.toString();
-    if (zoomValue) zoomValue.textContent = `${Math.round(currentZoom * 100)}%`;
-    updateCameraView();
-  }
+  const current = Number.parseFloat(zoomSlider?.value ?? '0.5');
+  updateZoomReadout(Math.min(1.0, current + 0.1));
 });
 
 zoomOut?.addEventListener('click', () => {
-  if (zoomSlider) {
-    currentZoom = Math.max(0.0, currentZoom - 0.1);
-    zoomSlider.value = currentZoom.toString();
+  const current = Number.parseFloat(zoomSlider?.value ?? '0.5');
+  updateZoomReadout(Math.max(0.0, current - 0.1));
+});
+
+viewpointBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    viewpointBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const viewId = (btn as HTMLElement).dataset.view ?? 'default';
+    renderEngine.setViewpoint(viewId);
+    if (autoRotateToggle) autoRotateToggle.checked = false;
+    const currentZoom = renderEngine.cameraController.getZoom();
+    if (zoomSlider) zoomSlider.value = currentZoom.toString();
     if (zoomValue) zoomValue.textContent = `${Math.round(currentZoom * 100)}%`;
-    updateCameraView();
-  }
+  });
 });
 
 autoRotateToggle?.addEventListener('change', () => {
-  if (autoRotateToggle) {
-    renderEngine.config.autoRotate = autoRotateToggle.checked;
-  }
+  renderEngine.setAutoRotate(autoRotateToggle.checked);
 });
 
 rotateSpeedSlider?.addEventListener('input', () => {
-  if (rotateSpeedSlider) {
-    const spd = Number.parseFloat(rotateSpeedSlider.value);
-    renderEngine.config.autoRotateSpeed = spd * 0.8;
-    if (rotateSpeedValue) rotateSpeedValue.textContent = `${Math.round(spd * 100)}%`;
+  const spd = Number.parseFloat(rotateSpeedSlider.value);
+  renderEngine.setAutoRotate(renderEngine.config.autoRotate, spd);
+  if (rotateSpeedValue) rotateSpeedValue.textContent = `${Math.round(spd * 100)}%`;
+});
+
+function setSpinDirection(dir: 1 | -1) {
+  if (dir === 1) {
+    camDirCwBtn?.classList.add('active');
+    camDirCcwBtn?.classList.remove('active');
+  } else {
+    camDirCcwBtn?.classList.add('active');
+    camDirCwBtn?.classList.remove('active');
   }
+  renderEngine.cameraController.setRotationDirection(dir);
+}
+
+camDirCcwBtn?.addEventListener('click', () => setSpinDirection(-1));
+camDirCwBtn?.addEventListener('click', () => setSpinDirection(1));
+
+camShakeToggle?.addEventListener('change', () => {
+  renderEngine.cameraController.setCameraShakeEnabled(camShakeToggle.checked);
+});
+
+camShakeSlider?.addEventListener('input', () => {
+  const val = Number.parseFloat(camShakeSlider.value);
+  if (camShakeVal) camShakeVal.textContent = `${Math.round(val * 100)}%`;
+  renderEngine.cameraController.setCameraShakeIntensity(val);
+  cameraShakeSegments.forEach(chip => {
+    const chipVal = Number.parseFloat((chip as HTMLElement).dataset.value || '0');
+    chip.classList.toggle('active', Math.abs(chipVal - val) < 0.15);
+  });
 });
 
 cameraShakeSegments.forEach(chip => {
@@ -664,7 +714,11 @@ cameraShakeSegments.forEach(chip => {
     cameraShakeSegments.forEach(c => c.classList.remove('active'));
     chip.classList.add('active');
     const val = Number.parseFloat((chip as HTMLElement).dataset.value || '0');
-    renderEngine.config.cameraShake = val > 0;
+    renderEngine.cameraController.setCameraShakeIntensity(val);
+    renderEngine.cameraController.setCameraShakeEnabled(val > 0);
+    if (camShakeSlider) camShakeSlider.value = val.toString();
+    if (camShakeVal) camShakeVal.textContent = `${Math.round(val * 100)}%`;
+    if (camShakeToggle) camShakeToggle.checked = val > 0;
   });
 });
 

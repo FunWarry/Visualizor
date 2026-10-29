@@ -4,6 +4,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { VisualizerPreset, VisualizerTheme, AudioFeatures, PostProcessingConfig } from '../types';
+import { CameraController } from './CameraController';
 
 const MasterShader = {
   uniforms: {
@@ -114,9 +115,8 @@ export class RenderEngine {
   public currentTheme: VisualizerTheme;
   public config: PostProcessingConfig;
 
+  public readonly cameraController: CameraController;
   private readonly cameraBasePos = new THREE.Vector3(0, 0, 12);
-  private readonly cameraShake = new THREE.Vector3();
-  private shakeIntensity = 0;
   private readonly clock = new THREE.Clock();
 
   constructor(canvas: HTMLCanvasElement, initialTheme: VisualizerTheme) {
@@ -144,7 +144,10 @@ export class RenderEngine {
     const width = window.innerWidth;
     const height = window.innerHeight;
     this.camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
-    this.camera.position.copy(this.cameraBasePos);
+    this.cameraController = new CameraController(this.camera, {
+      baseRadius: 12,
+      orbitSpeed: this.config.autoRotateSpeed
+    });
 
     // Renderer setup
     this.renderer = new THREE.WebGLRenderer({
@@ -244,40 +247,26 @@ export class RenderEngine {
     this.bloomPass.strength = this.config.bloomStrength;
     this.bloomPass.radius = this.config.bloomRadius;
     this.bloomPass.threshold = this.config.bloomThreshold;
+    if (newConfig.autoRotate !== undefined) {
+      this.cameraController.autoRotate = newConfig.autoRotate;
+    }
+    if (newConfig.autoRotateSpeed !== undefined) {
+      this.cameraController.autoRotateSpeed = newConfig.autoRotateSpeed;
+    }
+    if (newConfig.cameraShake !== undefined) {
+      this.cameraController.cameraShakeEnabled = newConfig.cameraShake;
+    }
   }
 
   public render(audio: AudioFeatures) {
     const delta = Math.min(this.clock.getDelta(), 0.1);
     const time = this.clock.getElapsedTime();
 
-    // Camera kick shake
-    if (this.config.cameraShake && audio.beat) {
-      this.shakeIntensity = Math.min(1.0, audio.bass * 0.8 + 0.3);
-    }
-
-    if (this.shakeIntensity > 0.01) {
-      this.cameraShake.set(
-        (Math.random() - 0.5) * this.shakeIntensity * 0.4,
-        (Math.random() - 0.5) * this.shakeIntensity * 0.4,
-        (Math.random() - 0.5) * this.shakeIntensity * 0.2
-      );
-      this.shakeIntensity *= 0.88;
-    } else {
-      this.cameraShake.set(0, 0, 0);
-    }
-
-    // Camera auto-orbit
-    if (this.config.autoRotate) {
-      const angle = time * this.config.autoRotateSpeed * 0.5;
-      const radius = 12;
-      this.camera.position.x = Math.sin(angle) * radius + this.cameraShake.x;
-      this.camera.position.z = Math.cos(angle) * radius + this.cameraShake.z;
-      this.camera.position.y = this.cameraBasePos.y + this.cameraShake.y;
-      this.camera.lookAt(0, 0, 0);
-    } else {
-      this.camera.position.copy(this.cameraBasePos).add(this.cameraShake);
-      this.camera.lookAt(0, 0, 0);
-    }
+    // Delegate camera position, auto-orbit, shake, and lerping to cameraController
+    this.cameraController.autoRotate = this.config.autoRotate;
+    this.cameraController.autoRotateSpeed = this.config.autoRotateSpeed;
+    this.cameraController.cameraShakeEnabled = this.config.cameraShake;
+    this.cameraController.update(delta, audio.beat, audio.bass);
 
     // Update active preset
     if (this.activePreset) {
@@ -334,5 +323,31 @@ export class RenderEngine {
 
   public captureScreenshot(): string {
     return this.renderer.domElement.toDataURL('image/png');
+  }
+
+  public setCameraPosition(rotAngle: number, tiltAngle: number, zoom?: number, immediate?: boolean): void {
+    this.cameraController.setPosition(rotAngle, tiltAngle, zoom, immediate);
+  }
+
+  public setAutoRotate(enabled: boolean, speed?: number, direction?: 1 | -1): void {
+    this.config.autoRotate = enabled;
+    if (speed !== undefined) this.config.autoRotateSpeed = speed;
+    this.cameraController.setAutoRotate(enabled, speed, direction);
+  }
+
+  public triggerCameraShake(intensity: number): void {
+    this.cameraController.triggerShake(intensity);
+  }
+
+  public setCameraViewpoint(viewpointId: string, immediate?: boolean): void {
+    this.cameraController.setViewpoint(viewpointId, immediate);
+  }
+
+  public setViewpoint(viewpointId: string, immediate?: boolean): void {
+    this.cameraController.setViewpoint(viewpointId, immediate);
+  }
+
+  public resetCamera(): void {
+    this.cameraController.reset();
   }
 }

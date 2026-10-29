@@ -17,6 +17,7 @@ import './tier1-features/audio-dsp.test';
 import './tier2-boundaries/themes-boundary.test';
 import './tier2-boundaries/rail-boundary.test';
 import './tier2-boundaries/tuning-boundary.test';
+import './tier2-boundaries/tuning-stress.test';
 import './tier2-boundaries/camera-boundary.test';
 import './tier2-boundaries/overlay-boundary.test';
 import './tier2-boundaries/studio-boundary.test';

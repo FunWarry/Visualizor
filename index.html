@@ -301,7 +301,7 @@
       <button class="btn-icon close-drawer-btn closeCameraBtn" style="width:28px;height:28px;" aria-label="Close camera panel">✕</button>
     </div>
     <div class="panel-content camera-motion" id="cameraMotion">
-      <!-- 1. View Directional Pad -->
+      <!-- 1. View Directional Pad & Zoom Rig -->
       <div class="camera-group camera-view" role="group" aria-labelledby="cameraViewLabel">
         <div class="sidebar-label-row" style="display:flex;justify-content:space-between;margin-bottom:8px;">
           <span class="camera-group__label" id="cameraViewLabel" style="font-weight:600;">View</span>
@@ -309,19 +309,19 @@
         </div>
         <div class="camera-view__rig">
           <div class="camera-pad" role="group" aria-label="Orbit and tilt">
-            <button type="button" class="camera-pad__arrow camera-pad__arrow--up" id="tiltUp" data-axis="tilt" data-direction="1" aria-label="Tilt up">
+            <button type="button" class="camera-pad__arrow camera-pad__arrow--up" id="tiltUp" data-alias="camUpBtn" data-axis="tilt" data-direction="1" aria-label="Tilt up" title="Tilt up">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
             </button>
-            <button type="button" class="camera-pad__arrow camera-pad__arrow--left" id="rotateLeft" data-axis="orbit" data-direction="-1" aria-label="Orbit left">
+            <button type="button" class="camera-pad__arrow camera-pad__arrow--left" id="rotateLeft" data-alias="camLeftBtn" data-axis="orbit" data-direction="-1" aria-label="Orbit left" title="Orbit left">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
-            <button type="button" class="camera-pad__arrow camera-pad__arrow--right" id="rotateRight" data-axis="orbit" data-direction="1" aria-label="Orbit right">
+            <button type="button" class="camera-pad__arrow camera-pad__arrow--right" id="rotateRight" data-alias="camRightBtn" data-axis="orbit" data-direction="1" aria-label="Orbit right" title="Orbit right">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
-            <button type="button" class="camera-pad__arrow camera-pad__arrow--down" id="tiltDown" data-axis="tilt" data-direction="-1" aria-label="Tilt down">
+            <button type="button" class="camera-pad__arrow camera-pad__arrow--down" id="tiltDown" data-alias="camDownBtn" data-axis="tilt" data-direction="-1" aria-label="Tilt down" title="Tilt down">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
             </button>
-            <button type="button" class="camera-pad__hub" id="cameraReset" aria-label="Reset camera to front">
+            <button type="button" class="camera-pad__hub" id="cameraReset" data-alias="camResetBtn" aria-label="Reset camera to front" title="Reset camera to front">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
             </button>
           </div>
@@ -329,38 +329,87 @@
           <!-- 2. Zoom Controls -->
           <div class="camera-zoom" id="zoomControl" role="group" aria-label="Zoom">
             <span class="camera-zoom__readout" style="font-size:11px;">Zoom <span class="sidebar-value" id="zoomValue">50%</span></span>
-            <button type="button" class="camera-icon-btn" id="zoomIn" aria-label="Zoom in">+</button>
-            <input class="ui-slider" type="range" id="zoomSlider" min="0" max="1" step="0.05" value="0.5" aria-label="Zoom Slider">
-            <button type="button" class="camera-icon-btn" id="zoomOut" aria-label="Zoom out">−</button>
+            <button type="button" class="camera-icon-btn" id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button>
+            <input class="ui-slider" type="range" id="zoomSlider" data-alias="camZoomSlider" min="0" max="1" step="0.05" value="0.5" aria-label="Zoom Slider">
+            <button type="button" class="camera-icon-btn" id="zoomOut" aria-label="Zoom out" title="Zoom out">−</button>
           </div>
         </div>
       </div>
 
-      <!-- 3. Auto-Rotate Controls -->
-      <div class="control-row" style="margin-top:16px;">
-        <label for="autoRotateToggle" class="control-label"><span>Auto-Rotate</span></label>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <input type="checkbox" id="autoRotateToggle" checked style="accent-color:var(--primary);width:16px;height:16px;" aria-label="Auto-Rotate Toggle">
+      <!-- 2. Cinematic Viewpoints -->
+      <div class="camera-group camera-viewpoints" style="margin-top:16px;">
+        <span class="camera-group__label" id="viewpointsLabel" style="font-weight:600;font-size:12px;display:block;margin-bottom:8px;">Cinematic Viewpoints</span>
+        <div class="viewpoints-grid" id="viewpointsGrid" role="group" aria-labelledby="viewpointsLabel">
+          <button type="button" class="viewpoint-btn active" id="viewDefaultBtn" data-view="default" title="Front View (0°)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            <span class="viewpoint-name">Default</span>
+          </button>
+          <button type="button" class="viewpoint-btn" id="viewTopBtn" data-view="top" title="Top-Down Bird's Eye View (+87°)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 15-6-6-6 6"/></svg>
+            <span class="viewpoint-name">Top</span>
+          </button>
+          <button type="button" class="viewpoint-btn" id="viewLowBtn" data-view="low" title="Low Angle Worm's Eye View (-35°)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+            <span class="viewpoint-name">Low</span>
+          </button>
+          <button type="button" class="viewpoint-btn" id="viewIsoBtn" data-view="iso" title="Isometric Perspective (45°, 30°)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21 16-9 5-9-5V8l9-5 9 5v8Z"/><path d="m3 8 9 5 9-5"/><path d="M12 13v8"/></svg>
+            <span class="viewpoint-name">Iso</span>
+          </button>
+          <button type="button" class="viewpoint-btn" id="viewSideBtn" data-view="side" title="Side Profile View (90°)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m10 8 4 4-4 4"/></svg>
+            <span class="viewpoint-name">Side</span>
+          </button>
         </div>
       </div>
-      <div class="control-row">
-        <label for="rotateSpeedSlider" class="control-label"><span>Rotation Speed</span><span id="rotateSpeedValue">50%</span></label>
-        <input class="ui-slider" type="range" id="rotateSpeedSlider" min="0" max="1" step="0.05" value="0.5" aria-label="Rotation Speed">
+
+      <!-- 3. Auto-Rotate & Direction Controls -->
+      <div class="camera-group camera-spin" style="margin-top:16px;">
+        <div class="control-row">
+          <label for="autoRotateToggle" class="control-label"><span>Auto-Rotate</span></label>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <input type="checkbox" id="autoRotateToggle" data-alias="camAutoOrbitToggle" checked style="accent-color:var(--primary);width:16px;height:16px;" aria-label="Auto-Rotate Toggle">
+          </div>
+        </div>
+        <div class="control-row" style="margin-top:8px;">
+          <label class="control-label"><span>Spin Direction</span></label>
+          <div class="camera-dir" id="rotateDirection" role="group" aria-label="Spin direction">
+            <button type="button" class="seg-btn" id="camDirCcwBtn" data-direction="-1" aria-pressed="false" title="Spin counter-clockwise" aria-label="Spin counter-clockwise">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            </button>
+            <button type="button" class="seg-btn active" id="camDirCwBtn" data-direction="1" aria-pressed="true" title="Spin clockwise" aria-label="Spin clockwise">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="control-row" style="margin-top:8px;">
+          <label for="rotateSpeedSlider" class="control-label"><span>Rotation Speed</span><span id="rotateSpeedValue">50%</span></label>
+          <input class="ui-slider" type="range" id="rotateSpeedSlider" data-alias="camOrbitSpeedSlider" min="0" max="1" step="0.05" value="0.5" aria-label="Rotation Speed">
+        </div>
       </div>
 
-      <!-- 4. Camera Shake Segments -->
-      <div style="margin-top:14px;">
-        <span style="font-size:12px;font-weight:600;display:block;margin-bottom:6px;">Audio Camera Shake</span>
-        <div class="chip-group" id="cameraShakeSegments">
-          <div class="opt-chip active" data-value="0">Off</div>
-          <div class="opt-chip" data-value="0.3">Subtle</div>
-          <div class="opt-chip" data-value="0.6">Medium</div>
-          <div class="opt-chip" data-value="1.0">Strong</div>
+      <!-- 4. Camera Shake Controls -->
+      <div class="camera-group camera-shake-group" style="margin-top:16px;">
+        <div class="control-row">
+          <label for="camShakeToggle" class="control-label"><span>Audio Camera Shake</span></label>
+          <input type="checkbox" id="camShakeToggle" checked style="accent-color:var(--primary);width:16px;height:16px;" aria-label="Camera Shake Toggle">
+        </div>
+        <div style="margin-top:8px;">
+          <div class="chip-group" id="cameraShakeSegments">
+            <div class="opt-chip" data-value="0">Off</div>
+            <div class="opt-chip" data-value="0.3">Subtle</div>
+            <div class="opt-chip active" data-value="0.6">Medium</div>
+            <div class="opt-chip" data-value="1.0">Strong</div>
+          </div>
+        </div>
+        <div class="control-row" style="margin-top:8px;">
+          <label for="camShakeIntensitySlider" class="control-label"><span>Shake Intensity</span><span id="camShakeIntensityVal">60%</span></label>
+          <input class="ui-slider" type="range" id="camShakeIntensitySlider" min="0" max="1" step="0.05" value="0.6" aria-label="Camera Shake Intensity Slider">
         </div>
       </div>
 
       <!-- 5. Depth of Field Segments -->
-      <div style="margin-top:10px;">
+      <div style="margin-top:16px;">
         <span style="font-size:12px;font-weight:600;display:block;margin-bottom:6px;">Depth of Field</span>
         <div class="chip-group" id="dofSegments">
           <div class="opt-chip active" data-value="0">Off</div>
