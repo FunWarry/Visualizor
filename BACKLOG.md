@@ -15,42 +15,42 @@ Toutes les issues ci-dessous sont créées et suivies sur le dépôt GitHub [Fun
 - [x] **Core** `feat(preset): Implement Obsidian Poly (dark glossy morphing polyhedron)`
 - [x] [#2](https://github.com/FunWarry/Visualizor/issues/2) `feat(preset): Implement Ferrofluid magnetic spike sphere`
 - [x] [#3](https://github.com/FunWarry/Visualizor/issues/3) `feat(preset): Implement DNA Helix rotating reactive strands`
-- [ ] [#4](https://github.com/FunWarry/Visualizor/issues/4) `feat(preset): Implement Topo Map & Cymatic standing waves`
+- [x] [#4](https://github.com/FunWarry/Visualizor/issues/4) `feat(preset): Implement Topo Map & Cymatic standing waves`
 - [ ] [#5](https://github.com/FunWarry/Visualizor/issues/5) `feat(preset): Implement 3D Vinyl Turntable & Rings Orrery`
-- [ ] [#6](https://github.com/FunWarry/Visualizor/issues/6) `feat(preset): Implement Tesseract 4D & Hologram Glitch`
+- [x] [#6](https://github.com/FunWarry/Visualizor/issues/6) `feat(preset): Implement Tesseract 4D & Hologram Glitch`
 - [x] [#7](https://github.com/FunWarry/Visualizor/issues/7) `feat(preset): Implement Geodesic frequency sphere & Warp Grid`
 
 ### Epic: Abstrait & Espace
 - [x] **Core** `feat(preset): Implement Starfield Warp (warp-speed starfield flight)`
 - [x] **Core** `feat(preset): Implement Black Hole Singularity (gravitational accretion disk)`
-- [ ] [#8](https://github.com/FunWarry/Visualizor/issues/8) `feat(preset): Implement The Sun solar corona & flares`
-- [ ] [#9](https://github.com/FunWarry/Visualizor/issues/9) `feat(preset): Implement Mandel fractal zoom & Unfolding Matter`
-- [ ] [#10](https://github.com/FunWarry/Visualizor/issues/10) `feat(preset): Implement MilkDrop & Geiss feedback vortices`
-- [ ] [#11](https://github.com/FunWarry/Visualizor/issues/11) `feat(preset): Implement Aurora borealis & Sacred mandala`
+- [x] [#8](https://github.com/FunWarry/Visualizor/issues/8) `feat(preset): Implement The Sun solar corona & flares`
+- [x] [#9](https://github.com/FunWarry/Visualizor/issues/9) `feat(preset): Implement Mandel fractal zoom & Unfolding Matter`
+- [x] [#10](https://github.com/FunWarry/Visualizor/issues/10) `feat(preset): Implement MilkDrop & Geiss feedback vortices`
+- [x] [#11](https://github.com/FunWarry/Visualizor/issues/11) `feat(preset): Implement Aurora borealis & Sacred mandala`
 - [x] [#12](https://github.com/FunWarry/Visualizor/issues/12) `feat(preset): Implement Synthwave Terrain flyover & Galaxy flight`
 
 ### Epic: Particules & Lumière
 - [x] **Core** `feat(preset): Implement Particle Swarm (reactive cosmic particle cloud)`
-- [ ] [#13](https://github.com/FunWarry/Visualizor/issues/13) `feat(preset): Implement Fireflies bioluminescent swarm`
+- [x] [#13](https://github.com/FunWarry/Visualizor/issues/13) `feat(preset): Implement Fireflies bioluminescent swarm`
 - [x] [#14](https://github.com/FunWarry/Visualizor/issues/14) `feat(preset): Implement Lightning & Plasma Arcs electric network`
 
 ### Epic: Fluides & Chaleur
 - [x] **Core** `feat(preset): Implement Lava Plasma Sphere (molten energy fluid)`
-- [ ] [#15](https://github.com/FunWarry/Visualizor/issues/15) `feat(preset): Implement Fireball & Water Neurons`
-- [ ] [#16](https://github.com/FunWarry/Visualizor/issues/16) `feat(preset): Implement Liquid, Fluid & Plasma gas shaders`
-- [ ] [#17](https://github.com/FunWarry/Visualizor/issues/17) `feat(preset): Implement Fog domain warping, Rain Water ripples & Smoke wisps`
+- [x] [#15](https://github.com/FunWarry/Visualizor/issues/15) `feat(preset): Implement Fireball & Water Neurons`
+- [x] [#16](https://github.com/FunWarry/Visualizor/issues/16) `feat(preset): Implement Liquid, Fluid & Plasma gas shaders`
+- [x] [#17](https://github.com/FunWarry/Visualizor/issues/17) `feat(preset): Implement Fog domain warping, Rain Water ripples & Smoke wisps`
 
 ### Epic: Tunnels
 - [x] **Core** `feat(preset): Implement Neon Tunnel (infinite hexagonal corridor)`
 - [x] [#18](https://github.com/FunWarry/Visualizor/issues/18) `feat(preset): Implement Box Tunnel & Ring Tunnel`
-- [ ] [#19](https://github.com/FunWarry/Visualizor/issues/19) `feat(preset): Implement Water Slide & Vein Tunnel`
+- [x] [#19](https://github.com/FunWarry/Visualizor/issues/19) `feat(preset): Implement Water Slide & Vein Tunnel`
 - [x] [#20](https://github.com/FunWarry/Visualizor/issues/20) `feat(preset): Implement Kaleidoscope mirror mandala`
 
 ### Epic: Rétro & Numérique
 - [x] **Core** `feat(preset): Implement Matrix Digital Cascade (falling code stream)`
-- [ ] [#21](https://github.com/FunWarry/Visualizor/issues/21) `feat(preset): Implement The Spectrogram & Night Radar scopes`
+- [x] [#21](https://github.com/FunWarry/Visualizor/issues/21) `feat(preset): Implement The Spectrogram & Night Radar scopes`
 - [x] [#22](https://github.com/FunWarry/Visualizor/issues/22) `feat(preset): Implement Diode Wall & Vod Lines`
-- [ ] [#23](https://github.com/FunWarry/Visualizor/issues/23) `feat(preset): Implement LCD Deck CD player & Signal Lock`
+- [x] [#23](https://github.com/FunWarry/Visualizor/issues/23) `feat(preset): Implement LCD Deck CD player & Signal Lock`
 
 ### Epic: Organique & Nature
 - [ ] [#24](https://github.com/FunWarry/Visualizor/issues/24) `feat(preset): Implement Bloom flower opening & Ink drop diffusion`
