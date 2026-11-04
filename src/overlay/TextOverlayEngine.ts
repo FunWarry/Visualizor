@@ -13,6 +13,13 @@ interface TextLineEntry {
   size: number;
 }
 
+function clampNumber(val: unknown, fallback: number, min = -Infinity, max = Infinity): number {
+  if (typeof val !== 'number' || !Number.isFinite(val)) {
+    return fallback;
+  }
+  return Math.max(min, Math.min(max, val));
+}
+
 export class TextOverlayEngine {
   private readonly canvas: HTMLCanvasElement;
   private readonly ctx: CanvasRenderingContext2D;
@@ -34,14 +41,28 @@ export class TextOverlayEngine {
   private readonly config: TextOverlayConfig;
   private readonly watermarkConfig: WatermarkConfig;
 
-  constructor(width = 1920, height = 1080, dpr = Math.min(typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1, 2)) {
-    this.width = Math.max(1, width);
-    this.height = Math.max(1, height);
-    this.dpr = dpr || 1;
+  constructor(
+    width = 1920,
+    height = 1080,
+    dpr = Math.min(typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1, 2)
+  ) {
+    const validW = typeof width === 'number' && Number.isFinite(width)
+      ? Math.max(1, width)
+      : 1920;
+    const validH = typeof height === 'number' && Number.isFinite(height)
+      ? Math.max(1, height)
+      : 1080;
+    const validDpr = typeof dpr === 'number' && Number.isFinite(dpr) && dpr > 0
+      ? Math.min(dpr, 4)
+      : 1;
+
+    this.width = validW;
+    this.height = validH;
+    this.dpr = validDpr;
 
     this.canvas = document.createElement('canvas');
-    this.canvas.width = Math.round(this.width * this.dpr);
-    this.canvas.height = Math.round(this.height * this.dpr);
+    this.canvas.width = Math.max(1, Math.round(this.width * this.dpr));
+    this.canvas.height = Math.max(1, Math.round(this.height * this.dpr));
     this.ctx = this.canvas.getContext('2d') as CanvasRenderingContext2D;
 
     this.texture = new THREE.CanvasTexture(this.canvas);
@@ -114,17 +135,17 @@ export class TextOverlayEngine {
   }
 
   public setTitle(text: string): void {
-    this.config.layers.title = typeof text === 'string' ? text.trim() : '';
+    this.config.layers.title = typeof text === 'string' ? text.trim().slice(0, 200) : '';
     this.isDirty = true;
   }
 
   public setArtist(text: string): void {
-    this.config.layers.artist = typeof text === 'string' ? text.trim() : '';
+    this.config.layers.artist = typeof text === 'string' ? text.trim().slice(0, 200) : '';
     this.isDirty = true;
   }
 
   public setCustomText(text: string): void {
-    this.config.layers.custom = typeof text === 'string' ? text.trim() : '';
+    this.config.layers.custom = typeof text === 'string' ? text.trim().slice(0, 200) : '';
     this.isDirty = true;
   }
 
@@ -220,13 +241,27 @@ export class TextOverlayEngine {
     return this.scaleMultiplier;
   }
 
-  public resize(width: number, height: number, dpr = Math.min(typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1, 2)): void {
-    this.width = Math.max(1, width);
-    this.height = Math.max(1, height);
-    this.dpr = dpr || 1;
+  public resize(
+    width: number,
+    height: number,
+    dpr = Math.min(typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1, 2)
+  ): void {
+    const validW = typeof width === 'number' && Number.isFinite(width)
+      ? Math.max(1, width)
+      : (this.width > 0 ? this.width : 1920);
+    const validH = typeof height === 'number' && Number.isFinite(height)
+      ? Math.max(1, height)
+      : (this.height > 0 ? this.height : 1080);
+    const validDpr = typeof dpr === 'number' && Number.isFinite(dpr) && dpr > 0
+      ? Math.min(dpr, 4)
+      : (this.dpr > 0 ? this.dpr : 1);
 
-    this.canvas.width = Math.round(this.width * this.dpr);
-    this.canvas.height = Math.round(this.height * this.dpr);
+    this.width = validW;
+    this.height = validH;
+    this.dpr = validDpr;
+
+    this.canvas.width = Math.max(1, Math.round(this.width * this.dpr));
+    this.canvas.height = Math.max(1, Math.round(this.height * this.dpr));
     this.texture.dispose();
     this.texture.image = this.canvas;
     this.isDirty = true;
@@ -262,12 +297,12 @@ export class TextOverlayEngine {
     if (typeof audioOrDelta === 'object' && audioOrDelta !== null) {
       return {
         audio: audioOrDelta,
-        delta: typeof deltaOrTime === 'number' ? deltaOrTime : 0.016
+        delta: clampNumber(deltaOrTime, 0.016, 0)
       };
     }
     return {
       audio: maybeAudio,
-      delta: typeof audioOrDelta === 'number' ? audioOrDelta : 0.016
+      delta: clampNumber(audioOrDelta, 0.016, 0)
     };
   }
 
@@ -286,58 +321,65 @@ export class TextOverlayEngine {
   }
 
   private updatePulse(audio?: AudioFeatures): void {
-    if (this.config.animation === 'pulse') {
-      const bass = audio ? audio.bass : 0;
-      const isBeat = audio ? audio.beat : false;
-      const intensity = this.config.animationIntensity;
-      this.scaleMultiplier = 1.0 + bass * intensity * 0.35 + (isBeat ? 0.15 * intensity : 0);
-    } else {
+    if (this.config.animation !== 'pulse') {
       this.scaleMultiplier = 1.0;
+      return;
     }
+    const bass = clampNumber(audio?.bass, 0, 0);
+    const intensity = clampNumber(this.config.animationIntensity, 0.5, 0, 1);
+    const beatBonus = audio?.beat ? 0.15 * intensity : 0;
+    const computed = 1.0 + bass * intensity * 0.35 + beatBonus;
+    this.scaleMultiplier = clampNumber(computed, 1.0, 0);
   }
 
   private updateGlitch(audio?: AudioFeatures): void {
-    if (this.config.animation === 'glitch') {
-      const isKick = audio ? (audio.beat || audio.bass > 0.6) : false;
-      const baseJitter = isKick ? 12.0 : 4.0;
-      const intensity = this.config.animationIntensity;
-      this.glitchOffset.x = Math.sin(this.elapsedTime * 35.0) * baseJitter * intensity;
-      this.glitchOffset.y = Math.cos(this.elapsedTime * 45.0) * (baseJitter * 0.6) * intensity;
-    } else {
+    if (this.config.animation !== 'glitch') {
       this.glitchOffset.x = 0;
       this.glitchOffset.y = 0;
+      return;
     }
+    const safeBass = clampNumber(audio?.bass, 0, 0);
+    const isKick = Boolean(audio?.beat) || safeBass > 0.6;
+    const baseJitter = isKick ? 12.0 : 4.0;
+    const intensity = clampNumber(this.config.animationIntensity, 0.5, 0, 1);
+    const time = clampNumber(this.elapsedTime, 0);
+    this.glitchOffset.x = Math.sin(time * 35.0) * baseJitter * intensity;
+    this.glitchOffset.y = Math.cos(time * 45.0) * (baseJitter * 0.6) * intensity;
   }
 
   private updateMarquee(): void {
     const anim = this.config.animation;
-    if (anim === 'marquee' || anim === 'runningRow') {
-      const speed = 40 + this.config.animationIntensity * 160;
-      this.marqueeOffset = (this.elapsedTime * speed) % (this.width + 500);
-    } else {
+    if (anim !== 'marquee' && anim !== 'runningRow') {
       this.marqueeOffset = 0;
+      return;
     }
+    const intensity = clampNumber(this.config.animationIntensity, 0.5, 0, 1);
+    const speed = 40 + intensity * 160;
+    const time = clampNumber(this.elapsedTime, 0);
+    const span = Math.max(1, clampNumber(this.width, 1920, 1) + 500);
+    this.marqueeOffset = clampNumber((time * speed) % span, 0, 0);
   }
 
   private computeEffectiveOpacity(audio?: AudioFeatures): number {
-    const anim = this.config.animation;
-    const intensity = this.config.animationIntensity;
+    const intensity = clampNumber(this.config.animationIntensity, 0.5, 0, 1);
+    const baseOpacity = clampNumber(this.config.opacity, 1.0, 0, 1);
 
-    if (anim === 'fade') {
-      const sine = (Math.sin(this.elapsedTime * (1.5 + intensity * 2.5)) + 1) / 2;
-      let opacity = this.config.opacity * (0.35 + 0.65 * sine);
+    if (this.config.animation === 'fade') {
+      const time = clampNumber(this.elapsedTime, 0);
+      const sine = (Math.sin(time * (1.5 + intensity * 2.5)) + 1) / 2;
+      let opacity = baseOpacity * (0.35 + 0.65 * sine);
       if (audio?.beat) {
         opacity = Math.min(1.0, opacity + 0.2 * intensity);
       }
-      return opacity;
+      return clampNumber(opacity, baseOpacity, 0, 1);
     }
 
-    if (anim === 'glow') {
-      const beatEnergy = audio ? audio.beatEnergy : 0;
-      return Math.min(1.0, 0.6 + 0.4 * beatEnergy * intensity);
+    if (this.config.animation === 'glow') {
+      const beatEnergy = clampNumber(audio?.beatEnergy, 0, 0, 1);
+      return clampNumber(0.6 + 0.4 * beatEnergy * intensity, baseOpacity, 0, 1);
     }
 
-    return this.config.opacity;
+    return baseOpacity;
   }
 
   private renderCanvas(effectiveOpacity: number, audio?: AudioFeatures): void {
@@ -455,7 +497,7 @@ export class TextOverlayEngine {
   ): void {
     if (this.ctx.save) this.ctx.save();
 
-    if (this.scaleMultiplier !== 1.0 && this.ctx.translate && this.ctx.scale) {
+    if (this.scaleMultiplier !== 1.0 && Number.isFinite(this.scaleMultiplier) && this.scaleMultiplier > 0 && this.ctx.translate && this.ctx.scale) {
       this.ctx.translate(posX, posY);
       this.ctx.scale(this.scaleMultiplier, this.scaleMultiplier);
       this.ctx.translate(-posX, -posY);
@@ -468,8 +510,10 @@ export class TextOverlayEngine {
     this.ctx.globalAlpha = effectiveOpacity;
 
     if (this.config.glowIntensity > 0) {
+      const safeGlow = clampNumber(this.config.glowIntensity, 0, 0);
+      const safeBeatEnergy = clampNumber(audio?.beatEnergy, 0, 0);
       this.ctx.shadowColor = this.config.color;
-      this.ctx.shadowBlur = this.config.glowIntensity * 12 + (audio?.beatEnergy ? audio.beatEnergy * 10 : 0);
+      this.ctx.shadowBlur = Math.max(0, safeGlow * 12 + safeBeatEnergy * 10);
     }
 
     if (this.config.bgShape && this.config.bgShape !== 'none') {
