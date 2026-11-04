@@ -7,6 +7,7 @@ import { PRESETS, getPreset } from './presets';
 import { StudioComposerPreset } from './studio/StudioComposer';
 import { ExportSettings, VisualizerPreset } from './types';
 import { renderTuningPanel, updateTuningButtonState as syncTuningButtonState } from './tuning/TuningPanel';
+import { TextAnchor, TextAnimationMode } from './overlay/types';
 
 // DOM Elements
 const canvas = document.getElementById('webgl-canvas') as HTMLCanvasElement;
@@ -72,6 +73,7 @@ const PANEL_MAP: Record<string, HTMLElement | null> = {
   audio: audioPanel,
   overlay: overlayPanel,
   text: textOverlayPanel,
+  textOverlayPanel: textOverlayPanel,
   subtitles: subtitlesPanel,
   tracks: queuePanel,
   library: libraryPanel,
@@ -730,10 +732,163 @@ dofSegments.forEach(chip => {
   });
 });
 
+// =========================================================================
+// Text & Typography Drawer Controls (Milestone 5 - Ticket #43)
+// =========================================================================
+const textInput0 = document.getElementById('textInput0') as HTMLInputElement | null;
+const textInput1 = document.getElementById('textInput1') as HTMLInputElement | null;
+const textInput2 = document.getElementById('textInput2') as HTMLInputElement | null;
+const textWatermarkToggle = document.getElementById('textWatermarkToggle') as HTMLInputElement | null;
+const textAnchorCells = document.querySelectorAll('#textAnchorMatrix .anchor-cell');
+const textAnchorLabel = document.getElementById('textAnchorLabel');
+const textAnchorSelect = document.getElementById('textAnchorSelect') as HTMLSelectElement | null;
+const textAnimChips = document.querySelectorAll('#textAnimChips .opt-chip');
+const textAnimSelect = document.getElementById('textAnimSelect') as HTMLSelectElement | null;
+const textFontFamilySelect = document.getElementById('textFontFamilySelect') as HTMLSelectElement | null;
+const textFontSizeSlider = document.getElementById('textFontSizeSlider') as HTMLInputElement | null;
+const textFontSizeVal = document.getElementById('textFontSizeVal');
+const textColorPicker = document.getElementById('textColorPicker') as HTMLInputElement | null;
+const textColorInput = document.getElementById('textColorInput') as HTMLInputElement | null;
+const textColorHexVal = document.getElementById('textColorHexVal');
+const textGlowSlider = document.getElementById('textGlowSlider') as HTMLInputElement | null;
+const textGlowVal = document.getElementById('textGlowVal');
+const textOpacitySlider = document.getElementById('textOpacitySlider') as HTMLInputElement | null;
+const textOpacityVal = document.getElementById('textOpacityVal');
+const textIntensitySlider = document.getElementById('textIntensitySlider') as HTMLInputElement | null;
+const textIntensityVal = document.getElementById('textIntensityVal');
+
+// Text Inputs Binding
+textInput0?.addEventListener('input', () => {
+  renderEngine.textOverlay?.setTitle(textInput0.value);
+});
+textInput1?.addEventListener('input', () => {
+  renderEngine.textOverlay?.setArtist(textInput1.value);
+});
+textInput2?.addEventListener('input', () => {
+  renderEngine.textOverlay?.setCustomText(textInput2.value);
+});
+
+// Watermark Binding
+textWatermarkToggle?.addEventListener('change', () => {
+  renderEngine.textOverlay?.setWatermark(textWatermarkToggle.checked);
+});
+
+// 9-Point Anchor Matrix Binding
+const ANCHOR_DISPLAY_NAMES: Record<string, string> = {
+  'top-left': 'Top Left',
+  'top-center': 'Top Center',
+  'top-right': 'Top Right',
+  'center-left': 'Center Left',
+  'center': 'Center',
+  'center-right': 'Center Right',
+  'bottom-left': 'Bottom Left',
+  'bottom-center': 'Bottom Center',
+  'bottom-right': 'Bottom Right'
+};
+
+const selectAnchor = (anchor: string) => {
+  textAnchorCells.forEach(cell => {
+    const a = cell.getAttribute('data-anchor');
+    cell.classList.toggle('active', a === anchor);
+  });
+  if (textAnchorLabel) {
+    textAnchorLabel.textContent = ANCHOR_DISPLAY_NAMES[anchor] || anchor;
+  }
+  if (textAnchorSelect) {
+    textAnchorSelect.value = anchor;
+  }
+  renderEngine.textOverlay?.setAnchor(anchor as TextAnchor);
+};
+
+textAnchorCells.forEach(cell => {
+  cell.addEventListener('click', () => {
+    const anchor = cell.getAttribute('data-anchor') || 'center';
+    selectAnchor(anchor);
+  });
+});
+
+textAnchorSelect?.addEventListener('change', () => {
+  selectAnchor(textAnchorSelect.value);
+});
+
+// Animation Modes Binding
+const selectAnimMode = (anim: string) => {
+  textAnimChips.forEach(chip => {
+    const a = chip.getAttribute('data-anim') || chip.getAttribute('data-alias');
+    chip.classList.toggle('active', a === anim);
+  });
+  if (textAnimSelect) {
+    textAnimSelect.value = anim;
+  }
+  renderEngine.textOverlay?.setAnimationMode(anim as TextAnimationMode);
+};
+
+textAnimChips.forEach(chip => {
+  chip.addEventListener('click', () => {
+    const anim = chip.getAttribute('data-anim') || 'pulse';
+    selectAnimMode(anim);
+  });
+});
+
+textAnimSelect?.addEventListener('change', () => {
+  selectAnimMode(textAnimSelect.value);
+});
+
+// Typography Controls Binding
+textFontFamilySelect?.addEventListener('change', () => {
+  renderEngine.textOverlay?.setFontFamily(textFontFamilySelect.value);
+});
+
+textFontSizeSlider?.addEventListener('input', () => {
+  const size = Number(textFontSizeSlider.value);
+  if (textFontSizeVal) textFontSizeVal.textContent = `${size}px`;
+  renderEngine.textOverlay?.setFontSize(size);
+});
+
+const updateTextColor = (hex: string) => {
+  const upper = hex.toUpperCase();
+  if (textColorPicker) textColorPicker.value = upper;
+  if (textColorInput) textColorInput.value = upper;
+  if (textColorHexVal) textColorHexVal.textContent = upper;
+  renderEngine.textOverlay?.setColor(upper);
+};
+
+textColorPicker?.addEventListener('input', () => {
+  updateTextColor(textColorPicker.value);
+});
+
+textColorInput?.addEventListener('input', () => {
+  const val = textColorInput.value.trim();
+  if (/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(val)) {
+    updateTextColor(val);
+  }
+});
+
+textGlowSlider?.addEventListener('input', () => {
+  const val = Number.parseFloat(textGlowSlider.value);
+  if (textGlowVal) textGlowVal.textContent = val.toFixed(1);
+  renderEngine.textOverlay?.setGlowIntensity(val);
+});
+
+textOpacitySlider?.addEventListener('input', () => {
+  const val = Number.parseFloat(textOpacitySlider.value);
+  if (textOpacityVal) textOpacityVal.textContent = `${Math.round(val * 100)}%`;
+  renderEngine.textOverlay?.setOpacity(val);
+});
+
+textIntensitySlider?.addEventListener('input', () => {
+  const val = Number.parseFloat(textIntensitySlider.value);
+  if (textIntensityVal) textIntensityVal.textContent = `${Math.round(val * 100)}%`;
+  renderEngine.textOverlay?.setAnimationIntensity(val);
+});
+
 function handleKeyboardHotkey(key: string, isShift: boolean): boolean {
   switch (key.toLowerCase()) {
     case 'h':
       toggleHideUI();
+      return true;
+    case 't':
+      toggleDrawer('text');
       return true;
     case 'f':
       toggleFullscreen();

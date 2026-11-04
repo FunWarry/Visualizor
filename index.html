@@ -148,7 +148,7 @@
           <button class="rail-btn rail-btn--desktop-only" type="button" id="overlayBtn" data-panel="overlay" aria-label="Image Overlays" title="Layers & Overlays">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
           </button>
-          <button class="rail-btn rail-btn--desktop-only" type="button" id="textBtn" data-panel="text" aria-label="Text & Typography" title="Text & Typography">
+          <button class="rail-btn rail-btn--desktop-only" type="button" id="textBtn" data-panel="text" data-alias="btnTextOverlay" aria-label="Text & Typography" title="Text & Typography">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></svg>
           </button>
           <button class="rail-btn rail-btn--desktop-only" type="button" id="subtitlesBtn" data-panel="subtitles" aria-label="Subtitles" title="Subtitles (.srt)">
@@ -474,40 +474,144 @@
   </div>
 
   <!-- 8. Text & Typography Drawer Panel -->
-  <div class="drawer-panel glass-panel detail-panel" id="textOverlayPanel" data-panel="text">
+  <div class="drawer-panel glass-panel detail-panel" id="textOverlayPanel" data-panel="text" data-panel-id="textOverlayPanel">
     <div class="panel-header">
-      <span>Text & Typography</span>
-      <button class="btn-icon close-drawer-btn closeTextBtn" style="width:28px;height:28px;" aria-label="Close text panel">✕</button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></svg>
+        <span>Text & Typography</span>
+      </div>
+      <button class="btn-icon close-drawer-btn closeTextBtn" id="closeTextBtn" style="width:28px;height:28px;" aria-label="Close text panel">✕</button>
     </div>
-    <div class="panel-content">
-      <div class="control-row">
-        <label for="textInput0" class="control-label"><span>Line 1 (Title)</span></label>
-        <input type="text" class="drawer-search" id="textInput0" placeholder="e.g. Track Title..." maxlength="200" aria-label="Text Line 1">
-      </div>
-      <div class="control-row">
-        <label for="textInput1" class="control-label"><span>Line 2 (Artist)</span></label>
-        <input type="text" class="drawer-search" id="textInput1" placeholder="e.g. Artist Name..." maxlength="200" aria-label="Text Line 2">
-      </div>
-      <div class="control-row">
-        <label for="textInput2" class="control-label"><span>Line 3 (Subtitle)</span></label>
-        <input type="text" class="drawer-search" id="textInput2" placeholder="e.g. Album / Live DJ Set..." maxlength="200" aria-label="Text Line 3">
-      </div>
+    <div class="panel-content text-overlay-content" id="textOverlayContent">
 
-      <div style="margin-top:12px;">
-        <span style="font-size:12px;font-weight:600;display:block;margin-bottom:6px;">Animation Mode</span>
-        <div class="chip-group" id="textAnimChips">
-          <div class="opt-chip active" data-anim="none">None</div>
-          <div class="opt-chip" data-anim="pulse">Pulse</div>
-          <div class="opt-chip" data-anim="glow">Glow</div>
-          <div class="opt-chip" data-anim="fade">Fade</div>
-          <div class="opt-chip" data-anim="runningRow">Marquee</div>
+      <!-- Section 1: Multi-Layer Text Inputs -->
+      <div class="control-group">
+        <span class="control-section-title">Text Content</span>
+        <div class="control-row">
+          <label for="textInput0" class="control-label"><span>Line 1 (Title)</span></label>
+          <input type="text" class="drawer-search text-layer-input" id="textInput0" data-layer="title" data-alias="textTitleInput" placeholder="e.g. Track Title..." maxlength="200" aria-label="Text Line 1 (Title)">
+        </div>
+        <div class="control-row">
+          <label for="textInput1" class="control-label"><span>Line 2 (Artist)</span></label>
+          <input type="text" class="drawer-search text-layer-input" id="textInput1" data-layer="artist" data-alias="textArtistInput" placeholder="e.g. Artist Name..." maxlength="200" aria-label="Text Line 2 (Artist)">
+        </div>
+        <div class="control-row">
+          <label for="textInput2" class="control-label"><span>Line 3 (Custom Text)</span></label>
+          <input type="text" class="drawer-search text-layer-input" id="textInput2" data-layer="custom" data-alias="textCustomInput" placeholder="e.g. Custom Text / Live DJ Set..." maxlength="200" aria-label="Text Line 3 (Custom Text)">
         </div>
       </div>
 
-      <div class="control-row">
-        <label for="textIntensitySlider" class="control-label"><span>Animation Reactivity</span><span id="textIntensityVal">50%</span></label>
-        <input class="ui-slider" type="range" id="textIntensitySlider" min="0" max="1" step="0.05" value="0.5" aria-label="Text Reactivity">
+      <!-- Section 2: Watermark Toggle -->
+      <div class="control-group" style="margin-top:14px;">
+        <div class="control-row" style="display:flex;justify-content:space-between;align-items:center;">
+          <label for="textWatermarkToggle" class="control-label" style="margin-bottom:0;cursor:pointer;">
+            <span>Brand Watermark (VISUVAL)</span>
+          </label>
+          <input type="checkbox" id="textWatermarkToggle" data-alias="watermarkToggle" style="accent-color:var(--primary);width:16px;height:16px;cursor:pointer;" aria-label="Watermark Toggle">
+        </div>
       </div>
+
+      <!-- Section 3: 9-Point Screen Quadrant Anchor Matrix -->
+      <div class="control-group" style="margin-top:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span class="control-section-title">Screen Anchor Matrix</span>
+          <span class="sidebar-value" id="textAnchorLabel" style="font-size:11px;color:var(--text-muted);">Center</span>
+        </div>
+        <div class="anchor-matrix-container">
+          <div class="anchor-matrix" id="textAnchorMatrix" role="group" aria-label="9-point anchor matrix">
+            <button type="button" class="anchor-cell" data-anchor="top-left" title="Top Left" aria-label="Top Left">↖</button>
+            <button type="button" class="anchor-cell" data-anchor="top-center" title="Top Center" aria-label="Top Center">↑</button>
+            <button type="button" class="anchor-cell" data-anchor="top-right" title="Top Right" aria-label="Top Right">↗</button>
+            <button type="button" class="anchor-cell" data-anchor="center-left" title="Center Left" aria-label="Center Left">←</button>
+            <button type="button" class="anchor-cell active" data-anchor="center" title="Center" aria-label="Center">·</button>
+            <button type="button" class="anchor-cell" data-anchor="center-right" title="Center Right" aria-label="Center Right">→</button>
+            <button type="button" class="anchor-cell" data-anchor="bottom-left" title="Bottom Left" aria-label="Bottom Left">↙</button>
+            <button type="button" class="anchor-cell" data-anchor="bottom-center" title="Bottom Center" aria-label="Bottom Center">↓</button>
+            <button type="button" class="anchor-cell" data-anchor="bottom-right" title="Bottom Right" aria-label="Bottom Right">↘</button>
+          </div>
+          <select id="textAnchorSelect" class="ui-select" style="display:none;" aria-label="Anchor position select">
+            <option value="top-left">Top Left</option>
+            <option value="top-center">Top Center</option>
+            <option value="top-right">Top Right</option>
+            <option value="center-left">Center Left</option>
+            <option value="center" selected>Center</option>
+            <option value="center-right">Center Right</option>
+            <option value="bottom-left">Bottom Left</option>
+            <option value="bottom-center">Bottom Center</option>
+            <option value="bottom-right">Bottom Right</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Section 4: 5 Animation Modes -->
+      <div class="control-group" style="margin-top:14px;">
+        <span class="control-section-title">Animation Mode</span>
+        <div class="chip-group text-anim-chips" id="textAnimChips">
+          <button type="button" class="opt-chip active" data-anim="pulse" data-alias="pulse">Pulse on Beat</button>
+          <button type="button" class="opt-chip" data-anim="marquee" data-alias="runningRow">Marquee Scroll</button>
+          <button type="button" class="opt-chip" data-anim="fade" data-alias="fade">Fade In/Out</button>
+          <button type="button" class="opt-chip" data-anim="static" data-alias="none">Static</button>
+          <button type="button" class="opt-chip" data-anim="glitch" data-alias="glitch">Glitch</button>
+        </div>
+        <select id="textAnimSelect" class="ui-select" style="display:none;" aria-label="Animation Mode Select">
+          <option value="pulse" selected>Pulse on beat</option>
+          <option value="marquee">Marquee scroll</option>
+          <option value="fade">Fade in/out</option>
+          <option value="static">Static</option>
+          <option value="glitch">Glitch</option>
+        </select>
+      </div>
+
+      <!-- Section 5: Typography Controls -->
+      <div class="control-group" style="margin-top:14px;">
+        <span class="control-section-title">Typography & Style</span>
+
+        <!-- Font Family -->
+        <div class="control-row">
+          <label for="textFontFamilySelect" class="control-label"><span>Font Family</span></label>
+          <select id="textFontFamilySelect" class="drawer-search text-select" aria-label="Font Family">
+            <option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" selected>Sans-Serif (Modern Clean)</option>
+            <option value="'Fira Code', 'Courier New', monospace">Monospace (Cyberpunk Terminal)</option>
+            <option value="'Impact', 'Arial Black', sans-serif">Impact (Heavy Bold)</option>
+            <option value="'Orbitron', 'Trebuchet MS', sans-serif">Futuristic (Display Sci-Fi)</option>
+            <option value="'Georgia', 'Times New Roman', serif">Serif (Editorial Classic)</option>
+          </select>
+        </div>
+
+        <!-- Font Size Slider -->
+        <div class="control-row">
+          <label for="textFontSizeSlider" class="control-label"><span>Font Size</span><span id="textFontSizeVal">32px</span></label>
+          <input class="ui-slider" type="range" id="textFontSizeSlider" min="12" max="96" step="2" value="32" aria-label="Font Size Slider">
+        </div>
+
+        <!-- Text Color Picker -->
+        <div class="control-row">
+          <label for="textColorPicker" class="control-label"><span>Text Color</span><span id="textColorHexVal">#FFFFFF</span></label>
+          <div class="color-picker-row" style="display:flex;align-items:center;gap:10px;">
+            <input type="color" id="textColorPicker" value="#ffffff" class="text-color-input" aria-label="Text Color Picker">
+            <input type="text" id="textColorInput" class="drawer-search text-color-hex" value="#ffffff" maxlength="7" style="flex:1;" aria-label="Text Color Hex Code">
+          </div>
+        </div>
+
+        <!-- Glow Intensity Slider -->
+        <div class="control-row">
+          <label for="textGlowSlider" class="control-label"><span>Glow Intensity</span><span id="textGlowVal">0.8</span></label>
+          <input class="ui-slider" type="range" id="textGlowSlider" min="0" max="2" step="0.1" value="0.8" aria-label="Glow Intensity Slider">
+        </div>
+
+        <!-- Text Opacity Slider -->
+        <div class="control-row">
+          <label for="textOpacitySlider" class="control-label"><span>Opacity</span><span id="textOpacityVal">100%</span></label>
+          <input class="ui-slider" type="range" id="textOpacitySlider" min="0" max="1" step="0.05" value="1.0" aria-label="Text Opacity Slider">
+        </div>
+
+        <!-- Animation Reactivity Slider -->
+        <div class="control-row">
+          <label for="textIntensitySlider" class="control-label"><span>Animation Reactivity</span><span id="textIntensityVal">50%</span></label>
+          <input class="ui-slider" type="range" id="textIntensitySlider" min="0" max="1" step="0.05" value="0.5" aria-label="Animation Reactivity Slider">
+        </div>
+      </div>
+
     </div>
   </div>
 

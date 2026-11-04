@@ -5,6 +5,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { VisualizerPreset, VisualizerTheme, AudioFeatures, PostProcessingConfig } from '../types';
 import { CameraController } from './CameraController';
+import { TextOverlayEngine } from '../overlay/TextOverlayEngine';
 
 const MasterShader = {
   uniforms: {
@@ -116,6 +117,7 @@ export class RenderEngine {
   public config: PostProcessingConfig;
 
   public readonly cameraController: CameraController;
+  public readonly textOverlay: TextOverlayEngine;
   private readonly cameraBasePos = new THREE.Vector3(0, 0, 12);
   private readonly clock = new THREE.Clock();
 
@@ -233,6 +235,9 @@ export class RenderEngine {
     dirLight.position.set(5, 10, 7);
     this.scene.add(dirLight);
 
+    // Initialize animated text overlay engine (Ticket #43)
+    this.textOverlay = new TextOverlayEngine(width, height, this.renderer.getPixelRatio());
+
     window.addEventListener('resize', () => this.resize(window.innerWidth, window.innerHeight));
   }
 
@@ -332,6 +337,10 @@ export class RenderEngine {
       this.renderer.setRenderTarget(null);
       this.currentFeedbackIndex = 1 - this.currentFeedbackIndex;
     }
+
+    // Animated text and typography overlay pass (Ticket #43)
+    this.textOverlay.update(audio, delta);
+    this.textOverlay.renderPass(this.renderer);
   }
 
   public resize(width: number, height: number) {
@@ -342,6 +351,7 @@ export class RenderEngine {
     this.composer.setSize(width, height);
     this.feedbackTargets[0].setSize(width, height);
     this.feedbackTargets[1].setSize(width, height);
+    this.textOverlay.resize(width, height, this.renderer.getPixelRatio());
 
     if (this.activePreset?.resize) {
       this.activePreset.resize(width, height);
