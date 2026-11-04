@@ -5,6 +5,17 @@ import { ExportManager } from './export/ExportManager';
 import { THEMES, getTheme } from './themes/themes';
 import { PRESETS, getPreset } from './presets';
 import { StudioComposerPreset } from './studio/StudioComposer';
+import {
+  EngineFamily,
+  ENGINE_FAMILIES_META,
+  StageBackdropType,
+  HeroGeometryType,
+  HeroRenderStyle,
+  HeroSymmetry,
+  MoodConfig,
+  StageConfig,
+  HeroConfig
+} from './studio/types';
 import { ExportSettings, VisualizerPreset } from './types';
 import { renderTuningPanel, updateTuningButtonState as syncTuningButtonState } from './tuning/TuningPanel';
 import { TextAnchor, TextAnimationMode } from './overlay/types';
@@ -77,7 +88,8 @@ const PANEL_MAP: Record<string, HTMLElement | null> = {
   subtitles: subtitlesPanel,
   tracks: queuePanel,
   library: libraryPanel,
-  myCreations: studioPanel
+  myCreations: studioPanel,
+  studio: studioPanel
 };
 
 const allPanels: HTMLElement[] = [
@@ -1086,49 +1098,487 @@ sensSlider.addEventListener('input', () => {
   audioEngine.sensitivity = val;
 });
 
-// Studio Stage Composer Controls
+// Studio Forge & Recipe Builder Controls (Ticket #44)
 const studioPreset = (PRESETS.find(p => p.id === 'studio-composer') as StudioComposerPreset) || new StudioComposerPreset();
 
-const activateStudioBtn = document.getElementById('activateStudioBtn') as HTMLButtonElement;
+// 1. Launch Preset Button
+const activateStudioBtn = document.getElementById('activateStudioBtn') as HTMLButtonElement | null;
 activateStudioBtn?.addEventListener('click', () => {
   select3DPreset(studioPreset);
 });
 
-const studioChromaSlider = document.getElementById('studioChromaSlider') as HTMLInputElement;
-const studioLiquidSlider = document.getElementById('studioLiquidSlider') as HTMLInputElement;
-const studioTunnelSlider = document.getElementById('studioTunnelSlider') as HTMLInputElement;
-const studioVolumeSlider = document.getElementById('studioVolumeSlider') as HTMLInputElement;
-const studioForceSlider = document.getElementById('studioForceSlider') as HTMLInputElement;
+// 2. Generation Modes: Auto-Forge, Curated, Remix
+let currentGenerationMode: 'forge' | 'curated' | 'remix' = 'forge';
+const studioModeForgeBtn = document.getElementById('studioModeForgeBtn') as HTMLButtonElement | null;
+const studioModeCuratedBtn = document.getElementById('studioModeCuratedBtn') as HTMLButtonElement | null;
+const studioModeRemixBtn = document.getElementById('studioModeRemixBtn') as HTMLButtonElement | null;
+const studioQuickForgeBtn = document.getElementById('studioQuickForgeBtn') as HTMLButtonElement | null;
+const studioGenerateBtn = document.getElementById('studioGenerateBtn') as HTMLButtonElement | null;
+
+const modeButtons = [
+  { btn: studioModeForgeBtn, mode: 'forge' as const },
+  { btn: studioModeCuratedBtn, mode: 'curated' as const },
+  { btn: studioModeRemixBtn, mode: 'remix' as const }
+];
+
+modeButtons.forEach(({ btn, mode }) => {
+  btn?.addEventListener('click', () => {
+    currentGenerationMode = mode;
+    modeButtons.forEach(b => {
+      if (b.btn) {
+        b.btn.classList.toggle('active', b.mode === mode);
+        b.btn.setAttribute('aria-selected', String(b.mode === mode));
+      }
+    });
+    if (studioGenerateBtn) {
+      if (mode === 'forge') studioGenerateBtn.textContent = '⚡ Forge Look';
+      else if (mode === 'curated') studioGenerateBtn.textContent = '💎 Curate Look';
+      else studioGenerateBtn.textContent = '🔀 Remix Look';
+    }
+  });
+});
+
+function executeGeneration() {
+  if (currentGenerationMode === 'forge') {
+    studioPreset.generateRandomRecipe();
+  } else if (currentGenerationMode === 'curated') {
+    const inputName = (document.getElementById('studioRecipeNameInput') as HTMLInputElement | null)?.value;
+    studioPreset.generateCuratedRecipe(inputName || '');
+  } else {
+    studioPreset.remixCurrent();
+  }
+  syncStudioUIFromActiveRecipe();
+}
+
+studioQuickForgeBtn?.addEventListener('click', () => {
+  studioPreset.generateRandomRecipe();
+  syncStudioUIFromActiveRecipe();
+});
+
+studioGenerateBtn?.addEventListener('click', executeGeneration);
+
+// 3. Engine Families Space Selector
+const studioFamilyCards = document.querySelectorAll<HTMLButtonElement>('.studio-family-card');
+const studioActiveFamilyLabel = document.getElementById('studioActiveFamilyLabel');
+
+studioFamilyCards.forEach(card => {
+  card.addEventListener('click', () => {
+    const family = (card.dataset.family || 'force') as EngineFamily;
+    studioFamilyCards.forEach(c => {
+      c.classList.toggle('active', c === card);
+      c.setAttribute('aria-checked', String(c === card));
+    });
+    if (studioActiveFamilyLabel) {
+      const nameSpan = card.querySelector('.studio-family-card-name');
+      studioActiveFamilyLabel.textContent = nameSpan ? nameSpan.textContent : family;
+    }
+    studioPreset.setEngineFamily(family);
+    syncStudioUIFromActiveRecipe();
+  });
+});
+
+// 4. 4-Step Recipe Wizard Tabs & Panes
+const studioWizardTabs = document.querySelectorAll<HTMLButtonElement>('.studio-wizard-tab');
+const studioStepPanes: Record<string, HTMLElement | null> = {
+  stage: document.getElementById('studioStepStage'),
+  hero: document.getElementById('studioStepHero'),
+  mood: document.getElementById('studioStepMood'),
+  engine: document.getElementById('studioStepEngine')
+};
+
+studioWizardTabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    const step = tab.dataset.step || 'stage';
+    studioWizardTabs.forEach(t => {
+      t.classList.toggle('active', t === tab);
+      t.setAttribute('aria-selected', String(t === tab));
+    });
+    Object.entries(studioStepPanes).forEach(([k, pane]) => {
+      if (pane) {
+        pane.style.display = k === step ? 'block' : 'none';
+        pane.classList.toggle('active', k === step);
+      }
+    });
+  });
+});
+
+// Step 1: Stage Controls
+const studioBackdropChips = document.querySelectorAll('#studioBackdropChips .opt-chip');
+studioBackdropChips.forEach(chip => {
+  chip.addEventListener('click', () => {
+    studioBackdropChips.forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    const backdrop = ((chip as HTMLElement).dataset.backdrop || 'void') as StageBackdropType;
+    studioPreset.setStage({ backdrop });
+  });
+});
+
+const studioStageScaleSlider = document.getElementById('studioStageScaleSlider') as HTMLInputElement | null;
+studioStageScaleSlider?.addEventListener('input', () => {
+  const val = Number.parseFloat(studioStageScaleSlider.value);
+  const label = document.getElementById('studioStageScaleVal');
+  if (label) label.textContent = `${val.toFixed(1)}x`;
+  studioPreset.setStage({ scale: val });
+});
+
+const studioStageDustSlider = document.getElementById('studioStageDustSlider') as HTMLInputElement | null;
+studioStageDustSlider?.addEventListener('input', () => {
+  const val = Number.parseFloat(studioStageDustSlider.value);
+  const label = document.getElementById('studioStageDustVal');
+  if (label) label.textContent = val.toFixed(1);
+  studioPreset.setStage({ dustDensity: val });
+});
+
+const studioStageLightSlider = document.getElementById('studioStageLightSlider') as HTMLInputElement | null;
+studioStageLightSlider?.addEventListener('input', () => {
+  const val = Number.parseFloat(studioStageLightSlider.value);
+  const label = document.getElementById('studioStageLightVal');
+  if (label) label.textContent = val.toFixed(1);
+  studioPreset.setStage({ lightIntensity: val });
+});
+
+// Step 2: Hero Controls
+const studioHeroGeomChips = document.querySelectorAll('#studioHeroGeomChips .opt-chip');
+studioHeroGeomChips.forEach(chip => {
+  chip.addEventListener('click', () => {
+    studioHeroGeomChips.forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    const geometry = ((chip as HTMLElement).dataset.geom || 'sphere') as HeroGeometryType;
+    studioPreset.setHero({ geometry });
+  });
+});
+
+const studioHeroStyleChips = document.querySelectorAll('#studioHeroStyleChips .opt-chip');
+studioHeroStyleChips.forEach(chip => {
+  chip.addEventListener('click', () => {
+    studioHeroStyleChips.forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    const renderStyle = ((chip as HTMLElement).dataset.style || 'solid') as HeroRenderStyle;
+    studioPreset.setHero({ renderStyle });
+  });
+});
+
+const studioHeroSymmetryChips = document.querySelectorAll('#studioHeroSymmetryChips .opt-chip');
+studioHeroSymmetryChips.forEach(chip => {
+  chip.addEventListener('click', () => {
+    studioHeroSymmetryChips.forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    const symmetry = ((chip as HTMLElement).dataset.symmetry || 'none') as HeroSymmetry;
+    studioPreset.setHero({ symmetry });
+  });
+});
+
+const studioHeroDeformSlider = document.getElementById('studioHeroDeformSlider') as HTMLInputElement | null;
+studioHeroDeformSlider?.addEventListener('input', () => {
+  const val = Number.parseFloat(studioHeroDeformSlider.value);
+  const label = document.getElementById('studioHeroDeformVal');
+  if (label) label.textContent = val.toFixed(1);
+  studioPreset.setHero({ deformation: val });
+});
+
+const studioHeroScaleSlider = document.getElementById('studioHeroScaleSlider') as HTMLInputElement | null;
+studioHeroScaleSlider?.addEventListener('input', () => {
+  const val = Number.parseFloat(studioHeroScaleSlider.value);
+  const label = document.getElementById('studioHeroScaleVal');
+  if (label) label.textContent = `${val.toFixed(1)}x`;
+  studioPreset.setHero({ scale: val });
+});
+
+// Step 3: Mood Controls
+const studioThemeSelect = document.getElementById('studioThemeSelect') as HTMLSelectElement | null;
+studioThemeSelect?.addEventListener('change', () => {
+  const themeId = studioThemeSelect.value;
+  studioPreset.setMood({ themeId });
+  const theme = getTheme(themeId);
+  renderEngine.setTheme(theme);
+});
+
+const studioMoodBloomSlider = document.getElementById('studioMoodBloomSlider') as HTMLInputElement | null;
+studioMoodBloomSlider?.addEventListener('input', () => {
+  const val = Number.parseFloat(studioMoodBloomSlider.value);
+  const label = document.getElementById('studioMoodBloomVal');
+  if (label) label.textContent = val.toFixed(1);
+  studioPreset.setMood({ bloomIntensity: val });
+  renderEngine.updateConfig({ bloomStrength: val });
+});
+
+const studioMoodSpeedSlider = document.getElementById('studioMoodSpeedSlider') as HTMLInputElement | null;
+studioMoodSpeedSlider?.addEventListener('input', () => {
+  const val = Number.parseFloat(studioMoodSpeedSlider.value);
+  const label = document.getElementById('studioMoodSpeedVal');
+  if (label) label.textContent = `${val.toFixed(1)}x`;
+  studioPreset.setMood({ speedMultiplier: val });
+});
+
+const studioLightingVibeChips = document.querySelectorAll('#studioLightingVibeChips .opt-chip');
+studioLightingVibeChips.forEach(chip => {
+  chip.addEventListener('click', () => {
+    studioLightingVibeChips.forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    const lightingVibe = ((chip as HTMLElement).dataset.vibe || 'neon') as MoodConfig['lightingVibe'];
+    studioPreset.setMood({ lightingVibe });
+  });
+});
+
+// Step 4: Engine Sliders & Distortions (Retaining legacy slider IDs)
+const studioChromaSlider = document.getElementById('studioChromaSlider') as HTMLInputElement | null;
+const studioLiquidSlider = document.getElementById('studioLiquidSlider') as HTMLInputElement | null;
+const studioTunnelSlider = document.getElementById('studioTunnelSlider') as HTMLInputElement | null;
+const studioVolumeSlider = document.getElementById('studioVolumeSlider') as HTMLInputElement | null;
+const studioForceSlider = document.getElementById('studioForceSlider') as HTMLInputElement | null;
+const studioCrtSlider = document.getElementById('studioCrtSlider') as HTMLInputElement | null;
+const studioChromaDistortSlider = document.getElementById('studioChromaDistortSlider') as HTMLInputElement | null;
 
 studioChromaSlider?.addEventListener('input', () => {
   const val = Number.parseFloat(studioChromaSlider.value);
   document.getElementById('studioChromaVal')!.textContent = val.toFixed(1);
   studioPreset.config.chromaIntensity = val;
+  studioPreset.setGene('bloom', val);
 });
 
 studioLiquidSlider?.addEventListener('input', () => {
   const val = Number.parseFloat(studioLiquidSlider.value);
   document.getElementById('studioLiquidVal')!.textContent = val.toFixed(1);
   studioPreset.config.liquidWarp = val;
+  studioPreset.setGene('warp', val / 2.0);
 });
 
 studioTunnelSlider?.addEventListener('input', () => {
   const val = Number.parseFloat(studioTunnelSlider.value);
   document.getElementById('studioTunnelVal')!.textContent = val.toFixed(1);
   studioPreset.config.tunnelDepth = val;
+  studioPreset.setGene('depth', val / 2.0);
 });
 
 studioVolumeSlider?.addEventListener('input', () => {
   const val = Number.parseFloat(studioVolumeSlider.value);
   document.getElementById('studioVolumeVal')!.textContent = val.toFixed(1);
   studioPreset.config.volumeDensity = val;
+  studioPreset.setGene('filament', val);
 });
 
 studioForceSlider?.addEventListener('input', () => {
   const val = Number.parseFloat(studioForceSlider.value);
   document.getElementById('studioForceVal')!.textContent = val.toFixed(1);
   studioPreset.config.theForceAttraction = val;
+  studioPreset.setGene('spin', (val + 2.0) / 4.0);
 });
+
+studioCrtSlider?.addEventListener('input', () => {
+  const val = Number.parseFloat(studioCrtSlider.value);
+  const label = document.getElementById('studioCrtVal');
+  if (label) label.textContent = val.toFixed(2);
+  renderEngine.updateConfig({ scanlines: val });
+});
+
+studioChromaDistortSlider?.addEventListener('input', () => {
+  const val = Number.parseFloat(studioChromaDistortSlider.value);
+  const label = document.getElementById('studioChromaDistortVal');
+  if (label) label.textContent = val.toFixed(2);
+  renderEngine.updateConfig({ chromaticAberration: val });
+});
+
+// Recipe Management & Saved Gallery
+const studioRecipeNameInput = document.getElementById('studioRecipeNameInput') as HTMLInputElement | null;
+const studioRecipeNameError = document.getElementById('studioRecipeNameError') as HTMLElement | null;
+const studioSaveRecipeBtn = document.getElementById('studioSaveRecipeBtn') as HTMLButtonElement | null;
+const studioExportJsonBtn = document.getElementById('studioExportJsonBtn') as HTMLButtonElement | null;
+const studioImportFileInput = document.getElementById('studioImportFileInput') as HTMLInputElement | null;
+const studioSavedRecipesList = document.getElementById('studioSavedRecipesList') as HTMLElement | null;
+const studioSavedCount = document.getElementById('studioSavedCount') as HTMLElement | null;
+
+studioRecipeNameInput?.addEventListener('input', () => {
+  const trimmed = studioRecipeNameInput.value.trim();
+  const isValid = trimmed.length > 0 && trimmed.length <= 60;
+  if (studioSaveRecipeBtn) studioSaveRecipeBtn.disabled = !isValid;
+  if (studioRecipeNameError) {
+    studioRecipeNameError.style.display = !isValid && studioRecipeNameInput.value.length > 0 ? 'inline' : 'none';
+  }
+});
+
+studioSaveRecipeBtn?.addEventListener('click', () => {
+  const name = studioRecipeNameInput?.value.trim();
+  if (!name) return;
+  try {
+    studioPreset.saveRecipe(name);
+    refreshSavedRecipesUI();
+    if (studioRecipeNameInput) studioRecipeNameInput.value = '';
+    if (studioSaveRecipeBtn) studioSaveRecipeBtn.disabled = true;
+  } catch (err) {
+    console.error('Error saving recipe:', err);
+  }
+});
+
+studioExportJsonBtn?.addEventListener('click', () => {
+  const jsonStr = studioPreset.exportRecipeJson();
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const active = studioPreset.getActiveRecipe();
+  a.download = `studio-recipe-${active.name.toLowerCase().replace(/[^a-z0-9]/g, '-') || 'look'}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+studioImportFileInput?.addEventListener('change', () => {
+  const file = studioImportFileInput.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const content = e.target?.result as string;
+    if (content) {
+      const imported = studioPreset.importRecipeJson(content);
+      if (imported) {
+        refreshSavedRecipesUI();
+        syncStudioUIFromActiveRecipe();
+      }
+    }
+    studioImportFileInput.value = '';
+  };
+  reader.readAsText(file);
+});
+
+function refreshSavedRecipesUI() {
+  if (!studioSavedRecipesList) return;
+  const list = studioPreset.getSavedRecipes();
+  if (studioSavedCount) {
+    studioSavedCount.textContent = `${list.length} saved`;
+  }
+
+  if (list.length === 0) {
+    studioSavedRecipesList.innerHTML = `
+      <div style="font-size:12px;color:var(--text-muted);text-align:center;padding:16px 0;">
+        No saved recipes yet. Craft parameters and click Save Recipe.
+      </div>`;
+    return;
+  }
+
+  studioSavedRecipesList.innerHTML = '';
+  list.forEach(rec => {
+    const card = document.createElement('div');
+    card.className = 'studio-recipe-card';
+    const familyLabel = rec.kind === 'engine' ? (ENGINE_FAMILIES_META[rec.familyId]?.label || rec.familyId) : 'Recipe';
+    card.innerHTML = `
+      <div class="studio-recipe-header">
+        <span class="studio-recipe-name" title="${rec.name}">${rec.name}</span>
+        <span class="studio-recipe-badge">${familyLabel}</span>
+      </div>
+      <div class="studio-recipe-card-actions">
+        <button type="button" class="studio-card-btn studio-card-btn--load" data-id="${rec.id}">Load</button>
+        <button type="button" class="studio-card-btn studio-card-btn--delete" data-id="${rec.id}">Delete</button>
+      </div>`;
+
+    card.querySelector('.studio-card-btn--load')?.addEventListener('click', () => {
+      studioPreset.loadRecipe(rec.id);
+      syncStudioUIFromActiveRecipe();
+    });
+
+    card.querySelector('.studio-card-btn--delete')?.addEventListener('click', () => {
+      studioPreset.deleteRecipe(rec.id);
+      refreshSavedRecipesUI();
+    });
+
+    studioSavedRecipesList.appendChild(card);
+  });
+}
+
+function syncStudioEngineSliders() {
+  if (studioChromaSlider) {
+    studioChromaSlider.value = studioPreset.config.chromaIntensity.toFixed(1);
+    document.getElementById('studioChromaVal')!.textContent = studioPreset.config.chromaIntensity.toFixed(1);
+  }
+  if (studioLiquidSlider) {
+    studioLiquidSlider.value = studioPreset.config.liquidWarp.toFixed(1);
+    document.getElementById('studioLiquidVal')!.textContent = studioPreset.config.liquidWarp.toFixed(1);
+  }
+  if (studioTunnelSlider) {
+    studioTunnelSlider.value = studioPreset.config.tunnelDepth.toFixed(1);
+    document.getElementById('studioTunnelVal')!.textContent = studioPreset.config.tunnelDepth.toFixed(1);
+  }
+  if (studioVolumeSlider) {
+    studioVolumeSlider.value = studioPreset.config.volumeDensity.toFixed(1);
+    document.getElementById('studioVolumeVal')!.textContent = studioPreset.config.volumeDensity.toFixed(1);
+  }
+  if (studioForceSlider) {
+    studioForceSlider.value = studioPreset.config.theForceAttraction.toFixed(1);
+    document.getElementById('studioForceVal')!.textContent = studioPreset.config.theForceAttraction.toFixed(1);
+  }
+}
+
+function syncStudioStageSliders(stage?: StageConfig) {
+  if (!stage) return;
+  if (studioStageScaleSlider) {
+    studioStageScaleSlider.value = String(stage.scale);
+    const l = document.getElementById('studioStageScaleVal');
+    if (l) l.textContent = `${stage.scale}x`;
+  }
+  if (studioStageDustSlider) {
+    studioStageDustSlider.value = String(stage.dustDensity);
+    const l = document.getElementById('studioStageDustVal');
+    if (l) l.textContent = String(stage.dustDensity);
+  }
+  if (studioStageLightSlider) {
+    studioStageLightSlider.value = String(stage.lightIntensity);
+    const l = document.getElementById('studioStageLightVal');
+    if (l) l.textContent = String(stage.lightIntensity);
+  }
+}
+
+function syncStudioHeroSliders(hero?: HeroConfig) {
+  if (!hero) return;
+  if (studioHeroDeformSlider) {
+    studioHeroDeformSlider.value = String(hero.deformation);
+    const l = document.getElementById('studioHeroDeformVal');
+    if (l) l.textContent = String(hero.deformation);
+  }
+  if (studioHeroScaleSlider) {
+    studioHeroScaleSlider.value = String(hero.scale);
+    const l = document.getElementById('studioHeroScaleVal');
+    if (l) l.textContent = `${hero.scale}x`;
+  }
+}
+
+function syncStudioMoodSliders(mood?: MoodConfig) {
+  if (!mood) return;
+  if (studioThemeSelect && mood.themeId) {
+    studioThemeSelect.value = mood.themeId;
+  }
+  if (studioMoodBloomSlider) {
+    studioMoodBloomSlider.value = String(mood.bloomIntensity);
+    const l = document.getElementById('studioMoodBloomVal');
+    if (l) l.textContent = String(mood.bloomIntensity);
+  }
+  if (studioMoodSpeedSlider) {
+    studioMoodSpeedSlider.value = String(mood.speedMultiplier);
+    const l = document.getElementById('studioMoodSpeedVal');
+    if (l) l.textContent = `${mood.speedMultiplier}x`;
+  }
+}
+
+function syncStudioUIFromActiveRecipe() {
+  const active = studioPreset.getActiveRecipe();
+  if (active.kind !== 'engine') return;
+
+  // Sync family card
+  studioFamilyCards.forEach(c => {
+    const isMatch = c.dataset.family === active.familyId;
+    c.classList.toggle('active', isMatch);
+    c.setAttribute('aria-checked', String(isMatch));
+  });
+  if (studioActiveFamilyLabel) {
+    studioActiveFamilyLabel.textContent = ENGINE_FAMILIES_META[active.familyId]?.label || active.familyId;
+  }
+
+  syncStudioEngineSliders();
+  syncStudioStageSliders(active.stage);
+  syncStudioHeroSliders(active.hero);
+  syncStudioMoodSliders(active.mood);
+}
+
+// Initial gallery populate
+refreshSavedRecipesUI();
+syncStudioUIFromActiveRecipe();
 
 // Zen / Ambient Mode
 ambientBtn.addEventListener('click', () => {

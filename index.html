@@ -167,12 +167,12 @@
           <button class="rail-btn rail-btn--desktop-only" type="button" id="libraryBtn" data-panel="library" aria-label="Library" title="Saved Scenes Library">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
           </button>
-          <button class="rail-btn studio-link rail-btn--desktop-only" type="button" id="studioBtn" data-panel="myCreations" aria-label="Studio Composer" title="Visualizer Studio Composer">
+          <button class="rail-btn studio-link rail-btn--desktop-only" type="button" id="studioBtn" data-panel="myCreations" data-alias="studio" aria-label="Studio Composer" title="Visualizer Studio Composer">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></svg>
           </button>
         </div>
 
-        <button class="rail-btn studio-link rail-btn--mobile-only" type="button" id="mobileStudioBtn" aria-label="My Studio" data-panel="myCreations" title="My Studio">
+        <button class="rail-btn studio-link rail-btn--mobile-only" type="button" id="mobileStudioBtn" aria-label="My Studio" data-panel="myCreations" data-alias="studio" title="My Studio">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></svg>
         </button>
       </div>
@@ -680,47 +680,272 @@
     </div>
   </div>
 
-  <!-- 12. Studio Stage Composer Panel -->
-  <div class="drawer-panel glass-panel detail-panel" id="studioPanel" data-panel="myCreations">
+  <!-- 12. Studio Forge Recipe Builder Panel (Ticket #44) -->
+  <div class="drawer-panel glass-panel detail-panel" id="studioPanel" data-panel="myCreations" data-panel-id="studioPanel" data-alias="studio">
     <div class="panel-header">
-      <span>Studio Stage Composer</span>
-      <button class="btn-icon closeStudioBtn close-drawer-btn" style="width:28px;height:28px;" aria-label="Close studio panel">✕</button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></svg>
+        <span>Studio Forge</span>
+      </div>
+      <div class="header-tools">
+        <button class="tool-icon-btn" id="studioQuickForgeBtn" title="Instant Auto-Forge Look">✨</button>
+        <button class="btn-icon close-drawer-btn closeStudioBtn" id="closeStudioBtn" style="width:28px;height:28px;" aria-label="Close studio panel">✕</button>
+      </div>
     </div>
-    <div class="panel-content">
-      <div class="control-row">
-        <button class="btn-primary" style="width:100%;justify-content:center;margin-bottom:12px;" id="activateStudioBtn">
-          Launch Studio Stage Preset
-        </button>
+
+    <div class="panel-content studio-panel-content" id="studioPanelContent">
+      <!-- 1. Generation Modes: Auto-Forge, Curated, Remix -->
+      <div class="control-group" style="margin-bottom:12px;">
+        <div class="studio-mode-seg" id="studioModeSeg" role="tablist" aria-label="Generation Mode">
+          <button type="button" class="studio-mode-btn active" id="studioModeForgeBtn" data-mode="forge" role="tab" aria-selected="true" title="Algorithmic randomized generation">
+            <span>⚡ Auto-Forge</span>
+          </button>
+          <button type="button" class="studio-mode-btn" id="studioModeCuratedBtn" data-mode="curated" role="tab" aria-selected="false" title="Load curated signature spaces">
+            <span>💎 Curated</span>
+          </button>
+          <button type="button" class="studio-mode-btn" id="studioModeRemixBtn" data-mode="remix" role="tab" aria-selected="false" title="Controlled variation of current recipe">
+            <span>🔀 Remix</span>
+          </button>
+        </div>
       </div>
 
-      <div class="control-row">
-        <label for="studioChromaSlider" class="control-label"><span>Chroma Intensity</span><span id="studioChromaVal">1.0</span></label>
-        <input class="ui-slider" type="range" id="studioChromaSlider" min="0" max="2" step="0.1" value="1.0" aria-label="Studio Chroma Intensity">
+      <!-- 2. Engine Families: 5 Aesthetic Spaces -->
+      <div class="control-group" style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span class="control-section-title">Engine Space</span>
+          <span class="sidebar-value" id="studioActiveFamilyLabel" style="font-size:11px;color:var(--accent-start);font-weight:600;">The Force</span>
+        </div>
+        <div class="studio-family-grid" id="studioFamilyGrid" role="radiogroup" aria-label="Engine Families">
+          <button type="button" class="studio-family-card" data-family="chroma" role="radio" aria-checked="false">
+            <span class="studio-family-card-name">Chroma</span>
+            <span class="studio-family-card-vibe">Vintage fringe</span>
+          </button>
+          <button type="button" class="studio-family-card" data-family="liquid" role="radio" aria-checked="false">
+            <span class="studio-family-card-name">Liquid</span>
+            <span class="studio-family-card-vibe">Soft fluid</span>
+          </button>
+          <button type="button" class="studio-family-card" data-family="tunnel" role="radio" aria-checked="false">
+            <span class="studio-family-card-name">Tunnel</span>
+            <span class="studio-family-card-vibe">Deep corridor</span>
+          </button>
+          <button type="button" class="studio-family-card" data-family="volume" role="radio" aria-checked="false">
+            <span class="studio-family-card-name">Volume</span>
+            <span class="studio-family-card-vibe">Carved mass</span>
+          </button>
+          <button type="button" class="studio-family-card active" data-family="force" role="radio" aria-checked="true">
+            <span class="studio-family-card-name">The Force</span>
+            <span class="studio-family-card-vibe">Orbital pull</span>
+          </button>
+        </div>
       </div>
 
-      <div class="control-row">
-        <label for="studioLiquidSlider" class="control-label"><span>Liquid Warp</span><span id="studioLiquidVal">1.0</span></label>
-        <input class="ui-slider" type="range" id="studioLiquidSlider" min="0" max="2" step="0.1" value="1.0" aria-label="Studio Liquid Warp">
+      <!-- 3. 4-Step Recipe Wizard Tabs -->
+      <div class="studio-wizard-tabs" id="studioWizardTabs" role="tablist" aria-label="Recipe Builder Steps">
+        <button type="button" class="studio-wizard-tab active" id="studioTabStage" data-step="stage" role="tab" aria-selected="true">1. Stage</button>
+        <button type="button" class="studio-wizard-tab" id="studioTabHero" data-step="hero" role="tab" aria-selected="false">2. Hero</button>
+        <button type="button" class="studio-wizard-tab" id="studioTabMood" data-step="mood" role="tab" aria-selected="false">3. Mood</button>
+        <button type="button" class="studio-wizard-tab" id="studioTabEngine" data-step="engine" role="tab" aria-selected="false">4. Engine</button>
       </div>
 
-      <div class="control-row">
-        <label for="studioTunnelSlider" class="control-label"><span>Tunnel Depth</span><span id="studioTunnelVal">1.0</span></label>
-        <input class="ui-slider" type="range" id="studioTunnelSlider" min="0" max="2" step="0.1" value="1.0" aria-label="Studio Tunnel Depth">
+      <!-- Step 1: Stage Pane -->
+      <div class="studio-step-pane active" id="studioStepStage" role="tabpanel" aria-labelledby="studioTabStage">
+        <div class="control-row" style="margin-top:10px;">
+          <span class="control-label">Stage Backdrop</span>
+          <div class="chip-group" id="studioBackdropChips">
+            <button type="button" class="opt-chip active" data-backdrop="void">Void</button>
+            <button type="button" class="opt-chip" data-backdrop="grid">Cyber Grid</button>
+            <button type="button" class="opt-chip" data-backdrop="starfield">Starfield</button>
+            <button type="button" class="opt-chip" data-backdrop="horizon">Horizon</button>
+            <button type="button" class="opt-chip" data-backdrop="nebula">Nebula</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <label for="studioStageScaleSlider" class="control-label"><span>Stage Scale</span><span id="studioStageScaleVal">1.0x</span></label>
+          <input class="ui-slider" type="range" id="studioStageScaleSlider" min="0.5" max="2.5" step="0.1" value="1.0" aria-label="Stage Scale Slider">
+        </div>
+
+        <div class="control-row">
+          <label for="studioStageDustSlider" class="control-label"><span>Atmospheric Dust Density</span><span id="studioStageDustVal">1.0</span></label>
+          <input class="ui-slider" type="range" id="studioStageDustSlider" min="0" max="2.0" step="0.1" value="1.0" aria-label="Atmospheric Dust Density Slider">
+        </div>
+
+        <div class="control-row">
+          <label for="studioStageLightSlider" class="control-label"><span>Stage Lighting Intensity</span><span id="studioStageLightVal">1.2</span></label>
+          <input class="ui-slider" type="range" id="studioStageLightSlider" min="0.2" max="3.0" step="0.1" value="1.2" aria-label="Stage Lighting Intensity Slider">
+        </div>
       </div>
 
-      <div class="control-row">
-        <label for="studioVolumeSlider" class="control-label"><span>Volume Particle Density</span><span id="studioVolumeVal">1.0</span></label>
-        <input class="ui-slider" type="range" id="studioVolumeSlider" min="0" max="2" step="0.1" value="1.0" aria-label="Studio Volume Particle Density">
+      <!-- Step 2: Hero Pane -->
+      <div class="studio-step-pane" id="studioStepHero" role="tabpanel" aria-labelledby="studioTabHero" style="display:none;">
+        <div class="control-row" style="margin-top:10px;">
+          <span class="control-label">Hero Core Geometry</span>
+          <div class="chip-group" id="studioHeroGeomChips">
+            <button type="button" class="opt-chip active" data-geom="sphere">Sphere</button>
+            <button type="button" class="opt-chip" data-geom="torus">Hyper Torus</button>
+            <button type="button" class="opt-chip" data-geom="polyhedron">Monolith</button>
+            <button type="button" class="opt-chip" data-geom="dual-ring">Dual Ring</button>
+            <button type="button" class="opt-chip" data-geom="hypercube">Tesseract</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <span class="control-label">Render Style</span>
+          <div class="chip-group" id="studioHeroStyleChips">
+            <button type="button" class="opt-chip active" data-style="solid">Solid Metallic</button>
+            <button type="button" class="opt-chip" data-style="wireframe">Wireframe</button>
+            <button type="button" class="opt-chip" data-style="crystal">Glass Crystal</button>
+            <button type="button" class="opt-chip" data-style="neon">Neon Outline</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <span class="control-label">Geometric Symmetry</span>
+          <div class="chip-group" id="studioHeroSymmetryChips">
+            <button type="button" class="opt-chip active" data-symmetry="none">None</button>
+            <button type="button" class="opt-chip" data-symmetry="radial4">Radial 4x</button>
+            <button type="button" class="opt-chip" data-symmetry="radial8">Radial 8x</button>
+            <button type="button" class="opt-chip" data-symmetry="mirror">Mirror</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <label for="studioHeroDeformSlider" class="control-label"><span>Audio Vertex Deformation</span><span id="studioHeroDeformVal">1.0</span></label>
+          <input class="ui-slider" type="range" id="studioHeroDeformSlider" min="0" max="2.5" step="0.1" value="1.0" aria-label="Audio Vertex Deformation Slider">
+        </div>
+
+        <div class="control-row">
+          <label for="studioHeroScaleSlider" class="control-label"><span>Hero Scale</span><span id="studioHeroScaleVal">1.0x</span></label>
+          <input class="ui-slider" type="range" id="studioHeroScaleSlider" min="0.4" max="2.5" step="0.1" value="1.0" aria-label="Hero Scale Slider">
+        </div>
       </div>
 
-      <div class="control-row">
-        <label for="studioForceSlider" class="control-label"><span>The Force (Gravity / Vortex)</span><span id="studioForceVal">1.0</span></label>
-        <input class="ui-slider" type="range" id="studioForceSlider" min="-2" max="2" step="0.2" value="1.0" aria-label="The Force">
+      <!-- Step 3: Mood Pane -->
+      <div class="studio-step-pane" id="studioStepMood" role="tabpanel" aria-labelledby="studioTabMood" style="display:none;">
+        <div class="control-row" style="margin-top:10px;">
+          <label for="studioThemeSelect" class="control-label"><span>Color Palette Theme</span></label>
+          <select id="studioThemeSelect" class="drawer-search text-select" aria-label="Studio Theme Select">
+            <option value="ember" selected>Ember (Warm Orange Glow)</option>
+            <option value="jade">Jade (Deep Emerald)</option>
+            <option value="violet">Violet (Amethyst Electric)</option>
+            <option value="rose">Rose (Hot Pink Magenta)</option>
+            <option value="azure">Azure (Electric Cobalt)</option>
+            <option value="synthwave">Synthwave (80s Neon Sunset)</option>
+            <option value="toxic">Toxic (Acid Neon Lime)</option>
+            <option value="horizon">Horizon (Cyberpunk Dawn)</option>
+            <option value="nebula">Nebula (Cosmic Violet Violet)</option>
+            <option value="glacier">Glacier (Ice Diamond Cyan)</option>
+            <option value="prism">Prism (Full Spectrum Dispersion)</option>
+          </select>
+        </div>
+
+        <div class="control-row">
+          <label for="studioMoodBloomSlider" class="control-label"><span>Bloom Aura Intensity</span><span id="studioMoodBloomVal">1.2</span></label>
+          <input class="ui-slider" type="range" id="studioMoodBloomSlider" min="0" max="3.0" step="0.1" value="1.2" aria-label="Bloom Aura Intensity Slider">
+        </div>
+
+        <div class="control-row">
+          <label for="studioMoodSpeedSlider" class="control-label"><span>Animation Speed Multiplier</span><span id="studioMoodSpeedVal">1.0x</span></label>
+          <input class="ui-slider" type="range" id="studioMoodSpeedSlider" min="0.2" max="3.0" step="0.1" value="1.0" aria-label="Animation Speed Multiplier Slider">
+        </div>
+
+        <div class="control-row">
+          <span class="control-label">Lighting Vibe</span>
+          <div class="chip-group" id="studioLightingVibeChips">
+            <button type="button" class="opt-chip active" data-vibe="neon">Dramatic Neon</button>
+            <button type="button" class="opt-chip" data-vibe="cold">Cyber Cold</button>
+            <button type="button" class="opt-chip" data-vibe="warm">Warm Analog</button>
+            <button type="button" class="opt-chip" data-vibe="dark">Eclipse Shadow</button>
+          </div>
+        </div>
       </div>
 
-      <p style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-top:10px;">
-        Visualizer Studio enables real-time composition of 5 blended visual dimensions: Chroma, Liquid, Tunnel, Volume, and The Force attractor physics.
-      </p>
+      <!-- Step 4: Engine / Post-FX Pane (Preserving backward compatibility IDs) -->
+      <div class="studio-step-pane" id="studioStepEngine" role="tabpanel" aria-labelledby="studioTabEngine" style="display:none;">
+        <div class="control-row" style="margin-top:10px;">
+          <button class="btn-primary" style="width:100%;justify-content:center;margin-bottom:12px;" id="activateStudioBtn">
+            Launch Studio Stage Preset
+          </button>
+        </div>
+
+        <div class="control-row">
+          <label for="studioChromaSlider" class="control-label"><span>Chroma Intensity</span><span id="studioChromaVal">1.0</span></label>
+          <input class="ui-slider" type="range" id="studioChromaSlider" min="0" max="2" step="0.1" value="1.0" aria-label="Studio Chroma Intensity">
+        </div>
+
+        <div class="control-row">
+          <label for="studioLiquidSlider" class="control-label"><span>Liquid Warp</span><span id="studioLiquidVal">1.0</span></label>
+          <input class="ui-slider" type="range" id="studioLiquidSlider" min="0" max="2" step="0.1" value="1.0" aria-label="Studio Liquid Warp">
+        </div>
+
+        <div class="control-row">
+          <label for="studioTunnelSlider" class="control-label"><span>Tunnel Depth</span><span id="studioTunnelVal">1.0</span></label>
+          <input class="ui-slider" type="range" id="studioTunnelSlider" min="0" max="2" step="0.1" value="1.0" aria-label="Studio Tunnel Depth">
+        </div>
+
+        <div class="control-row">
+          <label for="studioVolumeSlider" class="control-label"><span>Volume Particle Density</span><span id="studioVolumeVal">1.0</span></label>
+          <input class="ui-slider" type="range" id="studioVolumeSlider" min="0" max="2" step="0.1" value="1.0" aria-label="Studio Volume Particle Density">
+        </div>
+
+        <div class="control-row">
+          <label for="studioForceSlider" class="control-label"><span>The Force (Gravity / Vortex)</span><span id="studioForceVal">1.0</span></label>
+          <input class="ui-slider" type="range" id="studioForceSlider" min="-2" max="2" step="0.2" value="1.0" aria-label="The Force">
+        </div>
+
+        <div class="control-row">
+          <label for="studioCrtSlider" class="control-label"><span>CRT Scanlines</span><span id="studioCrtVal">0.0</span></label>
+          <input class="ui-slider" type="range" id="studioCrtSlider" min="0" max="1.0" step="0.05" value="0.0" aria-label="CRT Scanlines Slider">
+        </div>
+
+        <div class="control-row">
+          <label for="studioChromaDistortSlider" class="control-label"><span>Chromatic Aberration</span><span id="studioChromaDistortVal">0.35</span></label>
+          <input class="ui-slider" type="range" id="studioChromaDistortSlider" min="0" max="1.0" step="0.05" value="0.35" aria-label="Chromatic Aberration Slider">
+        </div>
+      </div>
+
+      <!-- 4. Recipe Management & Persistence Gallery -->
+      <div class="studio-recipe-section" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
+        <div class="control-row">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <label for="studioRecipeNameInput" class="control-label" style="margin-bottom:0;"><span>Recipe Title</span></label>
+            <span class="studio-error-hint" id="studioRecipeNameError" style="font-size:10px;color:var(--accent-start);display:none;">Required to save</span>
+          </div>
+          <input type="text" class="drawer-search" id="studioRecipeNameInput" placeholder="Name your recipe (e.g. Neon Singularity)..." maxlength="60" aria-label="Studio Recipe Name Input">
+        </div>
+
+        <div class="studio-recipe-actions-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+          <button type="button" class="btn-primary" id="studioSaveRecipeBtn" style="justify-content:center;" disabled>
+            💾 Save Recipe
+          </button>
+          <button type="button" class="btn-secondary" id="studioGenerateBtn" style="justify-content:center;">
+            ⚡ Forge Look
+          </button>
+        </div>
+
+        <div class="studio-recipe-io-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+          <button type="button" class="btn-secondary" id="studioExportJsonBtn" style="justify-content:center;font-size:11px;">
+            Export JSON
+          </button>
+          <label for="studioImportFileInput" class="btn-secondary" style="justify-content:center;font-size:11px;cursor:pointer;margin:0;">
+            <input type="file" id="studioImportFileInput" accept=".json,application/json" style="display:none;" aria-label="Import Recipe JSON">
+            Import JSON
+          </label>
+        </div>
+
+        <div class="control-group">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span class="control-section-title">Saved Recipes</span>
+            <span class="sidebar-value" id="studioSavedCount" style="font-size:11px;color:var(--text-muted);">0 saved</span>
+          </div>
+          <div class="cards-grid studio-saved-list" id="studioSavedRecipesList">
+            <div style="font-size:12px;color:var(--text-muted);text-align:center;padding:16px 0;">
+              No saved recipes yet. Craft parameters and click Save Recipe.
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
