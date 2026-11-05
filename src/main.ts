@@ -442,7 +442,7 @@ export function setFilter(f: 'all' | 'fav' | 'milkdrop' | VisualizerPreset['cate
   currentFilter = f;
   const pills = document.querySelectorAll('#presetCategoryTabs .filter-pill');
   pills.forEach(pill => {
-    const filterAttr = pill.getAttribute('data-filter');
+    const filterAttr = (pill as HTMLElement).dataset.filter;
     const isMatching = filterAttr === f;
     pill.classList.toggle('active', isMatching);
     pill.setAttribute(ARIA_SELECTED, String(isMatching));
@@ -455,7 +455,7 @@ if (categoryTabsContainer) {
   categoryTabsContainer.addEventListener('click', (e) => {
     const target = (e.target as HTMLElement).closest('.filter-pill') as HTMLElement | null;
     if (!target) return;
-    const filter = target.getAttribute('data-filter') as 'all' | 'fav' | 'milkdrop' | VisualizerPreset['category'] | null;
+    const filter = target.dataset.filter as 'all' | 'fav' | 'milkdrop' | VisualizerPreset['category'] | null;
     if (filter) {
       setFilter(filter);
     }
@@ -899,7 +899,7 @@ const ANCHOR_DISPLAY_NAMES: Record<string, string> = {
 
 const selectAnchor = (anchor: string) => {
   textAnchorCells.forEach(cell => {
-    const a = cell.getAttribute('data-anchor');
+    const a = (cell as HTMLElement).dataset.anchor;
     cell.classList.toggle('active', a === anchor);
   });
   if (textAnchorLabel) {
@@ -913,7 +913,7 @@ const selectAnchor = (anchor: string) => {
 
 textAnchorCells.forEach(cell => {
   cell.addEventListener('click', () => {
-    const anchor = cell.getAttribute('data-anchor') || 'center';
+    const anchor = (cell as HTMLElement).dataset.anchor || 'center';
     selectAnchor(anchor);
   });
 });
@@ -925,7 +925,7 @@ textAnchorSelect?.addEventListener('change', () => {
 // Animation Modes Binding
 const selectAnimMode = (anim: string) => {
   textAnimChips.forEach(chip => {
-    const a = chip.getAttribute('data-anim') || chip.getAttribute('data-alias');
+    const a = (chip as HTMLElement).dataset.anim || (chip as HTMLElement).dataset.alias;
     chip.classList.toggle('active', a === anim);
   });
   if (textAnimSelect) {
@@ -936,7 +936,7 @@ const selectAnimMode = (anim: string) => {
 
 textAnimChips.forEach(chip => {
   chip.addEventListener('click', () => {
-    const anim = chip.getAttribute('data-anim') || 'pulse';
+    const anim = (chip as HTMLElement).dataset.anim || 'pulse';
     selectAnimMode(anim);
   });
 });
