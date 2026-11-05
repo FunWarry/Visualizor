@@ -1,13 +1,14 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { ParameterStore } from '../tuning/ParameterStore';
+import { BasePreset } from './BasePreset';
 
-export class VolcanoPreset implements VisualizerPreset {
-  id = 'volcano-eruption';
-  name = 'Erupting Volcano';
-  category = 'Organic & Nature' as const;
-  description = 'Volcanic mountain caldera erupting molten magma particles on heavy bass drops.';
+export class VolcanoPreset extends BasePreset {
+  public override readonly id = 'volcano';
+  public override readonly name = 'Volcano';
+  public override readonly category = 'Organic & Nature' as const;
+  public override readonly description = '3D caldera cone mountain erupting molten magma particles.';
 
-  private group!: THREE.Group;
   private mountainMesh!: THREE.Mesh;
   private magmaLake!: THREE.Mesh;
   private lavaSparks!: THREE.Points;
@@ -18,8 +19,16 @@ export class VolcanoPreset implements VisualizerPreset {
   private sparkVelocities!: Float32Array;
   private readonly sparkCount = 1000;
 
-  init(ctx: PresetContext) {
-    this.group = new THREE.Group();
+  constructor() {
+    super();
+    this.paramStore = new ParameterStore([
+      { id: 'speed', name: 'Eruption Speed', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
+      { id: 'reactivity', name: 'Pyroclastic Force', min: 0.1, max: 2.5, step: 0.05, defaultValue: 1.0 },
+      { id: 'density', name: 'Caldera Scale', min: 1.0, max: 4.0, step: 0.2, defaultValue: 2.5 }
+    ]);
+  }
+
+  protected setup(ctx: PresetContext): void {
     this.group.position.y = -2;
 
     // 1. Volcano Mountain Cone
@@ -50,7 +59,7 @@ export class VolcanoPreset implements VisualizerPreset {
 
     for (let i = 0; i < this.sparkCount; i++) {
       this.resetSpark(i);
-      this.sparkPositions[i * 3 + 1] = 3.5 + Math.random() * 3.0; // pre-populate air
+      this.sparkPositions[i * 3 + 1] = 3.5 + Math.random() * 3.0;
     }
     sparkGeom.setAttribute('position', new THREE.BufferAttribute(this.sparkPositions, 3));
 
@@ -63,8 +72,6 @@ export class VolcanoPreset implements VisualizerPreset {
     });
     this.lavaSparks = new THREE.Points(sparkGeom, this.sparkMaterial);
     this.group.add(this.lavaSparks);
-
-    ctx.scene.add(this.group);
   }
 
   private resetSpark(i: number) {
@@ -79,28 +86,29 @@ export class VolcanoPreset implements VisualizerPreset {
     this.sparkVelocities[i * 3 + 2] = Math.sin(angle) * spread;
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, _time: number, delta: number) {
-    this.group.rotation.y += delta * 0.1;
+  public update(ctx: PresetContext, audio: AudioFeatures, _time: number, delta: number): void {
+    const speed = this.paramStore.getValue('speed');
+    const reactivity = this.paramStore.getValue('reactivity');
 
-    // Magma pulse
+    this.group.rotation.y += delta * 0.1 * speed;
+
     if (audio.beat) {
       this.magmaMaterial.color.set(ctx.theme.primary);
-      this.sparkMaterial.size = 0.32;
+      this.sparkMaterial.size = 0.32 * reactivity;
     } else {
       this.magmaMaterial.color.set(ctx.theme.accent);
       this.sparkMaterial.size = 0.16;
     }
 
-    // Spark physics
     const pos = (this.lavaSparks.geometry as THREE.BufferGeometry).attributes.position.array as Float32Array;
     const gravity = 9.8 * delta;
-    const eruptionBoost = audio.bass * 4.0;
+    const eruptionBoost = audio.bass * 4.0 * reactivity;
 
     for (let i = 0; i < this.sparkCount; i++) {
       const idx = i * 3;
-      pos[idx] += this.sparkVelocities[idx] * delta;
-      pos[idx + 1] += (this.sparkVelocities[idx + 1] + eruptionBoost) * delta;
-      pos[idx + 2] += this.sparkVelocities[idx + 2] * delta;
+      pos[idx] += this.sparkVelocities[idx] * delta * speed;
+      pos[idx + 1] += (this.sparkVelocities[idx + 1] + eruptionBoost) * delta * speed;
+      pos[idx + 2] += this.sparkVelocities[idx + 2] * delta * speed;
 
       this.sparkVelocities[idx + 1] -= gravity;
 
@@ -111,19 +119,8 @@ export class VolcanoPreset implements VisualizerPreset {
     this.lavaSparks.geometry.attributes.position.needsUpdate = true;
   }
 
-  onThemeChange(theme: VisualizerTheme) {
+  public override onThemeChange(theme: VisualizerTheme): void {
     this.magmaMaterial.color.set(theme.accent);
     this.sparkMaterial.color.set(theme.accent);
   }
-
-  dispose() {
-    this.mountainMesh.geometry.dispose();
-    this.mountainMaterial.dispose();
-    this.magmaLake.geometry.dispose();
-    this.magmaMaterial.dispose();
-    this.lavaSparks.geometry.dispose();
-    this.sparkMaterial.dispose();
-    this.group.removeFromParent();
-  }
 }
-

@@ -1,32 +1,36 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { ParameterStore } from '../tuning/ParameterStore';
+import { BasePreset } from './BasePreset';
 
-export class Tesseract4DPreset implements VisualizerPreset {
-  id = 'tesseract-4d';
-  name = 'Tesseract 4D';
-  category = 'Structures' as const;
-  description = 'True 4D hypercube projected stereographically into 3D with holographic glitch.';
+export class Tesseract4DPreset extends BasePreset {
+  public override readonly id = 'tesseract';
+  public override readonly name = 'Tesseract';
+  public override readonly category = 'Structures' as const;
+  public override readonly description = '4D hypercube projected stereographically into 3D space.';
 
-  private group!: THREE.Group;
   private edgeLines!: THREE.LineSegments;
   private vertexNodes!: THREE.Points;
   private lineMaterial!: THREE.LineBasicMaterial;
   private nodeMaterial!: THREE.PointsMaterial;
 
-  // 16 4D vertices (+-1, +-1, +-1, +-1)
-  private vertices4D: number[][] = [];
-  // 32 edges
-  private edges: [number, number][] = [];
-  // Rotations
+  private readonly vertices4D: number[][] = [];
+  private readonly edges: [number, number][] = [];
   private rotXW = 0;
   private rotYW = 0;
   private rotZW = 0;
 
-  init(ctx: PresetContext) {
-    this.group = new THREE.Group();
+  constructor() {
+    super();
+    this.paramStore = new ParameterStore([
+      { id: 'speed', name: '4D Rotation Speed', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
+      { id: 'reactivity', name: 'Audio Reactivity', min: 0.1, max: 2.5, step: 0.05, defaultValue: 1.0 },
+      { id: 'density', name: 'Perspective Scale', min: 1.0, max: 3.5, step: 0.1, defaultValue: 1.8 }
+    ]);
+  }
 
-    // Generate 16 4D vertices
-    this.vertices4D = [];
+  protected setup(ctx: PresetContext): void {
+    this.vertices4D.length = 0;
     for (let i = 0; i < 16; i++) {
       const x = (i & 1) ? 1 : -1;
       const y = (i & 2) ? 1 : -1;
@@ -35,8 +39,7 @@ export class Tesseract4DPreset implements VisualizerPreset {
       this.vertices4D.push([x, y, z, w]);
     }
 
-    // Generate 32 edges (differ by 1 bit)
-    this.edges = [];
+    this.edges.length = 0;
     for (let i = 0; i < 16; i++) {
       for (let bit = 0; bit < 4; bit++) {
         const neighbor = i ^ (1 << bit);
@@ -46,7 +49,6 @@ export class Tesseract4DPreset implements VisualizerPreset {
       }
     }
 
-    // Edge lines geometry (32 edges * 2 points * 3 coords = 192 floats)
     const lineGeom = new THREE.BufferGeometry();
     const linePositions = new Float32Array(this.edges.length * 2 * 3);
     lineGeom.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
@@ -60,7 +62,6 @@ export class Tesseract4DPreset implements VisualizerPreset {
     this.edgeLines = new THREE.LineSegments(lineGeom, this.lineMaterial);
     this.group.add(this.edgeLines);
 
-    // Vertex glowing nodes
     const nodeGeom = new THREE.BufferGeometry();
     const nodePositions = new Float32Array(16 * 3);
     nodeGeom.setAttribute('position', new THREE.BufferAttribute(nodePositions, 3));
@@ -73,54 +74,45 @@ export class Tesseract4DPreset implements VisualizerPreset {
     });
     this.vertexNodes = new THREE.Points(nodeGeom, this.nodeMaterial);
     this.group.add(this.vertexNodes);
-
-    ctx.scene.add(this.group);
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, _time: number, delta: number) {
-    // 4D Rotation speeds modulated by audio
-    this.rotXW += delta * (0.4 + audio.bass * 1.5);
-    this.rotYW += delta * (0.3 + audio.mid * 1.2);
-    this.rotZW += delta * (0.2 + audio.treble * 1.0);
+  public update(ctx: PresetContext, audio: AudioFeatures, _time: number, delta: number): void {
+    const speed = this.paramStore.getValue('speed');
+    const reactivity = this.paramStore.getValue('reactivity');
+    const projScale = this.paramStore.getValue('density');
 
-    this.group.rotation.y += delta * 0.15;
-    this.group.rotation.x += delta * 0.1;
+    this.rotXW += delta * (0.4 + audio.bass * 1.5 * reactivity) * speed;
+    this.rotYW += delta * (0.3 + audio.mid * 1.2 * reactivity) * speed;
+    this.rotZW += delta * (0.2 + audio.treble * 1.0 * reactivity) * speed;
+
+    this.group.rotation.y += delta * 0.15 * speed;
+    this.group.rotation.x += delta * 0.1 * speed;
 
     const projected: THREE.Vector3[] = [];
     const distance4D = 2.4;
-    const glitch = audio.beat ? (Math.random() - 0.5) * 0.3 : 0;
 
-    // Project 16 vertices from 4D -> 3D
     const nodePos = (this.vertexNodes.geometry as THREE.BufferGeometry).attributes.position.array as Float32Array;
 
     for (let i = 0; i < 16; i++) {
       const [x, y, z, w] = this.vertices4D[i];
 
-      // Rotate in XW plane
       const cosXW = Math.cos(this.rotXW);
       const sinXW = Math.sin(this.rotXW);
       const x1 = x * cosXW - w * sinXW;
       const w1 = x * sinXW + w * cosXW;
 
-      // Rotate in YW plane
       const cosYW = Math.cos(this.rotYW);
       const sinYW = Math.sin(this.rotYW);
       const y2 = y * cosYW - w1 * sinYW;
       const w2 = y * sinYW + w1 * cosYW;
 
-      // Rotate in ZW plane
       const cosZW = Math.cos(this.rotZW);
       const sinZW = Math.sin(this.rotZW);
       const z3 = z * cosZW - w2 * sinZW;
       const w3 = z * sinZW + w2 * cosZW;
 
-      // Stereographic 4D perspective projection
-      const scale = distance4D / (distance4D - w3);
-      const v3 = new THREE.Vector3(
-        (x1 * scale + glitch) * 1.8,
-        (y2 * scale + glitch) * 1.8,
-        (z3 * scale) * 1.8
-      );
+      const scale = distance4D / Math.max(0.1, distance4D - w3);
+      const v3 = new THREE.Vector3(x1 * scale * projScale, y2 * scale * projScale, z3 * scale * projScale);
       projected.push(v3);
 
       nodePos[i * 3] = v3.x;
@@ -129,7 +121,6 @@ export class Tesseract4DPreset implements VisualizerPreset {
     }
     this.vertexNodes.geometry.attributes.position.needsUpdate = true;
 
-    // Update 32 edge segments
     const linePos = (this.edgeLines.geometry as THREE.BufferGeometry).attributes.position.array as Float32Array;
     let ptr = 0;
     for (const [p1Idx, p2Idx] of this.edges) {
@@ -155,17 +146,8 @@ export class Tesseract4DPreset implements VisualizerPreset {
     }
   }
 
-  onThemeChange(theme: VisualizerTheme) {
+  public override onThemeChange(theme: VisualizerTheme): void {
     this.lineMaterial.color.set(theme.primary);
     this.nodeMaterial.color.set(theme.accent);
   }
-
-  dispose() {
-    this.edgeLines.geometry.dispose();
-    this.lineMaterial.dispose();
-    this.vertexNodes.geometry.dispose();
-    this.nodeMaterial.dispose();
-    this.group.removeFromParent();
-  }
 }
-

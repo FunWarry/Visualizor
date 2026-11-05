@@ -1,12 +1,13 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme, ParameterDefinition } from '../types';
+import { PresetContext, AudioFeatures, VisualizerTheme } from '../types';
 import { ParameterStore } from '../tuning/ParameterStore';
+import { BasePreset } from './BasePreset';
 
-export class ParticleFieldPreset implements VisualizerPreset {
-  id = 'particle-field';
-  name = 'Particle Swarm';
-  category = 'Particles & Light' as const;
-  description = 'Cosmic particle field expanding, swirling and reacting to audio energy.';
+export class ParticleFieldPreset extends BasePreset {
+  public override readonly id = 'particles';
+  public override readonly name = 'Particles';
+  public override readonly category = 'Particles & Light' as const;
+  public override readonly description = 'Cosmic particle field expanding, swirling and reacting to audio energy.';
 
   private points!: THREE.Points;
   private geometry!: THREE.BufferGeometry;
@@ -14,14 +15,17 @@ export class ParticleFieldPreset implements VisualizerPreset {
   private readonly count = 6000;
   private basePositions!: Float32Array;
 
-  private readonly paramStore = new ParameterStore([
-    { id: 'speed', name: 'Swirl Speed', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
-    { id: 'reactivity', name: 'Reactivity', min: 0.1, max: 2.5, step: 0.05, defaultValue: 1.0 },
-    { id: 'particleScale', name: 'Particle Size', min: 0.05, max: 0.5, step: 0.01, defaultValue: 0.16 },
-    { id: 'density', name: 'Particle Density', min: 0.2, max: 1.0, step: 0.1, defaultValue: 1.0 }
-  ]);
+  constructor() {
+    super();
+    this.paramStore = new ParameterStore([
+      { id: 'speed', name: 'Swirl Speed', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
+      { id: 'reactivity', name: 'Reactivity', min: 0.1, max: 2.5, step: 0.05, defaultValue: 1.0 },
+      { id: 'particleScale', name: 'Particle Size', min: 0.05, max: 0.5, step: 0.01, defaultValue: 0.16 },
+      { id: 'density', name: 'Particle Density', min: 0.2, max: 1.0, step: 0.1, defaultValue: 1.0 }
+    ]);
+  }
 
-  init(ctx: PresetContext) {
+  protected setup(ctx: PresetContext): void {
     this.geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(this.count * 3);
     this.basePositions = new Float32Array(this.count * 3);
@@ -55,10 +59,10 @@ export class ParticleFieldPreset implements VisualizerPreset {
     });
 
     this.points = new THREE.Points(this.geometry, this.material);
-    ctx.scene.add(this.points);
+    this.group.add(this.points);
   }
 
-  update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
+  public update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number): void {
     const pos = this.geometry.attributes.position.array as Float32Array;
     const speed = this.paramStore.getValue('speed');
     const reactivity = this.paramStore.getValue('reactivity');
@@ -88,29 +92,7 @@ export class ParticleFieldPreset implements VisualizerPreset {
     this.points.rotation.x += delta * (0.1 + audio.mid * 0.3) * speed;
   }
 
-  getCustomParameters(): ParameterDefinition[] {
-    return this.paramStore.getDefinitions();
-  }
-
-  setCustomParameter(id: string, value: number): void {
-    this.paramStore.setValue(id, value);
-  }
-
-  getCustomParameterValue(id: string): number | undefined {
-    return this.paramStore.getValue(id);
-  }
-
-  resetCustomParameters(): void {
-    this.paramStore.reset();
-  }
-
-  onThemeChange(theme: VisualizerTheme) {
+  public override onThemeChange(theme: VisualizerTheme): void {
     this.material.color.set(theme.primary);
-  }
-
-  dispose() {
-    this.geometry.dispose();
-    this.material.dispose();
-    this.points.removeFromParent();
   }
 }

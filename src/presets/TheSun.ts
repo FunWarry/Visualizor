@@ -1,13 +1,14 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { ParameterStore } from '../tuning/ParameterStore';
+import { BasePreset } from './BasePreset';
 
-export class TheSunPreset implements VisualizerPreset {
-  id = 'the-sun';
-  name = 'The Sun';
-  category = 'Abstract & Space' as const;
-  description = 'Solar corona with turbulent flares, pulsating prominence loops and radiant energy.';
+export class TheSunPreset extends BasePreset {
+  public override readonly id = 'sun';
+  public override readonly name = 'The Sun';
+  public override readonly category = 'Abstract & Space' as const;
+  public override readonly description = 'Layered solar corona with prominence flares and heat shimmer.';
 
-  private group!: THREE.Group;
   private coreMesh!: THREE.Mesh;
   private coronaMesh!: THREE.Mesh;
   private flarePoints!: THREE.Points;
@@ -17,11 +18,18 @@ export class TheSunPreset implements VisualizerPreset {
   private flarePositions!: Float32Array;
   private flareBaseRadius!: Float32Array;
 
-  init(ctx: PresetContext) {
-    this.group = new THREE.Group();
+  constructor() {
+    super();
+    this.paramStore = new ParameterStore([
+      { id: 'speed', name: 'Corona Turbulence', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
+      { id: 'reactivity', name: 'Flare Reactivity', min: 0.1, max: 2.5, step: 0.05, defaultValue: 1.0 },
+      { id: 'density', name: 'Core Radius', min: 1.5, max: 4.0, step: 0.1, defaultValue: 2.5 }
+    ]);
+  }
 
-    // 1. Fiery core with custom vertex displacement & turbulent noise shader
-    const coreGeom = new THREE.IcosahedronGeometry(2.5, 4);
+  protected setup(ctx: PresetContext): void {
+    const coreRad = this.paramStore.getValue('density');
+    const coreGeom = new THREE.IcosahedronGeometry(coreRad, 4);
     this.coreMaterial = new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
@@ -39,14 +47,11 @@ export class TheSunPreset implements VisualizerPreset {
         void main() {
           vNormal = normal;
           vPosition = position;
-          
           float noise = sin(position.x * 4.0 + uTime * 2.0) 
                       * cos(position.y * 4.0 + uTime * 2.5) 
                       * sin(position.z * 4.0 + uTime * 3.0);
-          
           float disp = 1.0 + (noise * 0.15 * (1.0 + uBass * 1.5));
           vDisplacement = noise;
-          
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position * disp, 1.0);
         }
       `,
@@ -69,8 +74,7 @@ export class TheSunPreset implements VisualizerPreset {
     this.coreMesh = new THREE.Mesh(coreGeom, this.coreMaterial);
     this.group.add(this.coreMesh);
 
-    // 2. Solar corona outer atmosphere
-    const coronaGeom = new THREE.SphereGeometry(3.6, 32, 32);
+    const coronaGeom = new THREE.SphereGeometry(coreRad * 1.44, 32, 32);
     this.coronaMaterial = new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
@@ -102,7 +106,6 @@ export class TheSunPreset implements VisualizerPreset {
     this.coronaMesh = new THREE.Mesh(coronaGeom, this.coronaMaterial);
     this.group.add(this.coronaMesh);
 
-    // 3. Solar flare particle prominence
     const flareCount = 1500;
     const flareGeom = new THREE.BufferGeometry();
     this.flarePositions = new Float32Array(flareCount * 3);
@@ -111,7 +114,7 @@ export class TheSunPreset implements VisualizerPreset {
     for (let i = 0; i < flareCount; i++) {
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(Math.random() * 2 - 1);
-      const rad = 2.6 + Math.random() * 2.8;
+      const rad = coreRad * 1.04 + Math.random() * (coreRad * 1.1);
       this.flareBaseRadius[i] = rad;
 
       this.flarePositions[i * 3] = rad * Math.sin(phi) * Math.cos(theta);
@@ -129,23 +132,23 @@ export class TheSunPreset implements VisualizerPreset {
     });
     this.flarePoints = new THREE.Points(flareGeom, this.flareMaterial);
     this.group.add(this.flarePoints);
-
-    ctx.scene.add(this.group);
   }
 
-  update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
-    this.group.rotation.y += delta * 0.2;
-    this.group.rotation.x += delta * 0.08;
+  public update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number): void {
+    const speed = this.paramStore.getValue('speed');
+    const reactivity = this.paramStore.getValue('reactivity');
 
-    this.coreMaterial.uniforms.uTime.value = time;
-    this.coreMaterial.uniforms.uBass.value = audio.bass;
+    this.group.rotation.y += delta * 0.2 * speed;
+    this.group.rotation.x += delta * 0.08 * speed;
 
-    this.coronaMaterial.uniforms.uTime.value = time;
-    this.coronaMaterial.uniforms.uEnergy.value = audio.mid + audio.beatEnergy * 0.6;
+    this.coreMaterial.uniforms.uTime.value = time * speed;
+    this.coreMaterial.uniforms.uBass.value = audio.bass * reactivity;
 
-    // Flares pulsate outward with mid & treble energy
+    this.coronaMaterial.uniforms.uTime.value = time * speed;
+    this.coronaMaterial.uniforms.uEnergy.value = (audio.mid + audio.beatEnergy * 0.6) * reactivity;
+
     const pos = (this.flarePoints.geometry as THREE.BufferGeometry).attributes.position.array as Float32Array;
-    const pulse = 1.0 + audio.treble * 0.5 + (audio.beat ? 0.4 : 0);
+    const pulse = 1.0 + audio.treble * 0.5 * reactivity + (audio.beat ? 0.4 * reactivity : 0);
 
     for (let i = 0; i < this.flareBaseRadius.length; i++) {
       const idx = i * 3;
@@ -153,7 +156,7 @@ export class TheSunPreset implements VisualizerPreset {
       const by = this.flarePositions[idx + 1];
       const bz = this.flarePositions[idx + 2];
 
-      const flareWobble = Math.sin(time * 4.0 + i) * 0.15 * audio.mid;
+      const flareWobble = Math.sin(time * 4.0 * speed + i) * 0.15 * audio.mid;
       pos[idx] = bx * (pulse + flareWobble);
       pos[idx + 1] = by * (pulse + flareWobble);
       pos[idx + 2] = bz * (pulse + flareWobble);
@@ -161,20 +164,10 @@ export class TheSunPreset implements VisualizerPreset {
     this.flarePoints.geometry.attributes.position.needsUpdate = true;
   }
 
-  onThemeChange(theme: VisualizerTheme) {
+  public override onThemeChange(theme: VisualizerTheme): void {
     this.coreMaterial.uniforms.uColor1.value.set(theme.primary);
     this.coreMaterial.uniforms.uColor2.value.set(theme.accent);
     this.coronaMaterial.uniforms.uCoronaColor.value.set(theme.accent);
     this.flareMaterial.color.set(theme.accent);
-  }
-
-  dispose() {
-    this.coreMesh.geometry.dispose();
-    this.coreMaterial.dispose();
-    this.coronaMesh.geometry.dispose();
-    this.coronaMaterial.dispose();
-    this.flarePoints.geometry.dispose();
-    this.flareMaterial.dispose();
-    this.group.removeFromParent();
   }
 }

@@ -1,29 +1,31 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme, ParameterDefinition } from '../types';
+import { PresetContext, AudioFeatures, VisualizerTheme } from '../types';
 import { ParameterStore } from '../tuning/ParameterStore';
+import { BasePreset } from './BasePreset';
 
-export class ObsidianPolyPreset implements VisualizerPreset {
-  id = 'obsidian-poly';
-  name = 'Obsidian Poly';
-  category = 'Structures' as const;
-  description = 'Dark glossy multifaceted polyhedron deforming dynamically to audio.';
+export class ObsidianPolyPreset extends BasePreset {
+  public override readonly id = 'obsidian';
+  public override readonly name = 'Obsidian';
+  public override readonly category = 'Structures' as const;
+  public override readonly description = 'Dark glossy multifaceted polyhedron deforming dynamically.';
 
   private mesh!: THREE.Mesh;
   private wireframe!: THREE.LineSegments;
-  private group!: THREE.Group;
   private material!: THREE.MeshPhysicalMaterial;
   private wireMaterial!: THREE.LineBasicMaterial;
   private basePositions!: Float32Array;
 
-  private readonly paramStore = new ParameterStore([
-    { id: 'speed', name: 'Tumble Speed', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
-    { id: 'reactivity', name: 'Audio Reactivity', min: 0.1, max: 2.0, step: 0.05, defaultValue: 1.0 },
-    { id: 'deformation', name: 'Vertex Morph', min: 0.0, max: 2.0, step: 0.05, defaultValue: 0.35 },
-    { id: 'density', name: 'Wireframe Opacity', min: 0.1, max: 1.0, step: 0.05, defaultValue: 0.75 }
-  ]);
+  constructor() {
+    super();
+    this.paramStore = new ParameterStore([
+      { id: 'speed', name: 'Tumble Speed', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
+      { id: 'reactivity', name: 'Audio Reactivity', min: 0.1, max: 2.0, step: 0.05, defaultValue: 1.0 },
+      { id: 'deformation', name: 'Vertex Morph', min: 0.0, max: 2.0, step: 0.05, defaultValue: 0.35 },
+      { id: 'density', name: 'Wireframe Opacity', min: 0.1, max: 1.0, step: 0.05, defaultValue: 0.75 }
+    ]);
+  }
 
-  init(ctx: PresetContext) {
-    this.group = new THREE.Group();
+  protected setup(ctx: PresetContext): void {
     const geometry = new THREE.IcosahedronGeometry(3.0, 3);
     const pos = geometry.attributes.position.array as Float32Array;
     this.basePositions = new Float32Array(pos);
@@ -50,10 +52,9 @@ export class ObsidianPolyPreset implements VisualizerPreset {
 
     this.group.add(this.mesh);
     this.group.add(this.wireframe);
-    ctx.scene.add(this.group);
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
+  public update(ctx: PresetContext, audio: AudioFeatures, time: number, delta: number): void {
     const speed = this.paramStore.getValue('speed');
     const reactivity = this.paramStore.getValue('reactivity');
     const deformation = this.paramStore.getValue('deformation');
@@ -90,32 +91,8 @@ export class ObsidianPolyPreset implements VisualizerPreset {
     }
   }
 
-  getCustomParameters(): ParameterDefinition[] {
-    return this.paramStore.getDefinitions();
-  }
-
-  setCustomParameter(id: string, value: number): void {
-    this.paramStore.setValue(id, value);
-  }
-
-  getCustomParameterValue(id: string): number | undefined {
-    return this.paramStore.getValue(id);
-  }
-
-  resetCustomParameters(): void {
-    this.paramStore.reset();
-  }
-
-  onThemeChange(theme: VisualizerTheme) {
+  public override onThemeChange(theme: VisualizerTheme): void {
     this.material.emissive.set(theme.primary);
     this.wireMaterial.color.set(theme.accent);
-  }
-
-  dispose() {
-    this.mesh.geometry.dispose();
-    this.material.dispose();
-    this.wireframe.geometry.dispose();
-    this.wireMaterial.dispose();
-    this.group.removeFromParent();
   }
 }

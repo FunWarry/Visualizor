@@ -229,11 +229,38 @@
       <input type="text" class="drawer-search" id="presetSearchInput" placeholder="🔍 Search presets..." aria-label="Search presets">
     </div>
 
-    <!-- Filter Tabs (All, Favorites, 3D, MilkDrop/ProjectM) -->
-    <div class="drawer-filter-pills">
-      <button class="filter-pill active" data-filter="all" id="filterAllBtn">All</button>
-      <button class="filter-pill" data-filter="fav" id="filterFavBtn">♡ Favorites</button>
-      <button class="filter-pill" data-filter="milkdrop" id="filterMilkdropBtn">MilkDrop & ProjectM</button>
+    <!-- Filter Tabs (All, Favorites, and 7 Categories with Dynamic Counter Badges) -->
+    <div class="drawer-filter-pills" id="presetCategoryTabs" role="tablist" aria-label="Preset categories">
+      <button class="filter-pill active" data-filter="all" id="filterAllBtn" role="tab" aria-selected="true">
+        <span>All</span><span class="tab-badge" id="badgeAll">71</span>
+      </button>
+      <button class="filter-pill" data-filter="fav" id="filterFavBtn" role="tab" aria-selected="false">
+        <span>★ Fav</span><span class="tab-badge" id="badgeFav">0</span>
+      </button>
+      <button class="filter-pill" data-filter="Structures" data-category="Structures" role="tab" aria-selected="false">
+        <span>Structures</span><span class="tab-badge" data-category-badge="Structures">15</span>
+      </button>
+      <button class="filter-pill" data-filter="Abstract & Space" data-category="Abstract & Space" role="tab" aria-selected="false">
+        <span>Abstract & Space</span><span class="tab-badge" data-category-badge="Abstract & Space">15</span>
+      </button>
+      <button class="filter-pill" data-filter="Particles & Light" data-category="Particles & Light" role="tab" aria-selected="false">
+        <span>Particles & Light</span><span class="tab-badge" data-category-badge="Particles & Light">4</span>
+      </button>
+      <button class="filter-pill" data-filter="Fluids & Heat" data-category="Fluids & Heat" role="tab" aria-selected="false">
+        <span>Fluids & Heat</span><span class="tab-badge" data-category-badge="Fluids & Heat">9</span>
+      </button>
+      <button class="filter-pill" data-filter="Tunnels" data-category="Tunnels" role="tab" aria-selected="false">
+        <span>Tunnels</span><span class="tab-badge" data-category-badge="Tunnels">7</span>
+      </button>
+      <button class="filter-pill" data-filter="Retro & Digital" data-category="Retro & Digital" role="tab" aria-selected="false">
+        <span>Retro & Digital</span><span class="tab-badge" data-category-badge="Retro & Digital">7</span>
+      </button>
+      <button class="filter-pill" data-filter="Organic & Nature" data-category="Organic & Nature" role="tab" aria-selected="false">
+        <span>Organic & Nature</span><span class="tab-badge" data-category-badge="Organic & Nature">14</span>
+      </button>
+      <button class="filter-pill" data-filter="milkdrop" id="filterMilkdropBtn" role="tab" aria-selected="false">
+        <span>MilkDrop</span>
+      </button>
     </div>
 
     <div class="panel-content" id="presetsScrollContainer">

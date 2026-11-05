@@ -1,31 +1,34 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme, ParameterDefinition } from '../types';
+import { PresetContext, AudioFeatures, VisualizerTheme } from '../types';
 import { ParameterStore } from '../tuning/ParameterStore';
+import { BasePreset } from './BasePreset';
 
-export class NeonTunnelPreset implements VisualizerPreset {
-  id = 'neon-tunnel';
-  name = 'Neon Tunnel';
-  category = 'Tunnels' as const;
-  description = 'Infinite neon geometric corridor rushing forward with audio glow.';
+export class NeonTunnelPreset extends BasePreset {
+  public override readonly id = 'neontunnel';
+  public override readonly name = 'Neon Tunnel';
+  public override readonly category = 'Tunnels' as const;
+  public override readonly description = 'Hexagonal neon corridor with strobing light strip battens.';
 
-  private group!: THREE.Group;
   private readonly rings: THREE.LineSegments[] = [];
   private readonly numRings = 40;
   private readonly ringSpacing = 1.8;
   private readonly materials: THREE.LineBasicMaterial[] = [];
 
-  private readonly paramStore = new ParameterStore([
-    { id: 'speed', name: 'Flight Speed', min: 0.2, max: 3.0, step: 0.1, defaultValue: 1.0 },
-    { id: 'reactivity', name: 'Glow Pulse', min: 0.1, max: 2.0, step: 0.05, defaultValue: 1.0 },
-    { id: 'zoom', name: 'Tunnel Zoom', min: 0.5, max: 2.0, step: 0.1, defaultValue: 1.0 },
-    { id: 'density', name: 'Segment Rings', min: 0.2, max: 1.0, step: 0.1, defaultValue: 1.0 }
-  ]);
+  constructor() {
+    super();
+    this.paramStore = new ParameterStore([
+      { id: 'speed', name: 'Flight Speed', min: 0.2, max: 3.0, step: 0.1, defaultValue: 1.0 },
+      { id: 'reactivity', name: 'Glow Pulse', min: 0.1, max: 2.0, step: 0.05, defaultValue: 1.0 },
+      { id: 'zoom', name: 'Tunnel Zoom', min: 0.5, max: 2.0, step: 0.1, defaultValue: 1.0 },
+      { id: 'density', name: 'Segment Rings', min: 0.2, max: 1.0, step: 0.1, defaultValue: 1.0 }
+    ]);
+  }
 
-  init(ctx: PresetContext) {
-    this.group = new THREE.Group();
+  protected setup(ctx: PresetContext): void {
+    this.rings.length = 0;
+    this.materials.length = 0;
 
     for (let i = 0; i < this.numRings; i++) {
-      // Hexagonal ring
       const geom = new THREE.BufferGeometry();
       const vertices: number[] = [];
       const sides = 6;
@@ -60,15 +63,13 @@ export class NeonTunnelPreset implements VisualizerPreset {
       this.rings.push(ring);
       this.group.add(ring);
     }
-
-    ctx.scene.add(this.group);
   }
 
-  update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
-    const speed = this.paramStore.getValue('speed');
-    const reactivity = this.paramStore.getValue('reactivity');
-    const zoom = this.paramStore.getValue('zoom');
-    const density = this.paramStore.getValue('density');
+  public update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number): void {
+    const speed = this.paramStore.getValue('speed') ?? 1.0;
+    const reactivity = this.paramStore.getValue('reactivity') ?? 1.0;
+    const zoom = this.paramStore.getValue('zoom') ?? 1.0;
+    const density = this.paramStore.getValue('density') ?? 1.0;
 
     const traverseSpeed = (12.0 + audio.bass * 25.0 * reactivity) * speed;
     const activeRings = Math.floor(this.numRings * density);
@@ -87,32 +88,13 @@ export class NeonTunnelPreset implements VisualizerPreset {
         ring.position.z -= this.numRings * this.ringSpacing;
       }
 
-      // Rotate each segment slightly
       ring.rotation.z = Math.sin(time * 0.5 * speed + i * 0.15) * 0.5;
-
-      // Pulse ring scale on kick
       const scale = zoom * (1.0 + (audio.beat ? 0.25 * reactivity : 0) * (1 - Math.abs(ring.position.z) / 40));
       ring.scale.set(scale, scale, 1);
     }
   }
 
-  getCustomParameters(): ParameterDefinition[] {
-    return this.paramStore.getDefinitions();
-  }
-
-  setCustomParameter(id: string, value: number): void {
-    this.paramStore.setValue(id, value);
-  }
-
-  getCustomParameterValue(id: string): number | undefined {
-    return this.paramStore.getValue(id);
-  }
-
-  resetCustomParameters(): void {
-    this.paramStore.reset();
-  }
-
-  onThemeChange(theme: VisualizerTheme) {
+  public override onThemeChange(theme: VisualizerTheme): void {
     for (let i = 0; i < this.numRings; i++) {
       const color = new THREE.Color().lerpColors(
         new THREE.Color(theme.primary),
@@ -121,11 +103,5 @@ export class NeonTunnelPreset implements VisualizerPreset {
       );
       this.materials[i].color.copy(color);
     }
-  }
-
-  dispose() {
-    this.rings.forEach(r => r.geometry.dispose());
-    this.materials.forEach(m => m.dispose());
-    this.group.removeFromParent();
   }
 }

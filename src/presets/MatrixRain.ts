@@ -1,11 +1,13 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { ParameterStore } from '../tuning/ParameterStore';
+import { BasePreset } from './BasePreset';
 
-export class MatrixRainPreset implements VisualizerPreset {
-  id = 'matrix-rain';
-  name = 'Matrix Digital Cascade';
-  category = 'Retro & Digital' as const;
-  description = 'Cascading cyber code columns with reactive luminescent drops.';
+export class MatrixRainPreset extends BasePreset {
+  public override readonly id = 'matrix';
+  public override readonly name = 'Matrix';
+  public override readonly category = 'Retro & Digital' as const;
+  public override readonly description = 'Cascading green neural code glyph columns.';
 
   private instancedMesh!: THREE.InstancedMesh;
   private readonly dummy = new THREE.Object3D();
@@ -14,7 +16,16 @@ export class MatrixRainPreset implements VisualizerPreset {
   private readonly cols = 40;
   private readonly rows = 30;
 
-  init(ctx: PresetContext) {
+  constructor() {
+    super();
+    this.paramStore = new ParameterStore([
+      { id: 'speed', name: 'Rain Velocity', min: 0.2, max: 3.0, step: 0.1, defaultValue: 1.0 },
+      { id: 'reactivity', name: 'Drop Reactivity', min: 0.1, max: 2.5, step: 0.05, defaultValue: 1.0 },
+      { id: 'density', name: 'Drop Scale', min: 0.5, max: 2.5, step: 0.1, defaultValue: 1.0 }
+    ]);
+  }
+
+  protected setup(ctx: PresetContext): void {
     const geometry = new THREE.BoxGeometry(0.12, 0.45, 0.05);
     const material = new THREE.MeshBasicMaterial({
       color: new THREE.Color(ctx.theme.primary),
@@ -43,13 +54,16 @@ export class MatrixRainPreset implements VisualizerPreset {
     }
 
     this.instancedMesh.instanceMatrix.needsUpdate = true;
-    ctx.scene.add(this.instancedMesh);
+    this.group.add(this.instancedMesh);
   }
 
-  update(_ctx: PresetContext, audio: AudioFeatures, _time: number, delta: number) {
+  public update(_ctx: PresetContext, audio: AudioFeatures, _time: number, delta: number): void {
+    const speed = this.paramStore.getValue('speed');
+    const reactivity = this.paramStore.getValue('reactivity');
+
     const matrix = new THREE.Matrix4();
     const position = new THREE.Vector3();
-    const speedBoost = 1.0 + audio.bass * 2.5;
+    const speedBoost = (1.0 + audio.bass * 2.5 * reactivity) * speed;
 
     for (let i = 0; i < this.count; i++) {
       this.instancedMesh.getMatrixAt(i, matrix);
@@ -60,21 +74,14 @@ export class MatrixRainPreset implements VisualizerPreset {
         position.y = 8;
       }
 
-      matrix.setPosition(position);
-      this.instancedMesh.setMatrixAt(i, matrix);
+      this.dummy.position.copy(position);
+      this.dummy.updateMatrix();
+      this.instancedMesh.setMatrixAt(i, this.dummy.matrix);
     }
-
     this.instancedMesh.instanceMatrix.needsUpdate = true;
   }
 
-  onThemeChange(theme: VisualizerTheme) {
+  public override onThemeChange(theme: VisualizerTheme): void {
     (this.instancedMesh.material as THREE.MeshBasicMaterial).color.set(theme.primary);
   }
-
-  dispose() {
-    this.instancedMesh.geometry.dispose();
-    (this.instancedMesh.material as THREE.Material).dispose();
-    this.instancedMesh.removeFromParent();
-  }
 }
-

@@ -1,34 +1,38 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { ParameterStore } from '../tuning/ParameterStore';
+import { BasePreset } from './BasePreset';
 
-export class FirefliesPreset implements VisualizerPreset {
-  id = 'fireflies';
-  name = 'Fireflies Swarm';
-  category = 'Particles & Light' as const;
-  description = 'Bioluminescent swarm of wandering fireflies pulsing softly with audio dynamics.';
+export class FirefliesPreset extends BasePreset {
+  public override readonly id = 'fireflies';
+  public override readonly name = 'Fireflies';
+  public override readonly category = 'Particles & Light' as const;
+  public override readonly description = 'Bioluminescent swarm of wandering fireflies pulsing softly.';
 
   private points!: THREE.Points;
   private material!: THREE.PointsMaterial;
   private positions!: Float32Array;
-  private velocities!: Float32Array;
   private phases!: Float32Array;
   private readonly count = 1200;
 
-  init(ctx: PresetContext) {
+  constructor() {
+    super();
+    this.paramStore = new ParameterStore([
+      { id: 'speed', name: 'Drift Speed', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
+      { id: 'reactivity', name: 'Biolum Reactivity', min: 0.1, max: 2.5, step: 0.05, defaultValue: 1.0 },
+      { id: 'density', name: 'Glow Size', min: 0.1, max: 0.5, step: 0.02, defaultValue: 0.22 }
+    ]);
+  }
+
+  protected setup(ctx: PresetContext): void {
     const geom = new THREE.BufferGeometry();
     this.positions = new Float32Array(this.count * 3);
-    this.velocities = new Float32Array(this.count * 3);
     this.phases = new Float32Array(this.count);
 
     for (let i = 0; i < this.count; i++) {
       this.positions[i * 3] = (Math.random() - 0.5) * 16;
       this.positions[i * 3 + 1] = (Math.random() - 0.5) * 12;
       this.positions[i * 3 + 2] = (Math.random() - 0.5) * 10;
-
-      this.velocities[i * 3] = (Math.random() - 0.5) * 0.4;
-      this.velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.4;
-      this.velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.4;
-
       this.phases[i] = Math.random() * Math.PI * 2;
     }
 
@@ -36,30 +40,32 @@ export class FirefliesPreset implements VisualizerPreset {
 
     this.material = new THREE.PointsMaterial({
       color: new THREE.Color(ctx.theme.accent),
-      size: 0.18,
+      size: this.paramStore.getValue('density'),
       transparent: true,
       opacity: 0.9,
       blending: THREE.AdditiveBlending
     });
 
     this.points = new THREE.Points(geom, this.material);
-    ctx.scene.add(this.points);
+    this.group.add(this.points);
   }
 
-  update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
+  public update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number): void {
+    const speed = this.paramStore.getValue('speed');
+    const reactivity = this.paramStore.getValue('reactivity');
+    const baseSize = this.paramStore.getValue('density');
+
     const pos = (this.points.geometry as THREE.BufferGeometry).attributes.position.array as Float32Array;
-    const speedMultiplier = 1.0 + audio.mid * 2.0;
+    const speedMultiplier = (1.0 + audio.mid * 2.0 * reactivity) * speed;
 
     for (let i = 0; i < this.count; i++) {
       const idx = i * 3;
-
-      // Organic wandering noise
       const phase = this.phases[i];
+
       pos[idx] += Math.sin(time * 1.5 + phase) * delta * speedMultiplier;
       pos[idx + 1] += Math.cos(time * 1.2 + phase * 1.3) * delta * speedMultiplier;
       pos[idx + 2] += Math.sin(time * 0.9 + phase * 0.7) * delta * speedMultiplier;
 
-      // Boundary wraparound
       if (pos[idx] > 10) pos[idx] = -10;
       if (pos[idx] < -10) pos[idx] = 10;
       if (pos[idx + 1] > 8) pos[idx + 1] = -8;
@@ -70,18 +76,11 @@ export class FirefliesPreset implements VisualizerPreset {
 
     this.points.geometry.attributes.position.needsUpdate = true;
 
-    // Glowing size flicker reactive to treble & beats
-    const beatPulse = audio.beat ? 0.35 : 0.18;
-    this.material.size = beatPulse + audio.treble * 0.15;
+    const beatPulse = audio.beat ? (baseSize * 1.6) : baseSize;
+    this.material.size = beatPulse + audio.treble * 0.15 * reactivity;
   }
 
-  onThemeChange(theme: VisualizerTheme) {
+  public override onThemeChange(theme: VisualizerTheme): void {
     this.material.color.set(theme.accent);
-  }
-
-  dispose() {
-    this.points.geometry.dispose();
-    this.material.dispose();
-    this.points.removeFromParent();
   }
 }

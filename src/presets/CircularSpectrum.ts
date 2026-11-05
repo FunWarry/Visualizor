@@ -1,29 +1,34 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme, ParameterDefinition } from '../types';
+import { PresetContext, AudioFeatures, VisualizerTheme } from '../types';
 import { ParameterStore } from '../tuning/ParameterStore';
+import { BasePreset } from './BasePreset';
 
-export class CircularSpectrumPreset implements VisualizerPreset {
-  id = 'circular-spectrum';
-  name = 'Circular Spectrum';
-  category = 'Structures' as const;
-  description = 'Concentric circular rings expanding and vibrating to frequency bands.';
+export class CircularSpectrumPreset extends BasePreset {
+  public override readonly id = 'circular';
+  public override readonly name = 'Circular';
+  public override readonly category = 'Structures' as const;
+  public override readonly description = 'Concentric circular rings expanding and vibrating to frequency bands.';
 
-  private group!: THREE.Group;
   private readonly rings: THREE.Line[] = [];
   private readonly ringGeometries: THREE.BufferGeometry[] = [];
   private readonly ringMaterials: THREE.LineBasicMaterial[] = [];
   private readonly numRings = 16;
   private readonly segments = 128;
 
-  private readonly paramStore = new ParameterStore([
-    { id: 'speed', name: 'Rotation Speed', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
-    { id: 'reactivity', name: 'Audio Reactivity', min: 0.1, max: 2.5, step: 0.05, defaultValue: 1.0 },
-    { id: 'radius', name: 'Ring Radius', min: 1.0, max: 5.0, step: 0.2, defaultValue: 3.0 },
-    { id: 'density', name: 'Ring Count', min: 4, max: 16, step: 1, defaultValue: 16 }
-  ]);
+  constructor() {
+    super();
+    this.paramStore = new ParameterStore([
+      { id: 'speed', name: 'Rotation Speed', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
+      { id: 'reactivity', name: 'Audio Reactivity', min: 0.1, max: 2.5, step: 0.05, defaultValue: 1.0 },
+      { id: 'radius', name: 'Ring Radius', min: 1.0, max: 5.0, step: 0.2, defaultValue: 3.0 },
+      { id: 'density', name: 'Ring Count', min: 4, max: 16, step: 1, defaultValue: 16 }
+    ]);
+  }
 
-  init(ctx: PresetContext) {
-    this.group = new THREE.Group();
+  protected setup(ctx: PresetContext): void {
+    this.rings.length = 0;
+    this.ringGeometries.length = 0;
+    this.ringMaterials.length = 0;
 
     for (let r = 0; r < this.numRings; r++) {
       const radius = 1.2 + r * 0.45;
@@ -57,11 +62,9 @@ export class CircularSpectrumPreset implements VisualizerPreset {
       this.rings.push(line);
       this.group.add(line);
     }
-
-    ctx.scene.add(this.group);
   }
 
-  update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
+  public update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number): void {
     const speed = this.paramStore.getValue('speed');
     const reactivity = this.paramStore.getValue('reactivity');
     const radiusMultiplier = this.paramStore.getValue('radius') / 3.0;
@@ -100,23 +103,7 @@ export class CircularSpectrumPreset implements VisualizerPreset {
     }
   }
 
-  getCustomParameters(): ParameterDefinition[] {
-    return this.paramStore.getDefinitions();
-  }
-
-  setCustomParameter(id: string, value: number): void {
-    this.paramStore.setValue(id, value);
-  }
-
-  getCustomParameterValue(id: string): number | undefined {
-    return this.paramStore.getValue(id);
-  }
-
-  resetCustomParameters(): void {
-    this.paramStore.reset();
-  }
-
-  onThemeChange(theme: VisualizerTheme) {
+  public override onThemeChange(theme: VisualizerTheme): void {
     for (let r = 0; r < this.numRings; r++) {
       const color = new THREE.Color().lerpColors(
         new THREE.Color(theme.primary),
@@ -125,11 +112,5 @@ export class CircularSpectrumPreset implements VisualizerPreset {
       );
       this.ringMaterials[r].color.copy(color);
     }
-  }
-
-  dispose() {
-    this.ringGeometries.forEach(g => g.dispose());
-    this.ringMaterials.forEach(m => m.dispose());
-    this.group.removeFromParent();
   }
 }

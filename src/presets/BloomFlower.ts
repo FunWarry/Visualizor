@@ -1,27 +1,33 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { ParameterStore } from '../tuning/ParameterStore';
+import { BasePreset } from './BasePreset';
 
-export class BloomFlowerPreset implements VisualizerPreset {
-  id = 'bloom-flower';
-  name = 'Bloom Flower & Ink';
-  category = 'Organic & Nature' as const;
-  description = 'Phyllotaxis blooming lotus petals unfolding with floating ink diffusion swirls.';
+export class BloomFlowerPreset extends BasePreset {
+  public override readonly id = 'bloom';
+  public override readonly name = 'Bloom';
+  public override readonly category = 'Organic & Nature' as const;
+  public override readonly description = 'Watercolor phyllotaxis flower petals opening and closing.';
 
-  private group!: THREE.Group;
   private readonly petals: THREE.Mesh[] = [];
-  private inkParticles!: THREE.Points;
   private petalMaterial!: THREE.MeshStandardMaterial;
-  private inkMaterial!: THREE.PointsMaterial;
   private readonly petalBaseRotations: number[] = [];
-  private inkPositions!: Float32Array;
-  private readonly inkCount = 600;
 
-  init(ctx: PresetContext) {
-    this.group = new THREE.Group();
-    this.group.rotation.x = Math.PI / 3.0; // tilted upward view
+  constructor() {
+    super();
+    this.paramStore = new ParameterStore([
+      { id: 'speed', name: 'Spin Rate', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
+      { id: 'reactivity', name: 'Petal Bloom', min: 0.1, max: 2.5, step: 0.05, defaultValue: 1.0 },
+      { id: 'density', name: 'Petal Count', min: 20, max: 55, step: 5, defaultValue: 34 }
+    ]);
+  }
 
-    // 1. Parametric Petals via Fibonacci Phyllotaxis
-    const petalCount = 34;
+  protected setup(ctx: PresetContext): void {
+    this.petals.length = 0;
+    this.petalBaseRotations.length = 0;
+    this.group.rotation.x = Math.PI / 3.0;
+
+    const petalCount = Math.floor(this.paramStore.getValue('density'));
     const goldenAngle = 137.5 * (Math.PI / 180);
     const petalGeom = new THREE.ConeGeometry(0.5, 2.2, 5);
     petalGeom.rotateX(Math.PI / 2);
@@ -29,7 +35,7 @@ export class BloomFlowerPreset implements VisualizerPreset {
     this.petalMaterial = new THREE.MeshStandardMaterial({
       color: new THREE.Color(ctx.theme.primary),
       emissive: new THREE.Color(ctx.theme.accent),
-      emissiveIntensity: 0.3,
+      emissiveIntensity: 0.35,
       roughness: 0.2,
       metalness: 0.1
     });
@@ -49,72 +55,28 @@ export class BloomFlowerPreset implements VisualizerPreset {
       this.petals.push(petal);
       this.group.add(petal);
     }
-
-    // 2. Ink diffusion particles
-    const inkGeom = new THREE.BufferGeometry();
-    this.inkPositions = new Float32Array(this.inkCount * 3);
-    for (let i = 0; i < this.inkCount; i++) {
-      this.inkPositions[i * 3] = (Math.random() - 0.5) * 6;
-      this.inkPositions[i * 3 + 1] = (Math.random() - 0.5) * 6;
-      this.inkPositions[i * 3 + 2] = Math.random() * 4;
-    }
-    inkGeom.setAttribute('position', new THREE.BufferAttribute(this.inkPositions, 3));
-
-    this.inkMaterial = new THREE.PointsMaterial({
-      color: new THREE.Color(ctx.theme.accent),
-      size: 0.14,
-      transparent: true,
-      opacity: 0.8,
-      blending: THREE.AdditiveBlending
-    });
-    this.inkParticles = new THREE.Points(inkGeom, this.inkMaterial);
-    this.group.add(this.inkParticles);
-
-    ctx.scene.add(this.group);
   }
 
-  update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
-    this.group.rotation.z += delta * 0.15;
+  public update(_ctx: PresetContext, audio: AudioFeatures, _time: number, delta: number): void {
+    const speed = this.paramStore.getValue('speed');
+    const reactivity = this.paramStore.getValue('reactivity');
 
-    // Unfold petals on bass & beat
-    const openMod = audio.bass * 0.5 + audio.beatEnergy * 0.4;
-    this.petals.forEach((petal, idx) => {
-      petal.rotation.x = this.petalBaseRotations[idx] + openMod;
-    });
+    this.group.rotation.z += delta * 0.18 * speed;
 
-    // Swirl ink particles
-    const pos = (this.inkParticles.geometry as THREE.BufferGeometry).attributes.position.array as Float32Array;
-    for (let i = 0; i < this.inkCount; i++) {
-      const idx = i * 3;
-      pos[idx + 2] += delta * (0.5 + audio.mid);
-      pos[idx] += Math.sin(time + i) * delta * 0.3;
-      pos[idx + 1] += Math.cos(time + i) * delta * 0.3;
-
-      if (pos[idx + 2] > 6) {
-        pos[idx + 2] = 0;
-      }
+    const openMod = (audio.bass * 0.5 + audio.beatEnergy * 0.4) * reactivity;
+    for (let i = 0; i < this.petals.length; i++) {
+      this.petals[i].rotation.x = this.petalBaseRotations[i] + openMod;
     }
-    this.inkParticles.geometry.attributes.position.needsUpdate = true;
 
     if (audio.beat) {
-      this.petalMaterial.emissiveIntensity = 1.0;
+      this.petalMaterial.emissiveIntensity = 1.0 * reactivity;
     } else {
-      this.petalMaterial.emissiveIntensity *= 0.93;
+      this.petalMaterial.emissiveIntensity = Math.max(0.3, this.petalMaterial.emissiveIntensity * 0.94);
     }
   }
 
-  onThemeChange(theme: VisualizerTheme) {
+  public override onThemeChange(theme: VisualizerTheme): void {
     this.petalMaterial.color.set(theme.primary);
     this.petalMaterial.emissive.set(theme.accent);
-    this.inkMaterial.color.set(theme.accent);
-  }
-
-  dispose() {
-    this.petals[0].geometry.dispose();
-    this.petalMaterial.dispose();
-    this.inkParticles.geometry.dispose();
-    this.inkMaterial.dispose();
-    this.group.removeFromParent();
   }
 }
-

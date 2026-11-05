@@ -1,21 +1,31 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { ParameterStore } from '../tuning/ParameterStore';
+import { BasePreset } from './BasePreset';
 
-export class LCDDeckPreset implements VisualizerPreset {
-  id = 'lcd-deck';
-  name = 'LCD Cyber Deck';
-  category = 'Retro & Digital' as const;
-  description = 'Cyberdeck audio console with spinning compact disc and LCD VU meter indicators.';
+export class LCDDeckPreset extends BasePreset {
+  public override readonly id = 'lcddeck';
+  public override readonly name = 'LCD Deck';
+  public override readonly category = 'Retro & Digital' as const;
+  public override readonly description = 'Backlit cyberdeck console with spinning compact disc and segmented LCD meters.';
 
-  private group!: THREE.Group;
   private cdDisc!: THREE.Mesh;
   private deckChassis!: THREE.Mesh;
   private readonly vuBars: THREE.Mesh[] = [];
   private cdMaterial!: THREE.MeshPhysicalMaterial;
   private vuMaterial!: THREE.MeshBasicMaterial;
 
-  init(ctx: PresetContext) {
-    this.group = new THREE.Group();
+  constructor() {
+    super();
+    this.paramStore = new ParameterStore([
+      { id: 'speed', name: 'Disc RPM', min: 0.2, max: 3.0, step: 0.1, defaultValue: 1.0 },
+      { id: 'reactivity', name: 'VU Reactivity', min: 0.1, max: 2.5, step: 0.05, defaultValue: 1.0 },
+      { id: 'density', name: 'VU Bar Height', min: 1.0, max: 4.0, step: 0.2, defaultValue: 2.0 }
+    ]);
+  }
+
+  protected setup(ctx: PresetContext): void {
+    this.vuBars.length = 0;
 
     // 1. Cyberdeck chassis base plate
     const deckGeom = new THREE.BoxGeometry(10, 6, 0.4);
@@ -28,7 +38,7 @@ export class LCDDeckPreset implements VisualizerPreset {
     this.deckChassis.position.z = -1;
     this.group.add(this.deckChassis);
 
-    // 2. Spinning CD compact disc with holographic iridescent sheen
+    // 2. Spinning CD compact disc with holographic sheen
     const cdGeom = new THREE.RingGeometry(0.6, 2.5, 64);
     this.cdMaterial = new THREE.MeshPhysicalMaterial({
       color: 0xcccccc,
@@ -55,42 +65,28 @@ export class LCDDeckPreset implements VisualizerPreset {
       this.vuBars.push(bar);
       this.group.add(bar);
     }
-
-    ctx.scene.add(this.group);
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, _time: number, delta: number) {
-    // CD disc spin rate depends on audio mid/treble
-    this.cdDisc.rotation.z += delta * (3.0 + audio.mid * 5.0);
+  public update(_ctx: PresetContext, audio: AudioFeatures, _time: number, delta: number): void {
+    const speed = this.paramStore.getValue('speed');
+    const reactivity = this.paramStore.getValue('reactivity');
+    const maxHeight = this.paramStore.getValue('density');
 
-    // Update 16 VU bars based on frequency bins
+    // Spin CD
+    this.cdDisc.rotation.z -= delta * (3.0 + audio.bass * 4.0 * reactivity) * speed;
+
+    // Modulate LCD VU bars
     const freq = audio.frequencyData;
     const step = Math.floor(freq.length / this.vuBars.length);
 
-    this.vuBars.forEach((bar, idx) => {
-      const val = (freq[idx * step] / 255.0) * 3.0;
-      bar.scale.y = Math.max(0.1, val);
-      bar.position.y = (val * 0.5) - 0.5;
-    });
-
-    if (audio.beat) {
-      this.vuMaterial.color.set(ctx.theme.primary);
-    } else {
-      this.vuMaterial.color.set(ctx.theme.accent);
+    for (let i = 0; i < this.vuBars.length; i++) {
+      const val = (freq[i * step] / 255.0) * maxHeight * reactivity;
+      this.vuBars[i].scale.y = Math.max(0.08, val);
+      this.vuBars[i].position.y = (this.vuBars[i].scale.y / 2) - 1.0;
     }
   }
 
-  onThemeChange(theme: VisualizerTheme) {
+  public override onThemeChange(theme: VisualizerTheme): void {
     this.vuMaterial.color.set(theme.accent);
-  }
-
-  dispose() {
-    this.deckChassis.geometry.dispose();
-    (this.deckChassis.material as THREE.Material).dispose();
-    this.cdDisc.geometry.dispose();
-    this.cdMaterial.dispose();
-    this.vuMaterial.dispose();
-    this.vuBars.forEach(b => b.geometry.dispose());
-    this.group.removeFromParent();
   }
 }

@@ -6,6 +6,15 @@ export default defineConfig({
     open: true
   },
   build: {
-    target: 'esnext'
+    target: 'esnext',
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-three': ['three'],
+          'vendor-butterchurn': ['butterchurn', 'butterchurn-presets']
+        }
+      }
+    }
   }
 });

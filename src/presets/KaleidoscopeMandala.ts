@@ -1,20 +1,31 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { ParameterStore } from '../tuning/ParameterStore';
+import { BasePreset } from './BasePreset';
 
-export class KaleidoscopeMandalaPreset implements VisualizerPreset {
-  id = 'kaleidoscope-mandala';
-  name = 'Kaleidoscope Mandala';
-  category = 'Tunnels' as const;
-  description = 'Symmetrical multi-fold kaleidoscopic mandala unfolding to audio harmonics.';
+export class KaleidoscopeMandalaPreset extends BasePreset {
+  public override readonly id = 'kaleidoscope';
+  public override readonly name = 'Kaleidoscope';
+  public override readonly category = 'Tunnels' as const;
+  public override readonly description = 'N-fold kaleidoscopic mirror symmetry mandala reflections.';
 
-  private group!: THREE.Group;
   private readonly rings: THREE.LineSegments[] = [];
   private readonly numArms = 8;
   private readonly numRings = 16;
   private readonly materials: THREE.LineBasicMaterial[] = [];
 
-  init(ctx: PresetContext) {
-    this.group = new THREE.Group();
+  constructor() {
+    super();
+    this.paramStore = new ParameterStore([
+      { id: 'speed', name: 'Spin Rate', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
+      { id: 'reactivity', name: 'Mandala Bloom', min: 0.1, max: 2.5, step: 0.05, defaultValue: 1.0 },
+      { id: 'density', name: 'Symmetry Fold', min: 4.0, max: 16.0, step: 2.0, defaultValue: 8.0 }
+    ]);
+  }
+
+  protected setup(ctx: PresetContext): void {
+    this.rings.length = 0;
+    this.materials.length = 0;
 
     for (let r = 0; r < this.numRings; r++) {
       const radius = 1.0 + r * 0.45;
@@ -56,27 +67,26 @@ export class KaleidoscopeMandalaPreset implements VisualizerPreset {
       this.rings.push(line);
       this.group.add(line);
     }
-
-    ctx.scene.add(this.group);
   }
 
-  update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
-    this.group.rotation.z += delta * (0.15 + audio.mid * 0.5);
+  public update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number): void {
+    const speed = this.paramStore.getValue('speed') ?? 1.0;
+    const reactivity = this.paramStore.getValue('reactivity') ?? 1.0;
+
+    this.group.rotation.z += delta * (0.15 + audio.mid * 0.5 * reactivity) * speed;
 
     for (let r = 0; r < this.numRings; r++) {
       const ring = this.rings[r];
       const freqIdx = Math.floor((r / this.numRings) * (audio.frequencyData.length * 0.4));
       const freq = (audio.frequencyData[freqIdx] || 0) / 255.0;
 
-      // Oscillating counter-rotation per ring
-      ring.rotation.z = Math.sin(time * 0.5 + r * 0.2) * (0.5 + freq);
-
-      const scale = 1.0 + freq * 0.8 + (audio.beat ? 0.25 : 0);
+      ring.rotation.z = Math.sin(time * 0.5 * speed + r * 0.2) * (0.5 + freq * reactivity);
+      const scale = 1.0 + freq * 0.8 * reactivity + (audio.beat ? 0.25 * reactivity : 0);
       ring.scale.set(scale, scale, 1);
     }
   }
 
-  onThemeChange(theme: VisualizerTheme) {
+  public override onThemeChange(theme: VisualizerTheme): void {
     for (let r = 0; r < this.numRings; r++) {
       const color = new THREE.Color().lerpColors(
         new THREE.Color(theme.primary),
@@ -86,11 +96,4 @@ export class KaleidoscopeMandalaPreset implements VisualizerPreset {
       this.materials[r].color.copy(color);
     }
   }
-
-  dispose() {
-    this.rings.forEach(r => r.geometry.dispose());
-    this.materials.forEach(m => m.dispose());
-    this.group.removeFromParent();
-  }
 }
-

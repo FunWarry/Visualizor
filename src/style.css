@@ -596,6 +596,14 @@ body, html {
   display: flex;
   gap: 6px;
   padding: 0 14px 10px 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  flex-wrap: nowrap;
+}
+
+.drawer-filter-pills::-webkit-scrollbar {
+  display: none;
 }
 
 .filter-pill {
@@ -607,6 +615,11 @@ body, html {
   padding: 4px 10px;
   border-radius: 14px;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   transition: color 0.2s, background-color 0.2s, border-color 0.2s;
 }
 
@@ -618,6 +631,27 @@ body, html {
 .filter-pill.active {
   background: rgba(255, 92, 0, 0.25);
   border-color: var(--primary);
+  color: #fff;
+}
+
+/* Category Tab Counter Badge */
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 14px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+.filter-pill.active .tab-badge {
+  background: rgba(255, 255, 255, 0.28);
   color: #fff;
 }
 
@@ -640,7 +674,7 @@ body, html {
   justify-content: space-between;
 }
 
-/* 3-Column Preset Square Cards Grid (matching screenshot) */
+/* Responsive Cards Grid */
 .cards-grid-3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -648,11 +682,14 @@ body, html {
   margin-bottom: 8px;
 }
 
+/* Glassmorphic Preset Card */
 .preset-card-3 {
   position: relative;
   aspect-ratio: 1 / 1;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border);
   overflow: hidden;
   cursor: pointer;
@@ -661,21 +698,43 @@ body, html {
   justify-content: space-between;
   align-items: center;
   padding: 6px 4px;
-  transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .preset-card-3:hover {
   background: rgba(255, 255, 255, 0.09);
   border-color: rgba(255, 255, 255, 0.25);
   transform: translateY(-2px);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35), 0 0 12px rgba(255, 92, 0, 0.2);
 }
 
 .preset-card-3.active {
   border: 2px solid var(--primary);
   background: rgba(255, 92, 0, 0.12);
-  box-shadow: 0 0 14px var(--primary-glow);
+  box-shadow: 0 0 16px var(--primary-glow);
 }
 
+/* Active State Indicator Dot */
+.preset-active-indicator {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 8px var(--primary);
+  display: none;
+}
+
+.preset-card-3.active .preset-active-indicator {
+  display: block;
+}
+
+/* Thumbnail Visual with Centered SVG */
 .preset-thumb-visual {
   width: 44px;
   height: 44px;
@@ -684,8 +743,37 @@ body, html {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
   background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, rgba(0, 0, 0, 0.4) 80%);
+  color: var(--text-main);
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.preset-thumb-visual svg {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.preset-card-3:hover .preset-thumb-visual {
+  color: #fff;
+  transform: scale(1.06);
+}
+
+.preset-card-3.active .preset-thumb-visual {
+  color: var(--primary);
+}
+
+/* Card Info: Title and Category Badge */
+.preset-card-info {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
 }
 
 .preset-badge-name {
@@ -702,6 +790,22 @@ body, html {
   text-overflow: ellipsis;
 }
 
+.preset-cat-badge {
+  font-size: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 1px 4px;
+  border-radius: 3px;
+  max-width: 90%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Favorite Star Button */
 .preset-fav-btn {
   position: absolute;
   top: 4px;
@@ -710,12 +814,58 @@ body, html {
   border: none;
   color: rgba(255, 255, 255, 0.3);
   cursor: pointer;
-  font-size: 11px;
+  font-size: 12px;
+  padding: 2px;
+  line-height: 1;
+  transition: color 0.15s ease, transform 0.15s ease;
+  z-index: 2;
+}
+
+.preset-fav-btn:hover {
+  transform: scale(1.2);
+  color: #ff8a4c;
 }
 
 .preset-fav-btn.active {
   color: #ff5c00;
 }
+
+/* Responsive Grid Detents */
+@media (max-width: 640px) {
+  .cards-grid-3 {
+    grid-template-columns: 1fr;
+  }
+  .preset-card-3 {
+    aspect-ratio: auto;
+    flex-direction: row;
+    padding: 8px 12px;
+    gap: 12px;
+    justify-content: flex-start;
+  }
+  .preset-card-info {
+    align-items: flex-start;
+    flex: 1;
+  }
+  .preset-badge-name {
+    text-align: left;
+    background: transparent;
+    padding: 0;
+    font-size: 12px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .cards-grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1025px) {
+  .cards-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 
 /* Classic Themes Swatch Grid */
 .themes-grid {

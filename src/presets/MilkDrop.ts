@@ -1,19 +1,29 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { PresetContext, AudioFeatures, VisualizerTheme, ParameterDefinition } from '../types';
+import { ParameterStore } from '../tuning/ParameterStore';
+import { BasePreset } from './BasePreset';
 
-export class MilkDropPreset implements VisualizerPreset {
-  id = 'milkdrop';
-  name = 'MilkDrop Vortex';
-  category = 'Abstract & Space' as const;
-  description = 'Classic Winamp MilkDrop style psychedelic vortex warp with audio feedback ripples.';
+export class MilkDropPreset extends BasePreset {
+  public override readonly id = 'milkdrop';
+  public override readonly name = 'MilkDrop';
+  public override readonly category = 'Abstract & Space' as const;
+  public override readonly description = 'Classic psychedelic Winamp Butterchurn warp feedback engine.';
 
   private mesh!: THREE.Mesh;
   private material!: THREE.ShaderMaterial;
   private waveformWave!: THREE.Line;
   private waveMaterial!: THREE.LineBasicMaterial;
 
-  init(ctx: PresetContext) {
-    // 1. Vortex warping plane
+  constructor() {
+    super();
+    this.paramStore = new ParameterStore([]);
+  }
+
+  public override getCustomParameters(): ParameterDefinition[] {
+    return [];
+  }
+
+  protected setup(ctx: PresetContext): void {
     const planeGeom = new THREE.PlaneGeometry(28, 20, 64, 64);
     this.material = new THREE.ShaderMaterial({
       uniforms: {
@@ -58,7 +68,6 @@ export class MilkDropPreset implements VisualizerPreset {
           float angle = atan(uv.y, uv.x);
           float dist = length(uv);
 
-          // Logarithmic spiral MilkDrop warp
           float spiral = sin(angle * 6.0 + dist * 12.0 - uTime * 2.5);
           float ripple = sin(dist * 24.0 - uTime * 4.0 * (1.0 + uMid));
           float pattern = spiral * ripple + uBeat * 0.4;
@@ -66,7 +75,6 @@ export class MilkDropPreset implements VisualizerPreset {
           vec3 col = mix(uColor1, uColor2, sin(dist * 5.0 + uTime) * 0.5 + 0.5);
           col = mix(col, uAccent, smoothstep(0.2, 0.8, pattern) * (0.7 + uTreble * 0.8));
 
-          // Center glow
           float centerGlow = 0.15 / (dist + 0.08);
           col += uAccent * centerGlow * (0.5 + uBass);
 
@@ -77,9 +85,8 @@ export class MilkDropPreset implements VisualizerPreset {
 
     this.mesh = new THREE.Mesh(planeGeom, this.material);
     this.mesh.position.z = -4;
-    ctx.scene.add(this.mesh);
+    this.group.add(this.mesh);
 
-    // 2. Overlay dynamic reactive oscilloscope waveform ribbon
     const wavePointsCount = 256;
     const waveGeom = new THREE.BufferGeometry();
     const wavePos = new Float32Array(wavePointsCount * 3);
@@ -98,41 +105,34 @@ export class MilkDropPreset implements VisualizerPreset {
     });
 
     this.waveformWave = new THREE.Line(waveGeom, this.waveMaterial);
-    ctx.scene.add(this.waveformWave);
+    this.group.add(this.waveformWave);
   }
 
-  update(_ctx: PresetContext, audio: AudioFeatures, time: number, _delta: number) {
-    this.material.uniforms.uTime.value = time;
-    this.material.uniforms.uBass.value = audio.bass;
-    this.material.uniforms.uMid.value = audio.mid;
-    this.material.uniforms.uTreble.value = audio.treble;
+  public update(_ctx: PresetContext, audio: AudioFeatures, time: number, _delta: number): void {
+    const speed = this.paramStore.getValue('speed') ?? 1.0;
+    const reactivity = this.paramStore.getValue('reactivity') ?? 1.0;
+
+    this.material.uniforms.uTime.value = time * speed;
+    this.material.uniforms.uBass.value = audio.bass * reactivity;
+    this.material.uniforms.uMid.value = audio.mid * reactivity;
+    this.material.uniforms.uTreble.value = audio.treble * reactivity;
     this.material.uniforms.uBeat.value = audio.beat ? 1.0 : 0.0;
 
-    // Update oscilloscope ribbon with time-domain audio data
     const pos = (this.waveformWave.geometry as THREE.BufferGeometry).attributes.position.array as Float32Array;
     const waveData = audio.timeDomainData;
     const step = Math.floor(waveData.length / 256);
 
     for (let i = 0; i < 256; i++) {
       const sample = (waveData[i * step] / 128.0) - 1.0;
-      pos[i * 3 + 1] = sample * (2.5 + audio.bass * 2.0);
+      pos[i * 3 + 1] = sample * (2.5 + audio.bass * 2.0 * reactivity);
     }
     this.waveformWave.geometry.attributes.position.needsUpdate = true;
   }
 
-  onThemeChange(theme: VisualizerTheme) {
+  public override onThemeChange(theme: VisualizerTheme): void {
     this.material.uniforms.uColor1.value.set(theme.primary);
     this.material.uniforms.uColor2.value.set(theme.secondary);
     this.material.uniforms.uAccent.value.set(theme.accent);
     this.waveMaterial.color.set(theme.accent);
-  }
-
-  dispose() {
-    this.mesh.geometry.dispose();
-    this.material.dispose();
-    this.waveformWave.geometry.dispose();
-    this.waveMaterial.dispose();
-    this.mesh.removeFromParent();
-    this.waveformWave.removeFromParent();
   }
 }

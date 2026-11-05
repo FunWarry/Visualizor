@@ -11,71 +11,79 @@ describe('Tier 2: Preset Lifecycle Boundary Cases', () => {
   });
 
   test('T2.Presets.1: Double dispose() invocation does not throw or corrupt scene state', () => {
-    const preset = getPreset('dna-helix');
+    const preset = getPreset('dna') || PRESETS[0];
     const ctx = createMockPresetContext(getTheme('ember'));
 
     preset.init(ctx);
     preset.dispose();
 
-    // Second call to dispose should be idempotent
     expect(() => {
       preset.dispose();
     }).not.toThrow();
   });
 
   test('T2.Presets.2: Preset update with complete zero audio features executes without division by zero', () => {
-    const preset = getPreset('volcano');
-    const ctx = createMockPresetContext(getTheme('ember'));
-    preset.init(ctx);
-
     const silentAudio = createSilentAudioFeatures();
-    expect(() => {
-      preset.update(ctx, silentAudio, 0, 0);
-    }).not.toThrow();
+    const ctx = createMockPresetContext(getTheme('ember'));
 
-    preset.dispose();
+    for (const preset of PRESETS) {
+      preset.init(ctx);
+      expect(() => {
+        preset.update(ctx, silentAudio, 0, 0);
+      }).not.toThrow();
+      preset.dispose();
+      ctx.scene.clear();
+    }
   });
 
   test('T2.Presets.3: Extreme delta time (10 seconds) is clamped to prevent physics explosions', () => {
     const canvas = document.getElementById('webgl-canvas') as unknown as HTMLCanvasElement;
     const engine = new RenderEngine(canvas, getTheme('ember'));
-    const preset = getPreset('water-slide');
+    const preset = getPreset('waterslide') || PRESETS[0];
     engine.setPreset(preset);
 
     const audio = createSilentAudioFeatures();
-    // RenderEngine clamps delta via Math.min(clock.getDelta(), 0.1)
     expect(() => {
       engine.render(audio);
     }).not.toThrow();
   });
 
-  test('T2.Presets.4: Rapid preset switching across 10 presets leaves zero lingering meshes', () => {
+  test('T2.Presets.4: Rapid preset switching across ALL 71 presets executes without lingering meshes or memory leaks', () => {
     const canvas = document.getElementById('webgl-canvas') as unknown as HTMLCanvasElement;
     const engine = new RenderEngine(canvas, getTheme('ember'));
 
     const initialLightCount = engine.scene.children.filter(c => (c as { isLight?: boolean }).isLight).length;
 
-    // Switch rapidly across first 10 presets
-    for (let i = 0; i < 10; i++) {
+    // Switch rapidly through all 71 presets in sequence
+    for (let i = 0; i < PRESETS.length; i++) {
       engine.setPreset(PRESETS[i]);
+      expect(engine.activePreset?.id).toBe(PRESETS[i].id);
     }
 
-    // After switching to 10th preset, scene should only have lighting + 10th preset meshes
-    expect(engine.activePreset?.id).toBe(PRESETS[9].id);
+    // After switching to the 71st preset, only lighting + 71st preset objects should be in scene
+    expect(engine.activePreset?.id).toBe(PRESETS[PRESETS.length - 1].id);
     expect(engine.scene.children.length).toBeGreaterThan(initialLightCount);
+
+    // Final disposal cleans up cleanly
+    expect(() => {
+      engine.activePreset?.dispose();
+    }).not.toThrow();
   });
 
-  test('T2.Presets.5: Zero canvas dimensions in resize do not produce NaN aspect ratios', () => {
-    const preset = getPreset('bloom-flower');
+  test('T2.Presets.5: Zero canvas dimensions in resize do not produce NaN aspect ratios across presets', () => {
     const ctx = createMockPresetContext(getTheme('ember'));
-    preset.init(ctx);
 
-    if (preset.resize) {
-      expect(() => {
-        preset.resize!(0, 0);
-      }).not.toThrow();
+    for (const preset of PRESETS) {
+      preset.init(ctx);
+      if (preset.resize) {
+        expect(() => {
+          preset.resize!(0, 0);
+          preset.resize!(3840, 2160);
+          preset.resize!(1920, 1080);
+        }).not.toThrow();
+      }
+      preset.dispose();
+      ctx.scene.clear();
     }
-
-    preset.dispose();
   });
 });

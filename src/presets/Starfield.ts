@@ -1,12 +1,13 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme, ParameterDefinition } from '../types';
+import { PresetContext, AudioFeatures, VisualizerTheme } from '../types';
 import { ParameterStore } from '../tuning/ParameterStore';
+import { BasePreset } from './BasePreset';
 
-export class StarfieldPreset implements VisualizerPreset {
-  id = 'starfield';
-  name = 'Starfield Warp';
-  category = 'Abstract & Space' as const;
-  description = 'Warp-speed cosmic starfield accelerating dynamically on kicks.';
+export class StarfieldPreset extends BasePreset {
+  public override readonly id = 'starfield';
+  public override readonly name = 'Starfield';
+  public override readonly category = 'Abstract & Space' as const;
+  public override readonly description = 'Warp-speed cosmic starfield accelerating on kick beats.';
 
   private points!: THREE.Points;
   private geometry!: THREE.BufferGeometry;
@@ -14,14 +15,17 @@ export class StarfieldPreset implements VisualizerPreset {
   private readonly count = 4000;
   private speeds!: Float32Array;
 
-  private readonly paramStore = new ParameterStore([
-    { id: 'speed', name: 'Warp Speed', min: 0.2, max: 3.0, step: 0.1, defaultValue: 1.0 },
-    { id: 'reactivity', name: 'Kick Reactivity', min: 0.0, max: 2.5, step: 0.1, defaultValue: 1.0 },
-    { id: 'density', name: 'Star Density', min: 0.2, max: 1.0, step: 0.1, defaultValue: 1.0 },
-    { id: 'starSize', name: 'Star Size', min: 0.05, max: 0.5, step: 0.01, defaultValue: 0.22 }
-  ]);
+  constructor() {
+    super();
+    this.paramStore = new ParameterStore([
+      { id: 'speed', name: 'Warp Speed', min: 0.2, max: 3.0, step: 0.1, defaultValue: 1.0 },
+      { id: 'reactivity', name: 'Kick Reactivity', min: 0.0, max: 2.5, step: 0.1, defaultValue: 1.0 },
+      { id: 'density', name: 'Star Density', min: 0.2, max: 1.0, step: 0.1, defaultValue: 1.0 },
+      { id: 'starSize', name: 'Star Size', min: 0.05, max: 0.5, step: 0.01, defaultValue: 0.22 }
+    ]);
+  }
 
-  init(ctx: PresetContext) {
+  protected setup(ctx: PresetContext): void {
     this.geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(this.count * 3);
     this.speeds = new Float32Array(this.count);
@@ -44,10 +48,10 @@ export class StarfieldPreset implements VisualizerPreset {
     });
 
     this.points = new THREE.Points(this.geometry, this.material);
-    ctx.scene.add(this.points);
+    this.group.add(this.points);
   }
 
-  update(_ctx: PresetContext, audio: AudioFeatures, _time: number, delta: number) {
+  public update(_ctx: PresetContext, audio: AudioFeatures, _time: number, delta: number): void {
     const speed = this.paramStore.getValue('speed');
     const reactivity = this.paramStore.getValue('reactivity');
     const density = this.paramStore.getValue('density');
@@ -63,7 +67,6 @@ export class StarfieldPreset implements VisualizerPreset {
     for (let i = 0; i < activeCount; i++) {
       pos[i * 3 + 2] += delta * warpSpeed * this.speeds[i];
 
-      // Reset star when it flies past camera
       if (pos[i * 3 + 2] > 20) {
         pos[i * 3 + 2] = -40;
         pos[i * 3] = (Math.random() - 0.5) * 50;
@@ -75,29 +78,7 @@ export class StarfieldPreset implements VisualizerPreset {
     this.points.rotation.z += delta * (0.05 + audio.treble * 0.2 * reactivity) * speed;
   }
 
-  getCustomParameters(): ParameterDefinition[] {
-    return this.paramStore.getDefinitions();
-  }
-
-  setCustomParameter(id: string, value: number): void {
-    this.paramStore.setValue(id, value);
-  }
-
-  getCustomParameterValue(id: string): number | undefined {
-    return this.paramStore.getValue(id);
-  }
-
-  resetCustomParameters(): void {
-    this.paramStore.reset();
-  }
-
-  onThemeChange(theme: VisualizerTheme) {
+  public override onThemeChange(theme: VisualizerTheme): void {
     this.material.color.set(theme.accent);
-  }
-
-  dispose() {
-    this.geometry.dispose();
-    this.material.dispose();
-    this.points.removeFromParent();
   }
 }

@@ -1,17 +1,27 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { ParameterStore } from '../tuning/ParameterStore';
+import { BasePreset } from './BasePreset';
 
-export class WaterSlidePreset implements VisualizerPreset {
-  id = 'water-slide';
-  name = 'Water Slide & Vein Tunnel';
-  category = 'Tunnels' as const;
-  description = 'Infinite curving organic vein tunnel with translucent flowing fluids.';
+export class WaterSlidePreset extends BasePreset {
+  public override readonly id = 'waterslide';
+  public override readonly name = 'Water Slide';
+  public override readonly category = 'Tunnels' as const;
+  public override readonly description = '3D serpentine water tube corridor with camera spline tracking.';
 
   private mesh!: THREE.Mesh;
   private material!: THREE.ShaderMaterial;
 
-  init(ctx: PresetContext) {
-    // Generate curved tubular path
+  constructor() {
+    super();
+    this.paramStore = new ParameterStore([
+      { id: 'speed', name: 'Ride Speed', min: 0.2, max: 3.0, step: 0.1, defaultValue: 1.0 },
+      { id: 'reactivity', name: 'Spline Curvature', min: 0.1, max: 2.5, step: 0.05, defaultValue: 1.0 },
+      { id: 'density', name: 'Water Translucency', min: 0.3, max: 1.0, step: 0.05, defaultValue: 0.85 }
+    ]);
+  }
+
+  protected setup(ctx: PresetContext): void {
     const points: THREE.Vector3[] = [];
     for (let i = 0; i < 40; i++) {
       const z = -i * 2.0;
@@ -42,7 +52,6 @@ export class WaterSlidePreset implements VisualizerPreset {
         void main() {
           vUv = uv;
           vec3 p = position;
-          // Vein pulsing ridges along circumference
           float ridge = sin(uv.x * 24.0 + uTime * 3.0) * 0.15 * (1.0 + uBass * 1.5);
           p += normal * ridge;
           vPos = p;
@@ -60,7 +69,6 @@ export class WaterSlidePreset implements VisualizerPreset {
         varying vec3 vPos;
 
         void main() {
-          // Sliding forward UV coordinates
           vec2 flowUv = vec2(vUv.x, vUv.y * 8.0 - uTime * 2.5);
           float rings = sin(flowUv.y * 6.28);
           float ribs = sin(vUv.x * 16.0);
@@ -74,27 +82,23 @@ export class WaterSlidePreset implements VisualizerPreset {
     });
 
     this.mesh = new THREE.Mesh(geometry, this.material);
-    ctx.scene.add(this.mesh);
+    this.group.add(this.mesh);
   }
 
-  update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
-    this.material.uniforms.uTime.value = time;
-    this.material.uniforms.uBass.value = audio.bass;
-    this.material.uniforms.uMid.value = audio.mid;
+  public update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number): void {
+    const speed = this.paramStore.getValue('speed');
+    const reactivity = this.paramStore.getValue('reactivity');
 
-    this.mesh.rotation.z += delta * (0.2 + audio.treble * 0.3);
+    this.material.uniforms.uTime.value = time * speed;
+    this.material.uniforms.uBass.value = audio.bass * reactivity;
+    this.material.uniforms.uMid.value = audio.mid * reactivity;
+
+    this.mesh.rotation.z += delta * (0.2 + audio.treble * 0.3) * speed;
   }
 
-  onThemeChange(theme: VisualizerTheme) {
+  public override onThemeChange(theme: VisualizerTheme): void {
     this.material.uniforms.uColor1.value.set(theme.primary);
     this.material.uniforms.uColor2.value.set(theme.secondary);
     this.material.uniforms.uAccent.value.set(theme.accent);
   }
-
-  dispose() {
-    this.mesh.geometry.dispose();
-    this.material.dispose();
-    this.mesh.removeFromParent();
-  }
 }
-

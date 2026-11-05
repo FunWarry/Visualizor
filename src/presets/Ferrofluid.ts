@@ -1,12 +1,13 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme, ParameterDefinition } from '../types';
+import { PresetContext, AudioFeatures, VisualizerTheme } from '../types';
 import { ParameterStore } from '../tuning/ParameterStore';
+import { BasePreset } from './BasePreset';
 
-export class FerrofluidPreset implements VisualizerPreset {
-  id = 'ferrofluid';
-  name = 'Ferrofluid Magnetic';
-  category = 'Structures' as const;
-  description = 'Liquid magnetic sphere erupting with sharp spikes synchronized to bass kicks.';
+export class FerrofluidPreset extends BasePreset {
+  public override readonly id = 'ferrofluid';
+  public override readonly name = 'Ferrofluid';
+  public override readonly category = 'Structures' as const;
+  public override readonly description = 'Liquid magnetic sphere erupting spikes on bass kick transients.';
 
   private mesh!: THREE.Mesh;
   private geometry!: THREE.SphereGeometry;
@@ -15,21 +16,23 @@ export class FerrofluidPreset implements VisualizerPreset {
   private spikeDirections!: Float32Array;
   private numVertices = 0;
 
-  private readonly paramStore = new ParameterStore([
-    { id: 'speed', name: 'Rotation Speed', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
-    { id: 'reactivity', name: 'Pulse Reactivity', min: 0.1, max: 2.0, step: 0.05, defaultValue: 1.0 },
-    { id: 'deformation', name: 'Spike Height', min: 0.2, max: 3.0, step: 0.1, defaultValue: 1.0 },
-    { id: 'density', name: 'Spike Density', min: 0.2, max: 1.0, step: 0.1, defaultValue: 1.0 }
-  ]);
+  constructor() {
+    super();
+    this.paramStore = new ParameterStore([
+      { id: 'speed', name: 'Rotation Speed', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
+      { id: 'reactivity', name: 'Pulse Reactivity', min: 0.1, max: 2.0, step: 0.05, defaultValue: 1.0 },
+      { id: 'deformation', name: 'Spike Height', min: 0.2, max: 3.0, step: 0.1, defaultValue: 1.0 },
+      { id: 'density', name: 'Spike Density', min: 0.2, max: 1.0, step: 0.1, defaultValue: 1.0 }
+    ]);
+  }
 
-  init(ctx: PresetContext) {
+  protected setup(ctx: PresetContext): void {
     this.geometry = new THREE.SphereGeometry(2.4, 72, 72);
     const pos = this.geometry.attributes.position.array as Float32Array;
     this.numVertices = pos.length / 3;
     this.basePositions = new Float32Array(pos);
     this.spikeDirections = new Float32Array(pos.length);
 
-    // Calculate normalized spike outward vectors
     for (let i = 0; i < this.numVertices; i++) {
       const v = new THREE.Vector3(pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2]).normalize();
       this.spikeDirections[i * 3] = v.x;
@@ -48,10 +51,10 @@ export class FerrofluidPreset implements VisualizerPreset {
     });
 
     this.mesh = new THREE.Mesh(this.geometry, this.material);
-    ctx.scene.add(this.mesh);
+    this.group.add(this.mesh);
   }
 
-  update(ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
+  public update(ctx: PresetContext, audio: AudioFeatures, time: number, delta: number): void {
     const speed = this.paramStore.getValue('speed');
     const reactivity = this.paramStore.getValue('reactivity');
     const deformation = this.paramStore.getValue('deformation');
@@ -73,7 +76,6 @@ export class FerrofluidPreset implements VisualizerPreset {
       const dy = this.spikeDirections[i * 3 + 1];
       const dz = this.spikeDirections[i * 3 + 2];
 
-      // Sharp conical spike function
       const spikeNoise = Math.pow(Math.max(0, Math.sin(dx * freqDensity + time * 3.0 * speed) * Math.cos(dy * freqDensity + time * 2.5 * speed) * Math.sin(dz * freqDensity)), 2.5);
       const spikeLen = spikeNoise * spikePower * 1.6 * deformation;
 
@@ -93,29 +95,7 @@ export class FerrofluidPreset implements VisualizerPreset {
     }
   }
 
-  getCustomParameters(): ParameterDefinition[] {
-    return this.paramStore.getDefinitions();
-  }
-
-  setCustomParameter(id: string, value: number): void {
-    this.paramStore.setValue(id, value);
-  }
-
-  getCustomParameterValue(id: string): number | undefined {
-    return this.paramStore.getValue(id);
-  }
-
-  resetCustomParameters(): void {
-    this.paramStore.reset();
-  }
-
-  onThemeChange(theme: VisualizerTheme) {
+  public override onThemeChange(theme: VisualizerTheme): void {
     this.material.emissive.set(theme.primary);
-  }
-
-  dispose() {
-    this.geometry.dispose();
-    this.material.dispose();
-    this.mesh.removeFromParent();
   }
 }

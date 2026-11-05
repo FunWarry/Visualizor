@@ -1,23 +1,30 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { ParameterStore } from '../tuning/ParameterStore';
+import { BasePreset } from './BasePreset';
 
-export class DNAHelixPreset implements VisualizerPreset {
-  id = 'dna-helix';
-  name = 'DNA Helix';
-  category = 'Structures' as const;
-  description = 'Double helix molecular strands rotating and pulsing with harmonic frequencies.';
+export class DNAHelixPreset extends BasePreset {
+  public override readonly id = 'dna';
+  public override readonly name = 'DNA Helix';
+  public override readonly category = 'Structures' as const;
+  public override readonly description = 'Intertwined double helix strands rotating and vibrating.';
 
-  private group!: THREE.Group;
   private sphereMesh!: THREE.InstancedMesh;
   private rungsMesh!: THREE.InstancedMesh;
   private readonly numPairs = 64;
   private readonly dummy = new THREE.Object3D();
   private sphereColors!: Float32Array;
 
-  init(ctx: PresetContext) {
-    this.group = new THREE.Group();
+  constructor() {
+    super();
+    this.paramStore = new ParameterStore([
+      { id: 'speed', name: 'Twist Speed', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
+      { id: 'reactivity', name: 'Audio Reactivity', min: 0.1, max: 2.0, step: 0.05, defaultValue: 1.0 },
+      { id: 'density', name: 'Strand Radius', min: 1.0, max: 4.0, step: 0.1, defaultValue: 2.0 }
+    ]);
+  }
 
-    // Spheres on the dual backbone strands (2 spheres per pair = 128 spheres)
+  protected setup(ctx: PresetContext): void {
     const sphereGeom = new THREE.SphereGeometry(0.18, 16, 16);
     const sphereMat = new THREE.MeshStandardMaterial({
       roughness: 0.2,
@@ -26,7 +33,6 @@ export class DNAHelixPreset implements VisualizerPreset {
     this.sphereMesh = new THREE.InstancedMesh(sphereGeom, sphereMat, this.numPairs * 2);
     this.sphereColors = new Float32Array(this.numPairs * 2 * 3);
 
-    // Connecting rungs (cylinders) between the two strands
     const rungGeom = new THREE.CylinderGeometry(0.04, 0.04, 1, 8);
     rungGeom.rotateZ(Math.PI / 2);
     const rungMat = new THREE.MeshStandardMaterial({
@@ -47,45 +53,44 @@ export class DNAHelixPreset implements VisualizerPreset {
 
     this.group.add(this.sphereMesh);
     this.group.add(this.rungsMesh);
-    ctx.scene.add(this.group);
   }
 
-  update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
-    this.group.rotation.y += delta * (0.3 + audio.mid * 0.8);
-    this.group.rotation.x = Math.sin(time * 0.5) * 0.25;
+  public update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number): void {
+    const speed = this.paramStore.getValue('speed');
+    const reactivity = this.paramStore.getValue('reactivity');
+    const baseRadius = this.paramStore.getValue('density');
+
+    this.group.rotation.y += delta * (0.3 + audio.mid * 0.8 * reactivity) * speed;
+    this.group.rotation.x = Math.sin(time * 0.5 * speed) * 0.25;
 
     const heightStep = 0.22;
     const totalHeight = this.numPairs * heightStep;
     const baseY = -totalHeight / 2;
-    const radius = 2.0 + audio.bass * 0.8;
+    const radius = baseRadius + audio.bass * 0.8 * reactivity;
     const twistSpeed = 0.18;
 
     for (let i = 0; i < this.numPairs; i++) {
-      const angle = i * twistSpeed + time * 1.2;
+      const angle = i * twistSpeed + time * 1.2 * speed;
       const y = baseY + i * heightStep;
 
-      // Position strand A & B
       const x1 = Math.cos(angle) * radius;
       const z1 = Math.sin(angle) * radius;
       const x2 = Math.cos(angle + Math.PI) * radius;
       const z2 = Math.sin(angle + Math.PI) * radius;
 
-      // Sphere A
       this.dummy.position.set(x1, y, z1);
-      this.dummy.scale.setScalar(1.0 + (audio.beat ? 0.3 : 0));
+      this.dummy.scale.setScalar(1.0 + (audio.beat ? 0.3 * reactivity : 0));
       this.dummy.updateMatrix();
       this.sphereMesh.setMatrixAt(i * 2, this.dummy.matrix);
 
-      // Sphere B
       this.dummy.position.set(x2, y, z2);
-      this.dummy.scale.setScalar(1.0 + (audio.beat ? 0.3 : 0));
+      this.dummy.scale.setScalar(1.0 + (audio.beat ? 0.3 * reactivity : 0));
       this.dummy.updateMatrix();
       this.sphereMesh.setMatrixAt(i * 2 + 1, this.dummy.matrix);
 
-      // Connecting Rung
       const midX = (x1 + x2) / 2;
       const midZ = (z1 + z2) / 2;
-      const rungLen = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(z2 - z1, 2));
+      const rungLen = Math.hypot(x2 - x1, z2 - z1);
 
       this.dummy.position.set(midX, y, midZ);
       this.dummy.rotation.set(0, -angle, 0);
@@ -98,7 +103,7 @@ export class DNAHelixPreset implements VisualizerPreset {
     this.rungsMesh.instanceMatrix.needsUpdate = true;
   }
 
-  onThemeChange(theme: VisualizerTheme) {
+  public override onThemeChange(theme: VisualizerTheme): void {
     const col1 = new THREE.Color(theme.primary);
     const col2 = new THREE.Color(theme.accent);
 
@@ -110,13 +115,4 @@ export class DNAHelixPreset implements VisualizerPreset {
       this.sphereMesh.instanceColor.needsUpdate = true;
     }
   }
-
-  dispose() {
-    this.sphereMesh.geometry.dispose();
-    (this.sphereMesh.material as THREE.Material).dispose();
-    this.rungsMesh.geometry.dispose();
-    (this.rungsMesh.material as THREE.Material).dispose();
-    this.group.removeFromParent();
-  }
 }
-

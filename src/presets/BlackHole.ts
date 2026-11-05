@@ -1,13 +1,14 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { ParameterStore } from '../tuning/ParameterStore';
+import { BasePreset } from './BasePreset';
 
-export class BlackHolePreset implements VisualizerPreset {
-  id = 'black-hole';
-  name = 'Black Hole Singularity';
-  category = 'Abstract & Space' as const;
-  description = 'Gravitational lensing vortex with an incandescent swirling accretion disk.';
+export class BlackHolePreset extends BasePreset {
+  public override readonly id = 'blackhole';
+  public override readonly name = 'Black Hole';
+  public override readonly category = 'Abstract & Space' as const;
+  public override readonly description = 'Relativistic accretion disk with gravitational lensing vortex.';
 
-  private group!: THREE.Group;
   private coreMesh!: THREE.Mesh;
   private diskPoints!: THREE.Points;
   private diskGeometry!: THREE.BufferGeometry;
@@ -16,23 +17,29 @@ export class BlackHolePreset implements VisualizerPreset {
   private angles!: Float32Array;
   private radii!: Float32Array;
 
-  init(ctx: PresetContext) {
-    this.group = new THREE.Group();
+  constructor() {
+    super();
+    this.paramStore = new ParameterStore([
+      { id: 'speed', name: 'Swirl Velocity', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
+      { id: 'reactivity', name: 'Audio Reactivity', min: 0.1, max: 2.5, step: 0.05, defaultValue: 1.0 },
+      { id: 'density', name: 'Disk Radius', min: 4.0, max: 10.0, step: 0.5, defaultValue: 6.5 }
+    ]);
+  }
 
-    // Pure black event horizon sphere
+  protected setup(ctx: PresetContext): void {
     const coreGeom = new THREE.SphereGeometry(1.6, 32, 32);
     const coreMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
     this.coreMesh = new THREE.Mesh(coreGeom, coreMat);
     this.group.add(this.coreMesh);
 
-    // Glowing accretion disk particles
     this.diskGeometry = new THREE.BufferGeometry();
     const positions = new Float32Array(this.count * 3);
     this.angles = new Float32Array(this.count);
     this.radii = new Float32Array(this.count);
+    const maxRadius = this.paramStore.getValue('density');
 
     for (let i = 0; i < this.count; i++) {
-      const radius = 2.0 + Math.pow(Math.random(), 1.5) * 6.5;
+      const radius = 2.0 + Math.pow(Math.random(), 1.5) * maxRadius;
       const angle = Math.random() * Math.PI * 2;
       this.radii[i] = radius;
       this.angles[i] = angle;
@@ -55,45 +62,34 @@ export class BlackHolePreset implements VisualizerPreset {
     this.diskPoints = new THREE.Points(this.diskGeometry, this.diskMaterial);
     this.group.add(this.diskPoints);
 
-    // Tilt accretion disk
     this.group.rotation.x = 0.55;
     this.group.rotation.z = 0.2;
-
-    ctx.scene.add(this.group);
   }
 
-  update(_ctx: PresetContext, audio: AudioFeatures, _time: number, delta: number) {
+  public update(_ctx: PresetContext, audio: AudioFeatures, _time: number, delta: number): void {
+    const speed = this.paramStore.getValue('speed');
+    const reactivity = this.paramStore.getValue('reactivity');
+
     const pos = this.diskGeometry.attributes.position.array as Float32Array;
-    const baseSpeed = 1.2 + audio.bass * 2.0;
+    const baseSpeed = (1.2 + audio.bass * 2.0 * reactivity) * speed;
 
     for (let i = 0; i < this.count; i++) {
-      // Faster rotation closer to the event horizon (Keplerian orbit)
       const angularVel = (baseSpeed / Math.sqrt(this.radii[i])) * delta;
       this.angles[i] += angularVel;
 
-      const r = this.radii[i] * (1.0 + (audio.beat ? 0.08 : 0));
+      const r = this.radii[i] * (1.0 + (audio.beat ? 0.08 * reactivity : 0));
       pos[i * 3] = Math.cos(this.angles[i]) * r;
       pos[i * 3 + 2] = Math.sin(this.angles[i]) * r;
     }
 
     this.diskGeometry.attributes.position.needsUpdate = true;
-    this.group.rotation.y += delta * 0.1;
+    this.group.rotation.y += delta * 0.1 * speed;
 
-    // Singularity gravitational pulse
-    const coreScale = 1.0 + audio.bass * 0.35 + audio.beatEnergy * 0.2;
+    const coreScale = 1.0 + (audio.bass * 0.35 + audio.beatEnergy * 0.2) * reactivity;
     this.coreMesh.scale.set(coreScale, coreScale, coreScale);
   }
 
-  onThemeChange(theme: VisualizerTheme) {
+  public override onThemeChange(theme: VisualizerTheme): void {
     this.diskMaterial.color.set(theme.accent);
   }
-
-  dispose() {
-    this.coreMesh.geometry.dispose();
-    (this.coreMesh.material as THREE.Material).dispose();
-    this.diskGeometry.dispose();
-    this.diskMaterial.dispose();
-    this.group.removeFromParent();
-  }
 }
-

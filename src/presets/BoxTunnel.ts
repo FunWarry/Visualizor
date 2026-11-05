@@ -1,25 +1,36 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { PresetContext, AudioFeatures, VisualizerTheme } from '../types';
+import { ParameterStore } from '../tuning/ParameterStore';
+import { BasePreset } from './BasePreset';
 
-export class BoxTunnelPreset implements VisualizerPreset {
-  id = 'box-tunnel';
-  name = 'Box Corridor Tunnel';
-  category = 'Tunnels' as const;
-  description = 'Infinite geometric square corridor accelerating through glowing audio frames.';
+export class BoxTunnelPreset extends BasePreset {
+  public override readonly id = 'boxtunnel';
+  public override readonly name = 'Box Tunnel';
+  public override readonly category = 'Tunnels' as const;
+  public override readonly description = '36 square wireframe gate frames rushing forward along z-axis.';
 
-  private group!: THREE.Group;
   private readonly frames: THREE.LineSegments[] = [];
   private readonly numFrames = 36;
   private readonly spacing = 2.2;
   private readonly materials: THREE.LineBasicMaterial[] = [];
 
-  init(ctx: PresetContext) {
-    this.group = new THREE.Group();
+  constructor() {
+    super();
+    this.paramStore = new ParameterStore([
+      { id: 'speed', name: 'Fly Speed', min: 0.2, max: 3.0, step: 0.1, defaultValue: 1.0 },
+      { id: 'reactivity', name: 'Frame Pump', min: 0.1, max: 2.5, step: 0.05, defaultValue: 1.0 },
+      { id: 'density', name: 'Frame Size', min: 3.0, max: 8.0, step: 0.5, defaultValue: 5.0 }
+    ]);
+  }
+
+  protected setup(ctx: PresetContext): void {
+    this.frames.length = 0;
+    this.materials.length = 0;
+    const size = this.paramStore.getValue('density');
+    const half = size / 2;
 
     for (let i = 0; i < this.numFrames; i++) {
-      const size = 5.0;
       const geom = new THREE.BufferGeometry();
-      const half = size / 2;
       const vertices = [
         -half, -half, 0,  half, -half, 0,
          half, -half, 0,  half,  half, 0,
@@ -47,29 +58,28 @@ export class BoxTunnelPreset implements VisualizerPreset {
       this.frames.push(frame);
       this.group.add(frame);
     }
-
-    ctx.scene.add(this.group);
   }
 
-  update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number) {
-    const speed = 14.0 + audio.bass * 35.0;
+  public update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number): void {
+    const speed = this.paramStore.getValue('speed');
+    const reactivity = this.paramStore.getValue('reactivity');
+    const flySpeed = (14.0 + audio.bass * 35.0 * reactivity) * speed;
 
     for (let i = 0; i < this.numFrames; i++) {
       const f = this.frames[i];
-      f.position.z += delta * speed;
+      f.position.z += delta * flySpeed;
 
       if (f.position.z > 5) {
         f.position.z -= this.numFrames * this.spacing;
       }
 
-      // Twist and scale pulse
-      f.rotation.z = Math.sin(time * 0.4 + i * 0.12) * 0.4;
-      const scale = 1.0 + (audio.beat ? 0.3 : 0) * (1 - Math.abs(f.position.z) / 45);
+      f.rotation.z = Math.sin(time * 0.4 * speed + i * 0.12) * 0.4;
+      const scale = 1.0 + (audio.beat ? 0.3 * reactivity : 0) * (1 - Math.abs(f.position.z) / 45);
       f.scale.set(scale, scale, 1);
     }
   }
 
-  onThemeChange(theme: VisualizerTheme) {
+  public override onThemeChange(theme: VisualizerTheme): void {
     for (let i = 0; i < this.numFrames; i++) {
       const color = new THREE.Color().lerpColors(
         new THREE.Color(theme.primary),
@@ -79,11 +89,4 @@ export class BoxTunnelPreset implements VisualizerPreset {
       this.materials[i].color.copy(color);
     }
   }
-
-  dispose() {
-    this.frames.forEach(f => f.geometry.dispose());
-    this.materials.forEach(m => m.dispose());
-    this.group.removeFromParent();
-  }
 }
-

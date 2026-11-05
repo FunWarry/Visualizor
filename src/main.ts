@@ -125,9 +125,6 @@ const repeatBtn = document.getElementById('repeatBtn') as HTMLButtonElement;
 
 // Presets Search & Filters
 const presetSearchInput = document.getElementById('presetSearchInput') as HTMLInputElement;
-const filterAllBtn = document.getElementById('filterAllBtn') as HTMLButtonElement;
-const filterFavBtn = document.getElementById('filterFavBtn') as HTMLButtonElement;
-const filterMilkdropBtn = document.getElementById('filterMilkdropBtn') as HTMLButtonElement;
 const presetsCatalogView = document.getElementById('presetsCatalogView') as HTMLElement;
 const autoCycleBtn = document.getElementById('autoCycleBtn') as HTMLButtonElement;
 const shufflePresetBtn = document.getElementById('shufflePresetBtn') as HTMLButtonElement;
@@ -160,7 +157,7 @@ const milkdropEngine = new MilkdropEngine(milkdropCanvas);
 const exportManager = new ExportManager(renderEngine, audioEngine);
 
 let isMilkdropInitialized = false;
-let currentFilter: 'all' | 'fav' | 'milkdrop' = 'all';
+let currentFilter: 'all' | 'fav' | 'milkdrop' | VisualizerPreset['category'] = 'all';
 let searchQuery = '';
 let autoCycleTimer: ReturnType<typeof setInterval> | null = null;
 let activePresetId = PRESETS[0].id;
@@ -197,120 +194,204 @@ THEMES.forEach(t => {
   themesList.appendChild(card);
 });
 
-// Category definition matching user screenshot
-const CATEGORIES: { name: string; key: VisualizerPreset['category'] }[] = [
+const ARIA_SELECTED = 'aria-selected';
+const CAT_ABSTRACT: VisualizerPreset['category'] = 'Abstract & Space';
+const CAT_PARTICLES: VisualizerPreset['category'] = 'Particles & Light';
+const CAT_FLUIDS: VisualizerPreset['category'] = 'Fluids & Heat';
+const CAT_RETRO: VisualizerPreset['category'] = 'Retro & Digital';
+const CAT_ORGANIC: VisualizerPreset['category'] = 'Organic & Nature';
+
+// Category definition matching user screenshot and canonical catalog
+export const CATEGORIES: { name: string; key: VisualizerPreset['category'] }[] = [
   { name: 'Structures', key: 'Structures' },
-  { name: 'Abstract & Space', key: 'Abstract & Space' },
-  { name: 'Particles & Light', key: 'Particles & Light' },
-  { name: 'Fluids & Heat', key: 'Fluids & Heat' },
+  { name: CAT_ABSTRACT, key: CAT_ABSTRACT },
+  { name: CAT_PARTICLES, key: CAT_PARTICLES },
+  { name: CAT_FLUIDS, key: CAT_FLUIDS },
   { name: 'Tunnels', key: 'Tunnels' },
-  { name: 'Retro & Digital', key: 'Retro & Digital' },
-  { name: 'Organic & Nature', key: 'Organic & Nature' }
+  { name: CAT_RETRO, key: CAT_RETRO },
+  { name: CAT_ORGANIC, key: CAT_ORGANIC }
 ];
 
-// Presets Catalog Renderer (3-Column Square Cards matching screenshot)
-function renderPresetsCatalog() {
+export function getPresetThumbnailSvg(preset: VisualizerPreset): string {
+  switch (preset.category) {
+    case 'Structures':
+      return `<svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>`;
+    case CAT_ABSTRACT:
+      return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(-30 12 12)"/></svg>`;
+    case CAT_PARTICLES:
+      return `<svg viewBox="0 0 24 24"><path d="m13 2-2 7h5l-4 13 2-7H9l4-13Z"/></svg>`;
+    case CAT_FLUIDS:
+      return `<svg viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`;
+    case 'Tunnels':
+      return `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="10" height="10" rx="1"/><rect x="10" y="10" width="4" height="4"/></svg>`;
+    case CAT_RETRO:
+      return `<svg viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>`;
+    case CAT_ORGANIC:
+      return `<svg viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>`;
+    default:
+      return `<svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+  }
+}
+
+export function updatePresetCategoryTabCounters(): void {
+  const counts: Record<string, number> = {};
+  for (const c of CATEGORIES) {
+    counts[c.key] = 0;
+  }
+  for (const p of PRESETS) {
+    if (counts[p.category] !== undefined) {
+      counts[p.category]++;
+    }
+  }
+
+  const badgeAll = document.getElementById('badgeAll');
+  if (badgeAll) {
+    badgeAll.textContent = PRESETS.length.toString();
+  }
+
+  const favCount = Array.from(favoritePresets).filter(id =>
+    PRESETS.some(p => p.id === id) || id.startsWith('milkdrop_')
+  ).length;
+  const badgeFav = document.getElementById('badgeFav');
+  if (badgeFav) {
+    badgeFav.textContent = favCount.toString();
+  }
+
+  for (const c of CATEGORIES) {
+    const badge = document.querySelector(`[data-category-badge="${c.key}"]`);
+    if (badge) {
+      badge.textContent = (counts[c.key] || 0).toString();
+    }
+  }
+}
+
+function renderCategoryPresets(cat: typeof CATEGORIES[0], q: string): void {
+  let catPresets = PRESETS.filter(p => p.category === cat.key);
+  if (q) {
+    catPresets = catPresets.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      p.category.toLowerCase().includes(q) ||
+      (p.description && p.description.toLowerCase().includes(q))
+    );
+  }
+  if (currentFilter === 'fav') {
+    catPresets = catPresets.filter(p => favoritePresets.has(p.id));
+  }
+
+  if (catPresets.length === 0) return;
+
+  const sectionHeader = document.createElement('div');
+  sectionHeader.className = 'category-header';
+  sectionHeader.innerHTML = `<span>${cat.name}</span><span>${catPresets.length}</span>`;
+  presetsCatalogView.appendChild(sectionHeader);
+
+  const grid = document.createElement('div');
+  grid.className = 'cards-grid-3';
+
+  for (const p of catPresets) {
+    const isFav = favoritePresets.has(p.id);
+    const isActive = !milkdropEngine.isActive && activePresetId === p.id;
+
+    const card = document.createElement('div');
+    card.className = `preset-card-3 ${isActive ? 'active' : ''}`;
+    card.setAttribute('data-preset-id', p.id);
+    card.setAttribute('data-category', p.category);
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card.innerHTML = `
+      <span class="preset-active-indicator" title="Active"></span>
+      <button class="preset-fav-btn ${isFav ? 'active' : ''}" aria-label="Favorite preset" title="Favorite">★</button>
+      <div class="preset-thumb-visual">${getPresetThumbnailSvg(p)}</div>
+      <div class="preset-card-info">
+        <div class="preset-badge-name" title="${p.name}">${p.name}</div>
+        <span class="preset-cat-badge">${p.category}</span>
+      </div>
+    `;
+
+    card.querySelector('.preset-fav-btn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleFavorite(p.id);
+    });
+
+    card.addEventListener('click', () => {
+      select3DPreset(p);
+    });
+
+    grid.appendChild(card);
+  }
+
+  presetsCatalogView.appendChild(grid);
+}
+
+function renderMilkdropSection(q: string): void {
+  let milkdropNames = milkdropEngine.presetNames;
+  if (q) {
+    milkdropNames = milkdropNames.filter(n => n.toLowerCase().includes(q));
+  }
+  if (currentFilter === 'fav') {
+    milkdropNames = milkdropNames.filter(n => favoritePresets.has(`milkdrop_${n}`));
+  }
+
+  if (milkdropNames.length === 0) return;
+
+  const displayList = milkdropNames.slice(0, 30);
+  const sectionHeader = document.createElement('div');
+  sectionHeader.className = 'category-header';
+  sectionHeader.innerHTML = `<span>ProjectM & MilkDrop</span><span>${milkdropNames.length}</span>`;
+  presetsCatalogView.appendChild(sectionHeader);
+
+  const grid = document.createElement('div');
+  grid.className = 'cards-grid-3';
+
+  for (const name of displayList) {
+    const favKey = `milkdrop_${name}`;
+    const isFav = favoritePresets.has(favKey);
+    const isActive = milkdropEngine.isActive && milkdropEngine.currentPresetName === name;
+
+    const card = document.createElement('div');
+    card.className = `preset-card-3 ${isActive ? 'active' : ''}`;
+    card.innerHTML = `
+      <button class="preset-fav-btn ${isFav ? 'active' : ''}" title="Favorite">★</button>
+      <div class="preset-thumb-visual">🌀</div>
+      <div class="preset-badge-name" title="${name}">${name}</div>
+    `;
+
+    card.querySelector('.preset-fav-btn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleFavorite(favKey);
+    });
+
+    card.addEventListener('click', () => {
+      selectMilkdropPreset(name);
+    });
+
+    grid.appendChild(card);
+  }
+
+  presetsCatalogView.appendChild(grid);
+}
+
+// Presets Catalog Renderer
+export function renderPresetsCatalog(): void {
   initMilkdropIfNeeded();
+  updatePresetCategoryTabCounters();
   presetsCatalogView.innerHTML = '';
 
-  const q = searchQuery.toLowerCase();
+  const q = searchQuery.toLowerCase().trim();
 
   // 1. Render Three.js 3D Presets by Category
   if (currentFilter !== 'milkdrop') {
-    CATEGORIES.forEach(cat => {
-      let catPresets = PRESETS.filter(p => p.category === cat.key);
-      if (q) {
-        catPresets = catPresets.filter(p => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q));
+    for (const cat of CATEGORIES) {
+      if (currentFilter !== 'all' && currentFilter !== 'fav' && currentFilter !== cat.key) {
+        continue;
       }
-      if (currentFilter === 'fav') {
-        catPresets = catPresets.filter(p => favoritePresets.has(p.id));
-      }
-
-      if (catPresets.length === 0) return;
-
-      const sectionHeader = document.createElement('div');
-      sectionHeader.className = 'category-header';
-      sectionHeader.innerHTML = `<span>${cat.name}</span><span>${catPresets.length}</span>`;
-      presetsCatalogView.appendChild(sectionHeader);
-
-      const grid = document.createElement('div');
-      grid.className = 'cards-grid-3';
-
-      catPresets.forEach(p => {
-        const isFav = favoritePresets.has(p.id);
-        const isActive = !milkdropEngine.isActive && activePresetId === p.id;
-
-        const card = document.createElement('div');
-        card.className = `preset-card-3 ${isActive ? 'active' : ''}`;
-        card.innerHTML = `
-          <button class="preset-fav-btn ${isFav ? 'active' : ''}" title="Favorite">★</button>
-          <div class="preset-thumb-visual">💎</div>
-          <div class="preset-badge-name" title="${p.name}">${p.name}</div>
-        `;
-
-        card.querySelector('.preset-fav-btn')?.addEventListener('click', (e) => {
-          e.stopPropagation();
-          toggleFavorite(p.id);
-        });
-
-        card.addEventListener('click', () => {
-          select3DPreset(p);
-        });
-
-        grid.appendChild(card);
-      });
-
-      presetsCatalogView.appendChild(grid);
-    });
+      renderCategoryPresets(cat, q);
+    }
   }
 
   // 2. Render ProjectM & MilkDrop Presets Section
   if (currentFilter === 'all' || currentFilter === 'milkdrop' || currentFilter === 'fav') {
-    let milkdropNames = milkdropEngine.presetNames;
-    if (q) {
-      milkdropNames = milkdropNames.filter(n => n.toLowerCase().includes(q));
-    }
-    if (currentFilter === 'fav') {
-      milkdropNames = milkdropNames.filter(n => favoritePresets.has(`milkdrop_${n}`));
-    }
-
-    if (milkdropNames.length > 0) {
-      const displayList = milkdropNames.slice(0, 30); // Show top 30 Milkdrop presets
-      const sectionHeader = document.createElement('div');
-      sectionHeader.className = 'category-header';
-      sectionHeader.innerHTML = `<span>ProjectM & MilkDrop</span><span>${milkdropNames.length}</span>`;
-      presetsCatalogView.appendChild(sectionHeader);
-
-      const grid = document.createElement('div');
-      grid.className = 'cards-grid-3';
-
-      displayList.forEach(name => {
-        const favKey = `milkdrop_${name}`;
-        const isFav = favoritePresets.has(favKey);
-        const isActive = milkdropEngine.isActive && milkdropEngine.currentPresetName === name;
-
-        const card = document.createElement('div');
-        card.className = `preset-card-3 ${isActive ? 'active' : ''}`;
-        card.innerHTML = `
-          <button class="preset-fav-btn ${isFav ? 'active' : ''}" title="Favorite">★</button>
-          <div class="preset-thumb-visual">🌀</div>
-          <div class="preset-badge-name" title="${name}">${name}</div>
-        `;
-
-        card.querySelector('.preset-fav-btn')?.addEventListener('click', (e) => {
-          e.stopPropagation();
-          toggleFavorite(favKey);
-        });
-
-        card.addEventListener('click', () => {
-          selectMilkdropPreset(name);
-        });
-
-        grid.appendChild(card);
-      });
-
-      presetsCatalogView.appendChild(grid);
-    }
+    renderMilkdropSection(q);
   }
 }
 
@@ -357,17 +438,30 @@ presetSearchInput.addEventListener('input', () => {
   renderPresetsCatalog();
 });
 
-function setFilter(f: 'all' | 'fav' | 'milkdrop') {
+export function setFilter(f: 'all' | 'fav' | 'milkdrop' | VisualizerPreset['category']): void {
   currentFilter = f;
-  filterAllBtn.classList.toggle('active', f === 'all');
-  filterFavBtn.classList.toggle('active', f === 'fav');
-  filterMilkdropBtn.classList.toggle('active', f === 'milkdrop');
+  const pills = document.querySelectorAll('#presetCategoryTabs .filter-pill');
+  pills.forEach(pill => {
+    const filterAttr = pill.getAttribute('data-filter');
+    const isMatching = filterAttr === f;
+    pill.classList.toggle('active', isMatching);
+    pill.setAttribute(ARIA_SELECTED, String(isMatching));
+  });
   renderPresetsCatalog();
 }
 
-filterAllBtn.addEventListener('click', () => setFilter('all'));
-filterFavBtn.addEventListener('click', () => setFilter('fav'));
-filterMilkdropBtn.addEventListener('click', () => setFilter('milkdrop'));
+const categoryTabsContainer = document.getElementById('presetCategoryTabs');
+if (categoryTabsContainer) {
+  categoryTabsContainer.addEventListener('click', (e) => {
+    const target = (e.target as HTMLElement).closest('.filter-pill') as HTMLElement | null;
+    if (!target) return;
+    const filter = target.getAttribute('data-filter') as 'all' | 'fav' | 'milkdrop' | VisualizerPreset['category'] | null;
+    if (filter) {
+      setFilter(filter);
+    }
+  });
+}
+
 
 // Auto Cycle Presets
 autoCycleBtn.addEventListener('click', () => {
@@ -1222,7 +1316,7 @@ modeButtons.forEach(({ btn, mode }) => {
     modeButtons.forEach(b => {
       if (b.btn) {
         b.btn.classList.toggle('active', b.mode === mode);
-        b.btn.setAttribute('aria-selected', String(b.mode === mode));
+        b.btn.setAttribute(ARIA_SELECTED, String(b.mode === mode));
       }
     });
     if (studioGenerateBtn) {
@@ -1286,7 +1380,7 @@ studioWizardTabs.forEach(tab => {
     const step = tab.dataset.step || 'stage';
     studioWizardTabs.forEach(t => {
       t.classList.toggle('active', t === tab);
-      t.setAttribute('aria-selected', String(t === tab));
+      t.setAttribute(ARIA_SELECTED, String(t === tab));
     });
     Object.entries(studioStepPanes).forEach(([k, pane]) => {
       if (pane) {
