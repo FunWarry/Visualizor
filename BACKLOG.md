@@ -66,8 +66,8 @@ Toutes les issues ci-dessous sont créées et suivies sur le dépôt GitHub [Fun
 
 - [x] **Core** `feat(audio): Web Audio multi-band FFT (Sub-bass, Bass, Mid, Treble) & Kick detector`
 - [x] **Core** `feat(audio): Live microphone audio streaming and procedural demo synth`
-- [x] [#30](https://github.com/FunWarry/Visualizor/issues/30) `feat(audio): Implement Autocorrelation BPM Detection & Tap Tempo`
-- [x] [#31](https://github.com/FunWarry/Visualizor/issues/31) `feat(audio): Implement Playlist Queue Manager (multi-track, drag-and-drop, shuffle/repeat)`
+- [ ] [#30](https://github.com/FunWarry/Visualizor/issues/30) `feat(audio): Implement Autocorrelation BPM Detection & Tap Tempo`
+- [ ] [#31](https://github.com/FunWarry/Visualizor/issues/31) `feat(audio): Implement Playlist Queue Manager (multi-track, drag-and-drop, shuffle/repeat)`
 
 ---
 
@@ -88,8 +88,8 @@ Toutes les issues ci-dessous sont créées et suivies sur le dépôt GitHub [Fun
 
 - [x] **Core** `feat(export): Unlocked 60 FPS WebM/MP4 canvas + Web Audio stream recording`
 - [x] **Core** `feat(export): High-resolution PNG screenshot capture`
-- [x] [#34](https://github.com/FunWarry/Visualizor/issues/34) `feat(export): Implement Batch Recording Mode (multi-preset sequence)`
-- [x] [#35](https://github.com/FunWarry/Visualizor/issues/35) `feat(export): Implement Aspect Ratio Framing (16:9, 9:16, 1:1) & GIF export`
+- [ ] [#34](https://github.com/FunWarry/Visualizor/issues/34) `feat(export): Implement Batch Recording Mode (multi-preset sequence)`
+- [ ] [#35](https://github.com/FunWarry/Visualizor/issues/35) `feat(export): Implement Aspect Ratio Framing (16:9, 9:16, 1:1) & GIF export`
 
 ---
 
