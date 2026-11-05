@@ -183,6 +183,13 @@
       <div class="rail-divider rail-divider--footer"></div>
       <div class="rail-more-wrapper" id="railMoreWrapper">
         <div class="rail-more-extras" id="railMoreExtras" role="menu">
+          <!-- MIDI Controller Mapping Tool (Ticket #45) -->
+          <button class="rail-btn" type="button" id="midiBtn" data-panel="midi" aria-label="MIDI Controller" title="Web MIDI Controller Mapping">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M9 15h.01M15 15h.01M8 11h.01M16 11h.01M12 9h.01"/>
+            </svg>
+          </button>
           <button class="rail-btn" type="button" id="ambientModeBtn" aria-label="Ambient Mode" title="Zen / Ambient Mode">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
           </button>
@@ -946,6 +953,93 @@
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- 14. Web MIDI Controller Mapping Drawer Panel (Ticket #45) -->
+  <div class="drawer-panel glass-panel detail-panel" id="midiPanel" data-panel="midi" data-panel-id="midiPanel" data-alias="midi">
+    <div class="panel-header">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M9 15h.01M15 15h.01M8 11h.01M16 11h.01M12 9h.01"/>
+        </svg>
+        <span>MIDI Controller</span>
+      </div>
+      <div class="header-tools">
+        <button class="btn-icon close-drawer-btn closeMidiBtn" id="closeMidiBtn" style="width:28px;height:28px;" aria-label="Close MIDI panel">✕</button>
+      </div>
+    </div>
+
+    <div class="panel-content midi-panel-content" id="midiPanelContent">
+      <!-- Section 1: Connection Status Banner -->
+      <div class="midi-status-banner" id="midiStatusBanner">
+        <div class="midi-status-left">
+          <span class="midi-status-indicator" id="midiStatusIndicator"></span>
+          <span class="midi-status-badge midi-disconnected" id="midiStatusBadge">Disconnected</span>
+          <span class="midi-device-count" id="midiDeviceCount">0 devices connected</span>
+        </div>
+        <button type="button" class="btn-pill midi-connect-btn" id="midiConnectBtn" title="Request Web MIDI API Access">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          <span id="midiConnectBtnText">Connect MIDI</span>
+        </button>
+      </div>
+
+      <!-- Section 2: Port Selector & Hardware Enumeration List -->
+      <div class="control-group" style="margin-top:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span class="control-section-title">Hardware Inputs</span>
+          <button type="button" class="tool-icon-btn" id="midiRefreshPortsBtn" title="Refresh Port Enumeration">🔄</button>
+        </div>
+        <div class="midi-ports-list" id="midiPortsList" role="list" aria-label="Connected MIDI Ports">
+          <div class="midi-port-empty" id="midiPortEmpty">
+            <span>No MIDI devices detected. Click "Connect MIDI" to enable access.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Interactive MIDI Learn Mode Section -->
+      <div class="control-group midi-learn-container" id="midiLearnContainer" style="margin-top:14px;">
+        <div class="midi-learn-box" id="midiLearnBox">
+          <div class="midi-learn-header">
+            <span class="midi-learn-title">MIDI Learn Mode</span>
+            <span class="midi-learn-badge" id="midiLearnBadge" style="display:none;">LEARNING</span>
+          </div>
+          <div class="midi-learn-body">
+            <div class="midi-learn-target-info" id="midiLearnTargetInfo">
+              <span class="midi-learn-label">Target:</span>
+              <span class="midi-learn-target" id="midiLearnActiveTarget">None (Click Learn on any parameter)</span>
+            </div>
+            <div class="midi-learn-pulse hidden" id="midiLearnPulse" style="display:none;">
+              <span class="midi-pulse-dot"></span>
+              <span class="midi-pulse-text">Listening for incoming CC message... Move any knob/slider</span>
+            </div>
+            <button type="button" class="btn-pill midi-learn-cancel-btn hidden" id="midiCancelLearnBtn" style="display:none;margin-top:8px;">
+              Cancel Learn
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4: CC Parameter Mapping Bindings Table -->
+      <div class="control-group" style="margin-top:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span class="control-section-title">Controller Mappings</span>
+          <span class="sidebar-value" id="midiMappingCount" style="font-size:11px;color:var(--text-muted);">8 active</span>
+        </div>
+
+        <div class="midi-mappings-table" id="midiMappingsTable">
+          <!-- Dynamically populated rows by render() -->
+        </div>
+
+        <!-- Section 5: Reset Mappings to Default Button -->
+        <div style="margin-top:14px;display:flex;justify-content:flex-end;">
+          <button type="button" class="btn-pill" id="midiResetDefaultsBtn" style="font-size:11px;padding:5px 12px;gap:5px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            <span>Reset Mappings to Default</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 

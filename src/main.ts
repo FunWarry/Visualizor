@@ -19,6 +19,7 @@ import {
 import { ExportSettings, VisualizerPreset } from './types';
 import { renderTuningPanel, updateTuningButtonState as syncTuningButtonState } from './tuning/TuningPanel';
 import { TextAnchor, TextAnimationMode } from './overlay/types';
+import { MidiManager, initMidiPanel } from './midi';
 
 // DOM Elements
 const canvas = document.getElementById('webgl-canvas') as HTMLCanvasElement;
@@ -65,6 +66,7 @@ const subtitlesPanel = document.getElementById('subtitlesPanel') as HTMLElement 
 const queuePanel = document.getElementById('queuePanel') as HTMLElement | null;
 const libraryPanel = document.getElementById('libraryPanel') as HTMLElement | null;
 const studioPanel = document.getElementById('studioPanel') as HTMLElement | null;
+const midiPanel = document.getElementById('midiPanel') as HTMLElement | null;
 const shortcutsModal = document.getElementById('shortcutsModal') as HTMLElement | null;
 const showUiBtn = document.getElementById('showUiBtn') as HTMLButtonElement | null;
 const hideUiBtn = document.getElementById('hideUiBtn') as HTMLButtonElement | null;
@@ -89,7 +91,9 @@ const PANEL_MAP: Record<string, HTMLElement | null> = {
   tracks: queuePanel,
   library: libraryPanel,
   myCreations: studioPanel,
-  studio: studioPanel
+  studio: studioPanel,
+  midi: midiPanel,
+  midiPanel: midiPanel
 };
 
 const allPanels: HTMLElement[] = [
@@ -104,7 +108,8 @@ const allPanels: HTMLElement[] = [
   subtitlesPanel,
   queuePanel,
   libraryPanel,
-  studioPanel
+  studioPanel,
+  midiPanel
 ].filter((p): p is HTMLElement => p !== null);
 
 let activeToolId: string | null = 'presets';
@@ -558,7 +563,7 @@ document.addEventListener('click', (e: MouseEvent) => {
 });
 
 // Close Buttons for Drawer Panels
-document.querySelectorAll('.close-drawer-btn, .closeThemeBtn, .closeQueueBtn, .closeStudioBtn, .closeFxBtn, .closeAudioBtn, .closeCameraBtn, .closeOverlayBtn, .closeTextBtn, .closeSubtitlesBtn, .closeLibraryBtn, .closeTuningBtn, #closeDrawerBtn').forEach(btn => {
+document.querySelectorAll('.close-drawer-btn, .closeThemeBtn, .closeQueueBtn, .closeStudioBtn, .closeFxBtn, .closeAudioBtn, .closeCameraBtn, .closeOverlayBtn, .closeTextBtn, .closeSubtitlesBtn, .closeLibraryBtn, .closeTuningBtn, .closeMidiBtn, #closeDrawerBtn, #closeMidiBtn').forEach(btn => {
   btn.addEventListener('click', () => {
     closeAllDrawers();
     activeToolId = null;
@@ -1096,6 +1101,96 @@ sensSlider.addEventListener('input', () => {
   const val = Number.parseFloat(sensSlider.value);
   document.getElementById('sensVal')!.textContent = `${Math.round(val * 100)}%`;
   audioEngine.sensitivity = val;
+});
+
+// Web MIDI API Controller Setup (Ticket #45)
+const midiManager = new MidiManager();
+const midiPanelController = initMidiPanel(midiManager, midiPanel);
+
+function updateSliderUi(slider: HTMLInputElement | null, val: number | string, textId: string, textVal: string): void {
+  if (slider) slider.value = String(val);
+  const el = document.getElementById(textId);
+  if (el) el.textContent = textVal;
+}
+
+const MIDI_DISPATCH_TABLE: Record<string, (value: number) => void> = {
+  audioSensitivity: (value) => {
+    const sens = 0.5 + value * 2.0;
+    audioEngine.sensitivity = sens;
+    updateSliderUi(sensSlider, sens.toFixed(1), 'sensVal', `${Math.round(sens * 100)}%`);
+  },
+  sensitivity: (value) => MIDI_DISPATCH_TABLE.audioSensitivity(value),
+
+  bloomStrength: (value) => {
+    const bloom = value * 3.0;
+    renderEngine.updateConfig({ bloomStrength: bloom });
+    updateSliderUi(bloomSlider, bloom.toFixed(1), 'bloomVal', bloom.toFixed(1));
+  },
+  bloom: (value) => MIDI_DISPATCH_TABLE.bloomStrength(value),
+
+  persistence: (value) => {
+    const persist = value * 0.9;
+    renderEngine.updateConfig({ persistence: persist });
+    updateSliderUi(persistSlider, persist.toFixed(2), 'persistVal', persist.toFixed(2));
+  },
+
+  cameraOrbit: (value) => {
+    const spd = 0.1 + value * 1.9;
+    renderEngine.setAutoRotate(true, spd);
+    if (renderEngine.cameraController) renderEngine.cameraController.autoRotateSpeed = spd;
+    const rotSlider = document.getElementById('rotateSpeedSlider') as HTMLInputElement | null;
+    updateSliderUi(rotSlider, spd.toFixed(1), 'rotateSpeedValue', `${Math.round(spd * 100)}%`);
+  },
+  rotateSpeed: (value) => MIDI_DISPATCH_TABLE.cameraOrbit(value),
+  orbit: (value) => MIDI_DISPATCH_TABLE.cameraOrbit(value),
+
+  animationSpeed: (value) => {
+    const spd = 0.2 + value * 2.8;
+    const active = renderEngine.activePreset;
+    if (active && typeof active.setCustomParameter === 'function') {
+      active.setCustomParameter('speed', spd);
+    }
+    const moodSpeed = document.getElementById('studioMoodSpeedSlider') as HTMLInputElement | null;
+    updateSliderUi(moodSpeed, spd.toFixed(1), 'studioMoodSpeedVal', `${spd.toFixed(1)}x`);
+  },
+  speed: (value) => MIDI_DISPATCH_TABLE.animationSpeed(value),
+
+  audioVolume: (value) => {
+    audioEngine.setVolume(value);
+    if (volumeSlider) volumeSlider.value = value.toFixed(2);
+  },
+  volume: (value) => MIDI_DISPATCH_TABLE.audioVolume(value),
+
+  colorSaturation: (value) => {
+    renderEngine.updateConfig({ chromaticAberration: value });
+    updateSliderUi(chromaSlider, value.toFixed(2), 'chromaVal', value.toFixed(2));
+  },
+  saturation: (value) => MIDI_DISPATCH_TABLE.colorSaturation(value),
+
+  resonance: (value) => {
+    renderEngine.updateConfig({ filmGrain: value });
+    updateSliderUi(grainSlider, value.toFixed(2), 'grainVal', value.toFixed(2));
+  },
+  brightness: (value) => MIDI_DISPATCH_TABLE.resonance(value)
+};
+
+function dispatchMidiParameter(target: string, value: number): void {
+  const handler = MIDI_DISPATCH_TABLE[target];
+  if (handler) {
+    handler(value);
+    return;
+  }
+  const activePreset = renderEngine.activePreset;
+  if (activePreset && typeof activePreset.setCustomParameter === 'function') {
+    activePreset.setCustomParameter(target, value);
+    const slider = document.getElementById(`tuning_${target}_slider`) as HTMLInputElement | null;
+    updateSliderUi(slider, value, `tuning_${target}_val`, value.toFixed(2));
+  }
+}
+
+midiManager.on('cc', (ev) => {
+  dispatchMidiParameter(ev.target, ev.value);
+  midiPanelController.updateParameterValue(ev.target, ev.value);
 });
 
 // Studio Forge & Recipe Builder Controls (Ticket #44)

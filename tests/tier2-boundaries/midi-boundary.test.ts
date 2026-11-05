@@ -1,6 +1,7 @@
 import { describe, test, expect, beforeEach } from '../harness/test-context';
 import { setupTestEnvironment } from '../harness/env';
 import { parseMidiCCMessage } from '../harness/contracts';
+import { MidiManager } from '../../src/midi';
 
 describe('Tier 2: Web MIDI API Boundary Cases', () => {
   beforeEach(() => {
@@ -75,5 +76,65 @@ describe('Tier 2: Web MIDI API Boundary Cases', () => {
 
     // 0xBF = Channel 16 (index 15)
     expect(parseMidiCCMessage([0xBF, 1, 64])?.channel).toBe(15);
+  });
+
+  test('T2.Midi.7: Unsupported navigator.requestMIDIAccess environment falls back gracefully with isSupported=false', async () => {
+    const orig = navigator.requestMIDIAccess;
+    try {
+      (navigator as unknown as Record<string, unknown>).requestMIDIAccess = undefined;
+      const manager = new MidiManager();
+      const success = await manager.init();
+
+      expect(success).toBe(false);
+      expect(manager.isSupported).toBe(false);
+      expect(manager.isConnected).toBe(false);
+    } finally {
+      navigator.requestMIDIAccess = orig;
+    }
+  });
+
+  test('T2.Midi.8: Web MIDI permission rejection (SecurityError / NotAllowedError) handles denial cleanly', async () => {
+    const orig = navigator.requestMIDIAccess;
+    try {
+      navigator.requestMIDIAccess = async () => {
+        throw new Error('NotAllowedError: Permission denied');
+      };
+      const manager = new MidiManager();
+      const success = await manager.init();
+
+      expect(success).toBe(false);
+      expect(manager.isConnected).toBe(false);
+    } finally {
+      navigator.requestMIDIAccess = orig;
+    }
+  });
+
+  test('T2.Midi.9: Non-CC messages (Pitch Bend 0xE0, Program Change 0xC0, Channel Aftertouch 0xD0, SysEx 0xF0) are ignored without error', async () => {
+    const manager = new MidiManager();
+    await manager.init();
+
+    const initialSize = manager.parameterValues.size;
+    manager.handleMessage([0xE0, 0, 64]);
+    manager.handleMessage([0xC0, 1]);
+    manager.handleMessage([0xD0, 32]);
+    manager.handleMessage([0xF0, 0x7E, 0x7F, 0x06, 0x01, 0xF7]);
+
+    expect(manager.parameterValues.size).toBe(initialSize);
+  });
+
+  test('T2.Midi.10: High-frequency CC floods across multiple channels maintain thread-safe mapping stability', async () => {
+    const manager = new MidiManager();
+    await manager.init();
+
+    for (let i = 0; i <= 500; i++) {
+      const channel = i % 16;
+      const status = 0xB0 | channel;
+      const val = Math.round((i / 500) * 127);
+      manager.handleMessage([status, 1, val]);
+    }
+
+    const finalVal = manager.parameterValues.get('audioSensitivity');
+    expect(finalVal).toBeDefined();
+    expect(finalVal).toBeCloseTo(1.0);
   });
 });

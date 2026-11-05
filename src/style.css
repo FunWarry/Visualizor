@@ -1650,4 +1650,361 @@ body.ui-hidden .sidebar-pill,
   }
 }
 
+/* ==========================================================================
+   Web MIDI Controller Mapping (#midiPanel) Styles (Ticket #45)
+   ========================================================================== */
+
+.midi-panel-content {
+  display: flex;
+  flex-direction: column;
+  padding: 14px 16px;
+  overflow-y: auto;
+  gap: 12px;
+}
+
+/* 1. Connection Status Banner */
+.midi-status-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  gap: 8px;
+}
+
+.midi-status-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.midi-status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  transition: all 0.2s ease;
+}
+
+.midi-status-indicator.connected {
+  background: #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+
+.midi-status-indicator.learning {
+  background: #f59e0b;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+  animation: midiPulse 1s infinite ease-in-out;
+}
+
+.midi-status-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.midi-status-badge.midi-disconnected {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.midi-status-badge.midi-connected {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.midi-status-badge.midi-learning {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.midi-device-count {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.midi-connect-btn {
+  font-size: 11px;
+  padding: 5px 10px;
+  gap: 5px;
+}
+
+/* 2. Ports Enumeration List */
+.midi-ports-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.midi-port-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  transition: all 0.15s ease;
+}
+
+.midi-port-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.midi-port-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+.midi-port-meta {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.midi-port-empty {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 12px 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+}
+
+/* 3. MIDI Learn Section */
+.midi-learn-box {
+  background: rgba(255, 92, 0, 0.05);
+  border: 1px solid rgba(255, 92, 0, 0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  transition: all 0.2s ease;
+}
+
+.midi-learn-box.active {
+  border-color: var(--primary);
+  box-shadow: 0 0 12px var(--primary-glow);
+  background: rgba(255, 92, 0, 0.08);
+}
+
+.midi-learn-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.midi-learn-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.midi-learn-badge {
+  font-size: 9px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.midi-learn-target-info {
+  font-size: 11px;
+  display: flex;
+  gap: 6px;
+  color: var(--text-muted);
+}
+
+.midi-learn-target {
+  font-weight: 600;
+  color: #fff;
+}
+
+.midi-learn-pulse {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(255, 92, 0, 0.12);
+}
+
+.midi-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 8px var(--primary-glow);
+  animation: midiPulse 1s infinite ease-in-out;
+  flex-shrink: 0;
+}
+
+.midi-pulse-text {
+  font-size: 11px;
+  color: #ffb088;
+  line-height: 1.3;
+}
+
+@keyframes midiPulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+.midi-learn-cancel-btn {
+  font-size: 10px;
+  padding: 4px 8px;
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  color: #f87171;
+}
+
+.midi-learn-cancel-btn:hover {
+  background: rgba(239, 68, 68, 0.35);
+}
+
+/* 4. Mappings Table */
+.midi-mappings-table {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.midi-mapping-row {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.midi-mapping-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.midi-mapping-row.learning {
+  border-color: var(--primary);
+  box-shadow: 0 0 8px var(--primary-glow);
+  background: rgba(255, 92, 0, 0.08);
+}
+
+.midi-mapping-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.midi-mapping-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.midi-target-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.midi-cc-badge {
+  font-size: 10px;
+  font-family: monospace;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: #a5b4fc;
+}
+
+.midi-mapping-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.midi-row-btn {
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.midi-row-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.midi-row-btn--learn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  box-shadow: 0 0 6px var(--primary-glow);
+}
+
+.midi-row-btn--clear:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  color: #f87171;
+}
+
+.midi-value-track {
+  width: 100%;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.midi-value-fill {
+  height: 100%;
+  background: var(--primary);
+  width: 0%;
+  transition: width 0.05s linear;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .midi-status-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .midi-connect-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .midi-mapping-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .midi-mapping-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+
 
