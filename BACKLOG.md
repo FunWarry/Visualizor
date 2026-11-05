@@ -109,4 +109,4 @@ Toutes les issues ci-dessous sont créées et suivies sur le dépôt GitHub [Fun
 - [x] [#42](https://github.com/FunWarry/Visualizor/issues/42) `feat(camera): Implement Camera & 3D Viewpoints drawer with orbit and cinematic angles`
 - [x] [#43](https://github.com/FunWarry/Visualizor/issues/43) `feat(overlay): Implement animated text and typography overlays ("T" rail icon)`
 - [x] [#44](https://github.com/FunWarry/Visualizor/issues/44) `feat(studio): Implement Studio Forge Recipe Builder and Engine Modes`
-- [ ] [#45](https://github.com/FunWarry/Visualizor/issues/45) `feat(midi): Implement Web MIDI API controller mapping`
+- [x] [#45](https://github.com/FunWarry/Visualizor/issues/45) `feat(midi): Implement Web MIDI API controller mapping`
