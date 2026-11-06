@@ -41,8 +41,8 @@ export class WaveFormPreset extends BasePreset {
 
   // Camera looking forward across the rolling wave horizon (identical to Visuval template)
   public override cameraConfig = {
-    position: [0, 6.2, 18.0] as [number, number, number],
-    target: [0, 1.8, -16.0] as [number, number, number],
+    position: [0, 5.2, 17.5] as [number, number, number],
+    target: [0, 0.2, -15.0] as [number, number, number],
     autoRotate: false,
     autoRotateSpeed: 0.0,
     bloomIntensity: 0.35
@@ -129,32 +129,32 @@ export class WaveFormPreset extends BasePreset {
     this.wireMaterial = new THREE.MeshStandardMaterial({
       color: new THREE.Color(ctx.theme.primary),
       emissive: new THREE.Color(ctx.theme.primary),
-      emissiveIntensity: 0.85,
+      emissiveIntensity: 1.15,
       wireframe: true,
       transparent: true,
-      opacity: 0.95,
+      opacity: 0.98,
       roughness: 0.1,
-      metalness: 0.35
+      metalness: 0.3
     });
     this.wireMesh = new THREE.Mesh(this.geometry, this.wireMaterial);
     this.wireMesh.rotation.x = -Math.PI / 2;
-    this.wireMesh.position.set(0, -1.5, -20);
+    this.wireMesh.position.set(0, -1.8, -20);
     this.group.add(this.wireMesh);
 
-    // 2. Translucent glowing depth underlayer
+    // 2. Translucent glowing depth underlayer (subtle so wireframe shines prominently)
     this.surfaceMaterial = new THREE.MeshStandardMaterial({
       color: new THREE.Color(ctx.theme.primary),
-      emissive: new THREE.Color(ctx.theme.secondary),
-      emissiveIntensity: 0.42,
-      roughness: 0.25,
-      metalness: 0.15,
+      emissive: new THREE.Color(ctx.theme.secondary || ctx.theme.primary),
+      emissiveIntensity: 0.18,
+      roughness: 0.5,
+      metalness: 0.1,
       transparent: true,
-      opacity: 0.70,
+      opacity: 0.35,
       side: THREE.DoubleSide
     });
     this.surfaceMesh = new THREE.Mesh(this.geometry, this.surfaceMaterial);
     this.surfaceMesh.rotation.x = -Math.PI / 2;
-    this.surfaceMesh.position.set(0, -1.52, -20);
+    this.surfaceMesh.position.set(0, -1.82, -20);
     this.group.add(this.surfaceMesh);
   }
 
@@ -235,11 +235,11 @@ export class WaveFormPreset extends BasePreset {
     this.stardustTexture ??= createStardustTexture();
 
     this.stardustMaterial = new THREE.PointsMaterial({
-      size: 0.35,
+      size: 0.55,
       map: this.stardustTexture,
       vertexColors: true,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.88,
       blending: THREE.AdditiveBlending,
       depthWrite: false
     });
@@ -292,15 +292,15 @@ export class WaveFormPreset extends BasePreset {
       const x = pos[i];
       const zLocal = pos[i + 1]; // PlaneGeometry local Y maps to world Z
 
-      // Large, rolling deep ocean swells (matching Visuval reference)
-      const swellZ = Math.sin(zLocal * 0.14 - timeSpeed) * (4.2 + audio.bass * 6.0 * reactivity);
-      const crossX = Math.cos(x * 0.18 + zLocal * 0.06 + time * 1.5 * speed) * (2.2 + audio.mid * 3.5 * reactivity);
+      // Gentle, rolling undulating wave hills (matching Image 2)
+      const swellZ = Math.sin(zLocal * 0.13 - timeSpeed) * (1.6 + audio.bass * 2.5 * reactivity);
+      const crossX = Math.cos(x * 0.16 + zLocal * 0.05 + time * 1.3 * speed) * (0.9 + audio.mid * 1.5 * reactivity);
 
       // Audio waveform ripple mapped across lateral coordinate
       const waveNorm = (x + 38) / 76;
       const waveIdx = Math.floor(Math.max(0, Math.min(1, waveNorm)) * audio.timeDomainData.length) % audio.timeDomainData.length;
       const waveVal = ((audio.timeDomainData[waveIdx] || 128) - 128) / 128.0;
-      const audioPulse = waveVal * (2.4 + audio.subBass * 4.5 * reactivity);
+      const audioPulse = waveVal * (0.8 + audio.subBass * 1.6 * reactivity);
 
       const elevation = (swellZ + crossX + audioPulse) * deformation;
       pos[i + 2] = elevation;
@@ -358,17 +358,23 @@ export class WaveFormPreset extends BasePreset {
     if (!this.stardustGeometry?.attributes?.position) return;
     const pos = this.stardustPositions;
     const safeDelta = Math.min(delta, 0.1);
-    const dropSpeed = (3.0 + audio.mid * 4.0) * speed;
+    const driftSpeed = (0.9 + audio.mid * 1.5) * speed;
 
     for (let i = 0; i < this.numStardust; i++) {
-      pos[i * 3 + 1] -= dropSpeed * safeDelta;
-      if (pos[i * 3 + 1] < 0.5) {
-        pos[i * 3 + 1] = 18.0 + Math.random() * 4.0;
+      pos[i * 3 + 1] -= driftSpeed * safeDelta;
+      pos[i * 3] += Math.sin(pos[i * 3 + 1] * 0.35 + i) * 0.02;
+      pos[i * 3 + 2] += (0.6 + audio.bass * 1.2) * safeDelta;
+
+      if (pos[i * 3 + 1] < 0.2 || pos[i * 3 + 2] > 20.0) {
+        pos[i * 3 + 1] = 16.0 + Math.random() * 5.0;
         pos[i * 3] = (Math.random() * 2 - 1) * 36;
-        pos[i * 3 + 2] = (Math.random() * 2 - 1) * 42 - 18;
+        pos[i * 3 + 2] = -35 + (Math.random() * 2 - 1) * 15;
       }
     }
     this.stardustGeometry.attributes.position.needsUpdate = true;
+    if (this.stardustMaterial) {
+      this.stardustMaterial.size = 0.52 + (audio.bass * 0.35);
+    }
   }
 
   public override onThemeChange(theme: VisualizerTheme): void {

@@ -69,6 +69,13 @@ export class CircularSpectrumPreset extends BasePreset {
   private glowTexture: THREE.DataTexture | null = null;
   private readonly numParticles = 14000;
 
+  // 3. Radial Frequency Equalizer Crown Bars (48 glowing 3D pillars in rear arc)
+  private crownMesh!: THREE.InstancedMesh;
+  private crownMaterial!: THREE.MeshStandardMaterial;
+  private readonly numCrownBars = 48;
+  private readonly dummyCrown = new THREE.Object3D();
+  private crownColors!: Float32Array;
+
   constructor() {
     super();
     this.paramStore = new ParameterStore([
@@ -193,6 +200,40 @@ export class CircularSpectrumPreset extends BasePreset {
 
     // 3. Volumetric Stardust Particle Accretion Disk (14,000 points)
     this.setupParticles(ctx);
+
+    // 4. Radial Frequency Equalizer Crown Bars (48 glowing 3D pillars in rear arc - matching Image 3)
+    this.setupCrownBars(ctx);
+  }
+
+  private setupCrownBars(ctx: PresetContext): void {
+    if (!this.ambientGroup) return;
+    const barGeom = new THREE.CylinderGeometry(0.045, 0.075, 1.0, 8);
+    this.crownMaterial = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      roughness: 0.2,
+      metalness: 0.8,
+      emissive: new THREE.Color(ctx.theme.primary),
+      emissiveIntensity: 0.85
+    });
+    this.crownMesh = new THREE.InstancedMesh(barGeom, this.crownMaterial, this.numCrownBars);
+    this.crownColors = new Float32Array(this.numCrownBars * 3);
+
+    const primaryColor = new THREE.Color(ctx.theme.primary);
+    const accentColor = new THREE.Color(ctx.theme.accent);
+    const highlightColor = new THREE.Color('#ffff88');
+
+    for (let i = 0; i < this.numCrownBars; i++) {
+      const t = i / (this.numCrownBars - 1);
+      const c = new THREE.Color();
+      if (t < 0.5) {
+        c.lerpColors(primaryColor, highlightColor, t / 0.5);
+      } else {
+        c.lerpColors(highlightColor, accentColor, (t - 0.5) / 0.5);
+      }
+      c.toArray(this.crownColors, i * 3);
+    }
+    this.crownMesh.instanceColor = new THREE.InstancedBufferAttribute(this.crownColors, 3);
+    this.ambientGroup.add(this.crownMesh);
   }
 
   private setupParticles(ctx: PresetContext): void {
@@ -339,6 +380,46 @@ export class CircularSpectrumPreset extends BasePreset {
     }
 
     this.updateParticles(audio, time, speed, reactivity, radiusMultiplier);
+    this.updateCrownBars(audio, reactivity, radiusMultiplier);
+  }
+
+  private updateCrownBars(audio: AudioFeatures, reactivity: number, radiusMultiplier: number): void {
+    if (!this.crownMesh) return;
+    const startAngle = -Math.PI * 0.15;
+    const endAngle = Math.PI * 1.15;
+    const baseRadius = 2.4 * radiusMultiplier;
+
+    for (let i = 0; i < this.numCrownBars; i++) {
+      const frac = i / (this.numCrownBars - 1);
+      const theta = startAngle + frac * (endAngle - startAngle);
+
+      // Bass is centered in the arc, higher frequencies taper to flanks
+      const distFromCenter = Math.abs(frac - 0.5) * 2.0;
+      const freqIdx = Math.floor((1.0 - distFromCenter * 0.65) * (audio.frequencyData.length * 0.35)) % audio.frequencyData.length;
+      const freqVal = (audio.frequencyData[freqIdx] || 0) / 255.0;
+
+      const barHeight = Math.max(0.2, (freqVal * 4.6 + audio.bass * 2.2) * reactivity);
+      const r = baseRadius + barHeight * 0.22;
+
+      const x = Math.cos(theta) * r;
+      const z = -Math.sin(theta) * r;
+      const y = barHeight / 2;
+
+      this.dummyCrown.position.set(x, y, z);
+      this.dummyCrown.scale.set(1.0 + audio.bass * 0.3, barHeight, 1.0 + audio.bass * 0.3);
+      this.dummyCrown.updateMatrix();
+
+      this.crownMesh.setMatrixAt(i, this.dummyCrown.matrix);
+    }
+    this.crownMesh.instanceMatrix.needsUpdate = true;
+
+    if (this.crownMaterial) {
+      if (audio.beat) {
+        this.crownMaterial.emissiveIntensity = 1.4 * reactivity;
+      } else {
+        this.crownMaterial.emissiveIntensity = Math.max(0.7, this.crownMaterial.emissiveIntensity * 0.94);
+      }
+    }
   }
 
   private updateParticles(
@@ -398,8 +479,29 @@ export class CircularSpectrumPreset extends BasePreset {
       this.wireMaterial.color.copy(accent);
     }
 
+    this.updateCrownThemeColors(primary, accent);
+
     for (let i = 0; i < this.orbitalRingMaterials.length; i++) {
       this.orbitalRingMaterials[i].color.copy(i % 2 === 0 ? primary : accent);
+    }
+  }
+
+  private updateCrownThemeColors(primary: THREE.Color, accent: THREE.Color): void {
+    if (!this.crownMaterial) return;
+    this.crownMaterial.emissive.copy(primary);
+    const highlightColor = new THREE.Color('#ffff88');
+    for (let i = 0; i < this.numCrownBars; i++) {
+      const t = i / (this.numCrownBars - 1);
+      const c = new THREE.Color();
+      if (t < 0.5) {
+        c.lerpColors(primary, highlightColor, t / 0.5);
+      } else {
+        c.lerpColors(highlightColor, accent, (t - 0.5) / 0.5);
+      }
+      c.toArray(this.crownColors, i * 3);
+    }
+    if (this.crownMesh?.instanceColor) {
+      this.crownMesh.instanceColor.needsUpdate = true;
     }
   }
 
