@@ -8,6 +8,12 @@ export class ParticleFieldPreset extends BasePreset {
   public override readonly name = 'Particles';
   public override readonly category = 'Particles & Light' as const;
   public override readonly description = 'Cosmic particle field expanding, swirling and reacting to audio energy.';
+  public override cameraConfig = {
+    position: [0, 0, 14] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: true,
+    autoRotateSpeed: 0.3
+  };
 
   private points!: THREE.Points;
   private geometry!: THREE.BufferGeometry;
@@ -55,7 +61,8 @@ export class ParticleFieldPreset extends BasePreset {
       size: this.paramStore.getValue('particleScale'),
       transparent: true,
       opacity: 0.85,
-      blending: THREE.AdditiveBlending
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
 
     this.points = new THREE.Points(this.geometry, this.material);

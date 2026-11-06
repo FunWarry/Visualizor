@@ -8,6 +8,11 @@ export class VeinTunnelPreset extends BasePreset {
   public override readonly name = 'Vein Tunnel';
   public override readonly category = 'Tunnels' as const;
   public override readonly description = 'Vascular cylinder lined with neon blood capillary contractions.';
+  public override cameraConfig = {
+    position: [0, 0, 3] as [number, number, number],
+    target: [0, 0, -50] as [number, number, number],
+    autoRotate: false
+  };
 
   private mesh!: THREE.Mesh;
   private material!: THREE.ShaderMaterial;

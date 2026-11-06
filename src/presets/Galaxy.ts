@@ -8,6 +8,12 @@ export class GalaxyPreset extends BasePreset {
   public override readonly name = 'Galaxy';
   public override readonly category = 'Abstract & Space' as const;
   public override readonly description = 'Instanced billboard spiral galaxies in deep space warp flight.';
+  public override cameraConfig = {
+    position: [0, 9, 14] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: true,
+    autoRotateSpeed: 0.25
+  };
 
   private galaxyPoints!: THREE.Points;
   private coreMesh!: THREE.Mesh;
@@ -62,7 +68,8 @@ export class GalaxyPreset extends BasePreset {
       vertexColors: true,
       transparent: true,
       opacity: 0.85,
-      blending: THREE.AdditiveBlending
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
 
     this.galaxyPoints = new THREE.Points(geometry, this.particleMaterial);
@@ -79,19 +86,18 @@ export class GalaxyPreset extends BasePreset {
     this.coreMesh = new THREE.Mesh(coreGeom, this.coreMaterial);
     this.group.add(this.coreMesh);
 
-    this.group.rotation.x = 0.8;
+    this.group.rotation.set(0, 0, 0);
   }
 
-  public update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number): void {
+  public update(_ctx: PresetContext, audio: AudioFeatures, _time: number, delta: number): void {
     const speed = this.paramStore.getValue('speed');
     const reactivity = this.paramStore.getValue('reactivity');
 
     this.galaxyPoints.rotation.y += delta * 0.25 * speed;
+    this.group.rotation.y += delta * 0.05 * speed;
 
     const corePulse = 1.0 + (audio.bass * 0.4 + audio.beatEnergy * 0.6) * reactivity;
     this.coreMesh.scale.set(corePulse, corePulse, corePulse);
-
-    this.group.rotation.z = Math.sin(time * 0.2 * speed) * 0.15;
 
     if (audio.beat) {
       this.particleMaterial.size = 0.22;

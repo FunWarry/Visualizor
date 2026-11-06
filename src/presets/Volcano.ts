@@ -8,6 +8,11 @@ export class VolcanoPreset extends BasePreset {
   public override readonly name = 'Volcano';
   public override readonly category = 'Organic & Nature' as const;
   public override readonly description = '3D caldera cone mountain erupting molten magma particles.';
+  public override cameraConfig = {
+    position: [0, 0, 10] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private mountainMesh!: THREE.Mesh;
   private magmaLake!: THREE.Mesh;
@@ -34,7 +39,7 @@ export class VolcanoPreset extends BasePreset {
     // 1. Volcano Mountain Cone
     const mountainGeom = new THREE.CylinderGeometry(1.2, 5.0, 3.5, 32, 8, true);
     this.mountainMaterial = new THREE.MeshStandardMaterial({
-      color: 0x1a1818,
+      color: new THREE.Color(ctx.theme.background).offsetHSL(0, 0, 0.06),
       roughness: 0.95,
       metalness: 0.1
     });
@@ -68,7 +73,8 @@ export class VolcanoPreset extends BasePreset {
       size: 0.16,
       transparent: true,
       opacity: 0.9,
-      blending: THREE.AdditiveBlending
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
     this.lavaSparks = new THREE.Points(sparkGeom, this.sparkMaterial);
     this.group.add(this.lavaSparks);

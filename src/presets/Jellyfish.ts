@@ -8,6 +8,12 @@ export class JellyfishPreset extends BasePreset {
   public override readonly name = 'Jellyfish';
   public override readonly category = 'Organic & Nature' as const;
   public override readonly description = 'Translucent bioluminescent jellyfish dome with trailing tentacles.';
+  public override cameraConfig = {
+    position: [0, 1, 10] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: true,
+    autoRotateSpeed: 0.25
+  };
 
   private bellMesh!: THREE.Mesh;
   private readonly tentacles: THREE.Line[] = [];
@@ -49,7 +55,9 @@ export class JellyfishPreset extends BasePreset {
     this.tentacleMaterial = new THREE.LineBasicMaterial({
       color: new THREE.Color(ctx.theme.accent),
       transparent: true,
-      opacity: 0.7
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
 
     for (let t = 0; t < this.tentacleCount; t++) {

@@ -6,6 +6,12 @@ export class AuroraMandalaPreset implements VisualizerPreset {
   name = 'Aurora Mandala';
   category = 'Abstract & Space' as const;
   description = 'Ethereal undulating aurora borealis curtains intersecting sacred geometry mandalas.';
+  cameraConfig = {
+    position: [0, 2, 10] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: true,
+    autoRotateSpeed: 0.25
+  };
 
   private group!: THREE.Group;
   private auroraMesh!: THREE.Mesh;

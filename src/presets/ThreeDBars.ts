@@ -8,6 +8,12 @@ export class ThreeDBarsPreset extends BasePreset {
   public override readonly name = '3D Bars';
   public override readonly category = 'Structures' as const;
   public override readonly description = 'Matrix grid of 3D column prisms jumping to frequency spectrum.';
+  public override cameraConfig = {
+    position: [12, 10, 12] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: true,
+    autoRotateSpeed: 0.3
+  };
 
   private instancedMesh!: THREE.InstancedMesh;
   private readonly dummy = new THREE.Object3D();

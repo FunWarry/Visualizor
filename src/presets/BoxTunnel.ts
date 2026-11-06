@@ -8,6 +8,11 @@ export class BoxTunnelPreset extends BasePreset {
   public override readonly name = 'Box Tunnel';
   public override readonly category = 'Tunnels' as const;
   public override readonly description = '36 square wireframe gate frames rushing forward along z-axis.';
+  public override cameraConfig = {
+    position: [0, 0, 4] as [number, number, number],
+    target: [0, 0, -50] as [number, number, number],
+    autoRotate: false
+  };
 
   private readonly frames: THREE.LineSegments[] = [];
   private readonly numFrames = 36;
@@ -49,7 +54,9 @@ export class BoxTunnelPreset extends BasePreset {
         color,
         linewidth: 2,
         transparent: true,
-        opacity: 0.85
+        opacity: 0.9,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
       });
       this.materials.push(mat);
 

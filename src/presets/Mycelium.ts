@@ -8,6 +8,11 @@ export class MyceliumPreset extends BasePreset {
   public override readonly name = 'Mycelium';
   public override readonly category = 'Organic & Nature' as const;
   public override readonly description = 'Branching fungal hyphae network with bioluminescent pulses.';
+  public override cameraConfig = {
+    position: [0, 0, 10] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private hyphaeLines!: THREE.LineSegments;
   private nodePoints!: THREE.Points;
@@ -53,7 +58,9 @@ export class MyceliumPreset extends BasePreset {
     this.lineMaterial = new THREE.LineBasicMaterial({
       color: new THREE.Color(ctx.theme.primary),
       transparent: true,
-      opacity: 0.7
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
     this.hyphaeLines = new THREE.LineSegments(lineGeom, this.lineMaterial);
     this.group.add(this.hyphaeLines);
@@ -65,7 +72,8 @@ export class MyceliumPreset extends BasePreset {
       size: 0.22,
       transparent: true,
       opacity: 0.9,
-      blending: THREE.AdditiveBlending
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
     this.nodePoints = new THREE.Points(nodeGeom, this.nodeMaterial);
     this.group.add(this.nodePoints);

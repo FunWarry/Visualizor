@@ -8,6 +8,11 @@ export class NightRadarPreset extends BasePreset {
   public override readonly name = 'Night Radar';
   public override readonly category = 'Retro & Digital' as const;
   public override readonly description = 'Circular cold phosphor CRT scope with rotating sweep arm and decaying target blips.';
+  public override cameraConfig = {
+    position: [0, 0, 11] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private radarScope!: THREE.Mesh;
   private sweepLine!: THREE.Line;

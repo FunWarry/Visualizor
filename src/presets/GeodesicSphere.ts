@@ -8,6 +8,12 @@ export class GeodesicSpherePreset extends BasePreset {
   public override readonly name = 'Geodesic';
   public override readonly category = 'Structures' as const;
   public override readonly description = 'Tessellated geodesic frequency sphere pulsing across faces.';
+  public override cameraConfig = {
+    position: [0, 0, 9] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: true,
+    autoRotateSpeed: 0.35
+  };
 
   private mesh!: THREE.Mesh;
   private wireframe!: THREE.LineSegments;

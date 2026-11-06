@@ -8,6 +8,11 @@ export class InkDiffusionPreset extends BasePreset {
   public override readonly name = 'Ink';
   public override readonly category = 'Organic & Nature' as const;
   public override readonly description = 'Rayleigh-Taylor fluid ink droplet diffusion plumes in water.';
+  public override cameraConfig = {
+    position: [0, 0, 10] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private inkParticles!: THREE.Points;
   private inkMaterial!: THREE.PointsMaterial;
@@ -47,7 +52,8 @@ export class InkDiffusionPreset extends BasePreset {
       size: 0.3,
       transparent: true,
       opacity: 0.7,
-      blending: THREE.AdditiveBlending
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
 
     this.inkParticles = new THREE.Points(inkGeom, this.inkMaterial);

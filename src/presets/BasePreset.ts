@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme, ParameterDefinition } from '../types';
+import { VisualizerPreset, PresetContext, AudioFeatures, VisualizerTheme, ParameterDefinition, PresetCameraConfig } from '../types';
 import { ParameterStore } from '../tuning/ParameterStore';
 
 export abstract class BasePreset implements VisualizerPreset {
@@ -7,6 +7,7 @@ export abstract class BasePreset implements VisualizerPreset {
   public abstract readonly name: string;
   public abstract readonly category: VisualizerPreset['category'];
   public abstract readonly description: string;
+  public cameraConfig?: PresetCameraConfig;
 
   protected group: THREE.Group = new THREE.Group();
   protected paramStore: ParameterStore = new ParameterStore([

@@ -8,6 +8,11 @@ export class DiodeWallPreset extends BasePreset {
   public override readonly name = 'Diode Wall';
   public override readonly category = 'Retro & Digital' as const;
   public override readonly description = '32x24 club LED matrix equalizer with peak hold.';
+  public override cameraConfig = {
+    position: [0, 0, 14] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private instancedMesh!: THREE.InstancedMesh;
   private readonly dummy = new THREE.Object3D();
@@ -60,7 +65,7 @@ export class DiodeWallPreset extends BasePreset {
     let idx = 0;
     const primary = new THREE.Color(ctx.theme.primary);
     const accent = new THREE.Color(ctx.theme.accent);
-    const dark = new THREE.Color(0x111115);
+    const dark = new THREE.Color(ctx.theme.background).offsetHSL(0, 0, 0.08);
 
     for (let c = 0; c < this.cols; c++) {
       const freqIdx = Math.floor((c / this.cols) * (audio.frequencyData.length * 0.35));

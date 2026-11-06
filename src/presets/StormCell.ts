@@ -8,6 +8,11 @@ export class StormCellPreset extends BasePreset {
   public override readonly name = 'Storm Cell';
   public override readonly category = 'Organic & Nature' as const;
   public override readonly description = 'Rotating supercell anvil cloud with intra-cloud lightning.';
+  public override cameraConfig = {
+    position: [0, 0, 9] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private cloudVortex!: THREE.Mesh;
   private lightningLines!: THREE.LineSegments;
@@ -81,7 +86,9 @@ export class StormCellPreset extends BasePreset {
       color: 0xffffff,
       linewidth: 3,
       transparent: true,
-      opacity: 0
+      opacity: 0,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
     this.lightningLines = new THREE.LineSegments(this.lightningGeom, this.lightningMaterial);
     this.group.add(this.lightningLines);

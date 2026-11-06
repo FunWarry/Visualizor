@@ -8,6 +8,12 @@ export class TopoMapPreset extends BasePreset {
   public override readonly name = 'Topo Map';
   public override readonly category = 'Structures' as const;
   public override readonly description = 'Stepped 3D contour elevation map with glowing isoline bands.';
+  public override cameraConfig = {
+    position: [0, 10, 18] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: true,
+    autoRotateSpeed: 0.3
+  };
 
   private terrainMesh!: THREE.Mesh;
   private material!: THREE.ShaderMaterial;
@@ -26,7 +32,7 @@ export class TopoMapPreset extends BasePreset {
     const gridRes = 80;
     const size = 18;
     const geometry = new THREE.PlaneGeometry(size, size, gridRes, gridRes);
-    geometry.rotateX(-Math.PI / 2.3);
+    geometry.rotateX(-Math.PI / 2);
 
     const pos = geometry.attributes.position.array as Float32Array;
     this.basePositions = new Float32Array(pos);
@@ -75,7 +81,7 @@ export class TopoMapPreset extends BasePreset {
     const bands = this.paramStore.getValue('density');
 
     this.material.uniforms.uBands.value = bands;
-    this.group.rotation.z += delta * 0.06 * speed;
+    this.group.rotation.y += delta * 0.08 * speed;
 
     const pos = (this.terrainMesh.geometry as THREE.BufferGeometry).attributes.position.array as Float32Array;
     const bassElevation = (audio.bass * 2.2 + audio.beatEnergy * 1.5) * reactivity;

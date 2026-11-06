@@ -8,6 +8,11 @@ export class LightningPreset extends BasePreset {
   public override readonly name = 'Lightning';
   public override readonly category = 'Particles & Light' as const;
   public override readonly description = 'Fractal high-voltage electric arc network discharging on beats.';
+  public override cameraConfig = {
+    position: [0, 0, 10] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private readonly boltLines: THREE.Line[] = [];
   private readonly boltGeometries: THREE.BufferGeometry[] = [];
@@ -40,7 +45,8 @@ export class LightningPreset extends BasePreset {
         linewidth: 2,
         transparent: true,
         opacity: 0.9,
-        blending: THREE.AdditiveBlending
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
       });
       this.boltMaterials.push(mat);
 

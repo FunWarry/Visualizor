@@ -6,6 +6,11 @@ export class FogRipplesPreset implements VisualizerPreset {
   name = 'Fog & Rain Ripples';
   category = 'Fluids & Heat' as const;
   description = 'Volumetric smoke fog wisps drifting over audio-reactive concentric water ripples.';
+  cameraConfig = {
+    position: [0, 6, 12] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private group!: THREE.Group;
   private waterPlane!: THREE.Mesh;

@@ -8,6 +8,11 @@ export class VodLinesPreset extends BasePreset {
   public override readonly name = 'Vod Lines';
   public override readonly category = 'Retro & Digital' as const;
   public override readonly description = 'Retro music tracker channel oscilloscope display lines.';
+  public override cameraConfig = {
+    position: [0, 0, 11] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private readonly channels: THREE.Line[] = [];
   private readonly numChannels = 4;
@@ -31,7 +36,7 @@ export class VodLinesPreset extends BasePreset {
       new THREE.Color(ctx.theme.primary),
       new THREE.Color(ctx.theme.accent),
       new THREE.Color(ctx.theme.secondary),
-      new THREE.Color(0x00ff88)
+      new THREE.Color(ctx.theme.glow)
     ];
 
     for (let c = 0; c < this.numChannels; c++) {
@@ -50,7 +55,9 @@ export class VodLinesPreset extends BasePreset {
         color: colors[c % colors.length],
         linewidth: 2,
         transparent: true,
-        opacity: 0.9
+        opacity: 0.95,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
       });
       this.channelMaterials.push(mat);
 
@@ -88,7 +95,7 @@ export class VodLinesPreset extends BasePreset {
       new THREE.Color(theme.primary),
       new THREE.Color(theme.accent),
       new THREE.Color(theme.secondary),
-      new THREE.Color(0x00ff88)
+      new THREE.Color(theme.glow)
     ];
     for (let c = 0; c < this.numChannels; c++) {
       this.channelMaterials[c].color.copy(colors[c % colors.length]);

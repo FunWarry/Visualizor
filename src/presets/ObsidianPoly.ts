@@ -8,6 +8,12 @@ export class ObsidianPolyPreset extends BasePreset {
   public override readonly name = 'Obsidian';
   public override readonly category = 'Structures' as const;
   public override readonly description = 'Dark glossy multifaceted polyhedron deforming dynamically.';
+  public override cameraConfig = {
+    position: [0, 0, 8.5] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false,
+    autoRotateSpeed: 0.12
+  };
 
   private mesh!: THREE.Mesh;
   private wireframe!: THREE.LineSegments;
@@ -31,7 +37,7 @@ export class ObsidianPolyPreset extends BasePreset {
     this.basePositions = new Float32Array(pos);
 
     this.material = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color(0x0a0a10),
+      color: new THREE.Color(ctx.theme.background).offsetHSL(0, 0, 0.05),
       emissive: new THREE.Color(ctx.theme.primary),
       emissiveIntensity: 0.2,
       roughness: 0.1,

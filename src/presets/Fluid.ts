@@ -8,6 +8,11 @@ export class FluidPreset extends BasePreset {
   public override readonly name = 'Fluid';
   public override readonly category = 'Fluids & Heat' as const;
   public override readonly description = '3D glass tank side view with audio sloshing waves & bubbles.';
+  public override cameraConfig = {
+    position: [0, 0, 11] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private tankFrame!: THREE.LineSegments;
   private waterSurface!: THREE.Mesh;
@@ -101,7 +106,8 @@ export class FluidPreset extends BasePreset {
       size: 0.14,
       transparent: true,
       opacity: 0.85,
-      blending: THREE.AdditiveBlending
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
     this.bubblePoints = new THREE.Points(bubbleGeom, this.bubbleMaterial);
     this.group.add(this.bubblePoints);

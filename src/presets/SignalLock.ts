@@ -8,6 +8,12 @@ export class SignalLockPreset extends BasePreset {
   public override readonly name = 'Signal Lock';
   public override readonly category = 'Retro & Digital' as const;
   public override readonly description = 'Overnight broadcast TV test card with sync loss & Lissajous.';
+  public override cameraConfig = {
+    position: [0, 0, 11] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false,
+    bloomIntensity: 0.0
+  };
 
   private testCardMesh!: THREE.Mesh;
   private lissajousLine!: THREE.Line;
@@ -92,10 +98,12 @@ export class SignalLockPreset extends BasePreset {
     lissGeom.setAttribute('position', new THREE.BufferAttribute(pos, 3));
 
     this.lissajousMaterial = new THREE.LineBasicMaterial({
-      color: new THREE.Color(0x00ffcc),
+      color: new THREE.Color(ctx.theme.glow),
       linewidth: 3,
       transparent: true,
-      opacity: 0.95
+      opacity: 0.95,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
     this.lissajousLine = new THREE.Line(lissGeom, this.lissajousMaterial);
     this.lissajousLine.position.z = 0.1;
@@ -128,6 +136,6 @@ export class SignalLockPreset extends BasePreset {
   public override onThemeChange(theme: VisualizerTheme): void {
     this.cardMaterial.uniforms.uPrimary.value.set(theme.primary);
     this.cardMaterial.uniforms.uAccent.value.set(theme.accent);
-    this.lissajousMaterial.color.set(theme.accent);
+    this.lissajousMaterial.color.set(theme.glow);
   }
 }

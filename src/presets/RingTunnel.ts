@@ -8,6 +8,11 @@ export class RingTunnelPreset extends BasePreset {
   public override readonly name = 'Ring Tunnel';
   public override readonly category = 'Tunnels' as const;
   public override readonly description = '48 concentric circular torus rings extending into depth fog.';
+  public override cameraConfig = {
+    position: [0, 0, 3] as [number, number, number],
+    target: [0, 0, -40] as [number, number, number],
+    autoRotate: false
+  };
 
   private readonly rings: THREE.Mesh[] = [];
   private readonly numRings = 48;

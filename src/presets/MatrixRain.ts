@@ -8,6 +8,11 @@ export class MatrixRainPreset extends BasePreset {
   public override readonly name = 'Matrix';
   public override readonly category = 'Retro & Digital' as const;
   public override readonly description = 'Cascading green neural code glyph columns.';
+  public override cameraConfig = {
+    position: [0, 0, 12] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private instancedMesh!: THREE.InstancedMesh;
   private readonly dummy = new THREE.Object3D();
@@ -30,7 +35,9 @@ export class MatrixRainPreset extends BasePreset {
     const material = new THREE.MeshBasicMaterial({
       color: new THREE.Color(ctx.theme.primary),
       transparent: true,
-      opacity: 0.85
+      opacity: 0.9,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
 
     this.instancedMesh = new THREE.InstancedMesh(geometry, material, this.count);

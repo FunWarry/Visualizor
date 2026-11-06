@@ -8,6 +8,11 @@ export class KaleidoscopeMandalaPreset extends BasePreset {
   public override readonly name = 'Kaleidoscope';
   public override readonly category = 'Tunnels' as const;
   public override readonly description = 'N-fold kaleidoscopic mirror symmetry mandala reflections.';
+  public override cameraConfig = {
+    position: [0, 0, 8.5] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private readonly rings: THREE.LineSegments[] = [];
   private readonly numArms = 8;
@@ -59,7 +64,9 @@ export class KaleidoscopeMandalaPreset extends BasePreset {
         color,
         linewidth: 2,
         transparent: true,
-        opacity: 0.85
+        opacity: 0.9,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
       });
       this.materials.push(mat);
 

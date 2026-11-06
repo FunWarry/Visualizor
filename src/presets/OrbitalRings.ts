@@ -8,6 +8,12 @@ export class OrbitalRingsPreset extends BasePreset {
   public override readonly name = 'Rings';
   public override readonly category = 'Structures' as const;
   public override readonly description = 'Multi-axis concentric nested torus rings orbiting central nucleus.';
+  public override cameraConfig = {
+    position: [0, 3, 11] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: true,
+    autoRotateSpeed: 0.35
+  };
 
   private readonly rings: THREE.Mesh[] = [];
   private coreMesh!: THREE.Mesh;

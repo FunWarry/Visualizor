@@ -8,6 +8,12 @@ export class RainRoomPreset extends BasePreset {
   public override readonly name = 'Rain Room';
   public override readonly category = 'Organic & Nature' as const;
   public override readonly description = '5k vertical rain streaks in dark spotlight cone with splashes.';
+  public override cameraConfig = {
+    position: [0, 1.5, 10] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false,
+    bloomIntensity: 0.42
+  };
 
   private rainLines!: THREE.LineSegments;
   private splashPoints!: THREE.Points;
@@ -54,7 +60,9 @@ export class RainRoomPreset extends BasePreset {
     this.rainMaterial = new THREE.LineBasicMaterial({
       color: new THREE.Color(ctx.theme.accent),
       transparent: true,
-      opacity: 0.65
+      opacity: 0.8,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
     this.rainLines = new THREE.LineSegments(rainGeom, this.rainMaterial);
     this.group.add(this.rainLines);
@@ -73,8 +81,9 @@ export class RainRoomPreset extends BasePreset {
       color: new THREE.Color(ctx.theme.primary),
       size: 0.15,
       transparent: true,
-      opacity: 0.7,
-      blending: THREE.AdditiveBlending
+      opacity: 0.8,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
     this.splashPoints = new THREE.Points(splashGeom, this.splashMaterial);
     this.group.add(this.splashPoints);

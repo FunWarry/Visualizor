@@ -8,6 +8,11 @@ export class PlasmaPreset extends BasePreset {
   public override readonly name = 'Plasma';
   public override readonly category = 'Fluids & Heat' as const;
   public override readonly description = 'Luminescent ionized gas cloud with high-voltage filaments.';
+  public override cameraConfig = {
+    position: [0, 0, 9] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private torusMesh!: THREE.Mesh;
   private filaments!: THREE.LineSegments;
@@ -86,7 +91,9 @@ export class PlasmaPreset extends BasePreset {
     this.filamentMaterial = new THREE.LineBasicMaterial({
       color: new THREE.Color(ctx.theme.accent),
       transparent: true,
-      opacity: 0.8
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
     this.filaments = new THREE.LineSegments(filGeom, this.filamentMaterial);
     this.group.add(this.filaments);

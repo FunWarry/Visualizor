@@ -8,6 +8,11 @@ export class HaloPreset extends BasePreset {
   public override readonly name = 'Halo';
   public override readonly category = 'Abstract & Space' as const;
   public override readonly description = 'Multi-layered blooming corona light disc with harmonic petals.';
+  public override cameraConfig = {
+    position: [0, 0, 10] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private discMesh!: THREE.Mesh;
   private material!: THREE.ShaderMaterial;

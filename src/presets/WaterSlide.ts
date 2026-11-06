@@ -8,6 +8,11 @@ export class WaterSlidePreset extends BasePreset {
   public override readonly name = 'Water Slide';
   public override readonly category = 'Tunnels' as const;
   public override readonly description = '3D serpentine water tube corridor with camera spline tracking.';
+  public override cameraConfig = {
+    position: [0, 0, 3] as [number, number, number],
+    target: [0, 0, -50] as [number, number, number],
+    autoRotate: false
+  };
 
   private mesh!: THREE.Mesh;
   private material!: THREE.ShaderMaterial;

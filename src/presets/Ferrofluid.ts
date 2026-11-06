@@ -8,6 +8,12 @@ export class FerrofluidPreset extends BasePreset {
   public override readonly name = 'Ferrofluid';
   public override readonly category = 'Structures' as const;
   public override readonly description = 'Liquid magnetic sphere erupting spikes on bass kick transients.';
+  public override cameraConfig = {
+    position: [0, 0, 8.5] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: true,
+    autoRotateSpeed: 0.25
+  };
 
   private mesh!: THREE.Mesh;
   private geometry!: THREE.SphereGeometry;
@@ -41,7 +47,7 @@ export class FerrofluidPreset extends BasePreset {
     }
 
     this.material = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color(0x050508),
+      color: new THREE.Color(ctx.theme.background).offsetHSL(0, 0, 0.04),
       emissive: new THREE.Color(ctx.theme.primary),
       emissiveIntensity: 0.25,
       roughness: 0.08,

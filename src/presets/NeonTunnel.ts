@@ -8,6 +8,11 @@ export class NeonTunnelPreset extends BasePreset {
   public override readonly name = 'Neon Tunnel';
   public override readonly category = 'Tunnels' as const;
   public override readonly description = 'Hexagonal neon corridor with strobing light strip battens.';
+  public override cameraConfig = {
+    position: [0, 0, 4] as [number, number, number],
+    target: [0, 0, -50] as [number, number, number],
+    autoRotate: false
+  };
 
   private readonly rings: THREE.LineSegments[] = [];
   private readonly numRings = 40;
@@ -54,7 +59,9 @@ export class NeonTunnelPreset extends BasePreset {
         color,
         linewidth: 2,
         transparent: true,
-        opacity: 0.8
+        opacity: 0.9,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
       });
       this.materials.push(mat);
 

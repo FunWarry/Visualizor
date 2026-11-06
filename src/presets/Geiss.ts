@@ -8,6 +8,11 @@ export class GeissPreset extends BasePreset {
   public override readonly name = 'Geiss';
   public override readonly category = 'Abstract & Space' as const;
   public override readonly description = 'Icy feedback vortices with cyan tint and rotational drift.';
+  public override cameraConfig = {
+    position: [0, 0, 10] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private mesh!: THREE.Mesh;
   private material!: THREE.ShaderMaterial;

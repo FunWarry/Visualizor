@@ -8,6 +8,12 @@ export class BloomFlowerPreset extends BasePreset {
   public override readonly name = 'Bloom';
   public override readonly category = 'Organic & Nature' as const;
   public override readonly description = 'Watercolor phyllotaxis flower petals opening and closing.';
+  public override cameraConfig = {
+    position: [0, 6, 11] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: true,
+    autoRotateSpeed: 0.3
+  };
 
   private readonly petals: THREE.Mesh[] = [];
   private petalMaterial!: THREE.MeshStandardMaterial;
@@ -25,12 +31,11 @@ export class BloomFlowerPreset extends BasePreset {
   protected setup(ctx: PresetContext): void {
     this.petals.length = 0;
     this.petalBaseRotations.length = 0;
-    this.group.rotation.x = Math.PI / 3.0;
+    this.group.rotation.set(0, 0, 0);
 
     const petalCount = Math.floor(this.paramStore.getValue('density'));
     const goldenAngle = 137.5 * (Math.PI / 180);
     const petalGeom = new THREE.ConeGeometry(0.5, 2.2, 5);
-    petalGeom.rotateX(Math.PI / 2);
 
     this.petalMaterial = new THREE.MeshStandardMaterial({
       color: new THREE.Color(ctx.theme.primary),
@@ -45,11 +50,11 @@ export class BloomFlowerPreset extends BasePreset {
       const theta = i * goldenAngle;
 
       const petal = new THREE.Mesh(petalGeom, this.petalMaterial);
-      petal.position.set(Math.cos(theta) * radius, Math.sin(theta) * radius, (i / petalCount) * 0.5);
+      petal.position.set(Math.cos(theta) * radius, (i / petalCount) * 0.4, Math.sin(theta) * radius);
 
       const openAngle = 0.4 + (i / petalCount) * 0.8;
-      petal.rotation.z = theta;
-      petal.rotation.x = openAngle;
+      petal.rotation.y = theta;
+      petal.rotation.z = openAngle;
       this.petalBaseRotations.push(openAngle);
 
       this.petals.push(petal);
@@ -61,11 +66,11 @@ export class BloomFlowerPreset extends BasePreset {
     const speed = this.paramStore.getValue('speed');
     const reactivity = this.paramStore.getValue('reactivity');
 
-    this.group.rotation.z += delta * 0.18 * speed;
+    this.group.rotation.y += delta * 0.18 * speed;
 
     const openMod = (audio.bass * 0.5 + audio.beatEnergy * 0.4) * reactivity;
     for (let i = 0; i < this.petals.length; i++) {
-      this.petals[i].rotation.x = this.petalBaseRotations[i] + openMod;
+      this.petals[i].rotation.z = this.petalBaseRotations[i] + openMod;
     }
 
     if (audio.beat) {

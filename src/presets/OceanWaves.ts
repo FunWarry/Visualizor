@@ -8,6 +8,11 @@ export class OceanWavesPreset extends BasePreset {
   public override readonly name = 'Ocean';
   public override readonly category = 'Organic & Nature' as const;
   public override readonly description = 'High-res Gerstner ocean waves with sea foam crests.';
+  public override cameraConfig = {
+    position: [0, 6, 14] as [number, number, number],
+    target: [0, 0, -10] as [number, number, number],
+    autoRotate: false
+  };
 
   private oceanMesh!: THREE.Mesh;
   private oceanMaterial!: THREE.ShaderMaterial;

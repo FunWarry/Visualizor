@@ -8,6 +8,11 @@ export class StarfieldPreset extends BasePreset {
   public override readonly name = 'Starfield';
   public override readonly category = 'Abstract & Space' as const;
   public override readonly description = 'Warp-speed cosmic starfield accelerating on kick beats.';
+  public override cameraConfig = {
+    position: [0, 0, 5] as [number, number, number],
+    target: [0, 0, -50] as [number, number, number],
+    autoRotate: false
+  };
 
   private points!: THREE.Points;
   private geometry!: THREE.BufferGeometry;
@@ -44,7 +49,8 @@ export class StarfieldPreset extends BasePreset {
       size: this.paramStore.getValue('starSize'),
       transparent: true,
       opacity: 0.9,
-      blending: THREE.AdditiveBlending
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
 
     this.points = new THREE.Points(this.geometry, this.material);

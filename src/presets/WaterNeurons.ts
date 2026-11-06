@@ -8,6 +8,11 @@ export class WaterNeuronsPreset extends BasePreset {
   public override readonly name = 'Water Neurons';
   public override readonly category = 'Fluids & Heat' as const;
   public override readonly description = 'Synaptic neural dendrite axon network with action pulses.';
+  public override cameraConfig = {
+    position: [0, 0, 10] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private coreMesh!: THREE.Mesh;
   private neuronLines!: THREE.LineSegments;
@@ -80,7 +85,9 @@ export class WaterNeuronsPreset extends BasePreset {
     this.lineMaterial = new THREE.LineBasicMaterial({
       color: new THREE.Color(ctx.theme.accent),
       transparent: true,
-      opacity: 0.85
+      opacity: 0.9,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
     this.neuronLines = new THREE.LineSegments(lineGeom, this.lineMaterial);
     this.group.add(this.neuronLines);
@@ -92,8 +99,9 @@ export class WaterNeuronsPreset extends BasePreset {
       color: new THREE.Color(ctx.theme.primary),
       size: 0.25,
       transparent: true,
-      opacity: 0.9,
-      blending: THREE.AdditiveBlending
+      opacity: 0.95,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
     this.synNodePoints = new THREE.Points(nodeGeom, this.synNodeMaterial);
     this.group.add(this.synNodePoints);
@@ -104,7 +112,6 @@ export class WaterNeuronsPreset extends BasePreset {
     const reactivity = this.paramStore.getValue('reactivity');
 
     this.group.rotation.y += delta * 0.2 * speed;
-    this.group.rotation.z += delta * 0.12 * speed;
 
     const scale = 1.0 + (audio.bass * 0.45 + (audio.beat ? 0.35 : 0)) * reactivity;
     this.coreMesh.scale.set(scale, scale, scale);

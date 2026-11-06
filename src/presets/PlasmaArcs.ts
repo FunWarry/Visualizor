@@ -8,6 +8,12 @@ export class PlasmaArcsPreset extends BasePreset {
   public override readonly name = 'Plasma Arcs';
   public override readonly category = 'Particles & Light' as const;
   public override readonly description = 'Full-screen dielectric breakdown plasma filament network.';
+  public override cameraConfig = {
+    position: [0, 0, 10] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false,
+    bloomIntensity: 0.55
+  };
 
   private mesh!: THREE.Mesh;
   private material!: THREE.ShaderMaterial;

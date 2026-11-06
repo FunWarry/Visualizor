@@ -8,6 +8,11 @@ export class LiquidPreset extends BasePreset {
   public override readonly name = 'Liquid';
   public override readonly category = 'Fluids & Heat' as const;
   public override readonly description = 'Flowing chromatic liquid distortion shader with color advection.';
+  public override cameraConfig = {
+    position: [0, 0, 10] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private mesh!: THREE.Mesh;
   private material!: THREE.ShaderMaterial;

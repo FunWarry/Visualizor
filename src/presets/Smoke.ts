@@ -8,6 +8,11 @@ export class SmokePreset extends BasePreset {
   public override readonly name = 'Smoke';
   public override readonly category = 'Fluids & Heat' as const;
   public override readonly description = 'Volumetric curl wisps with rising thermal buoyancy.';
+  public override cameraConfig = {
+    position: [0, 0, 10] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private smokePoints!: THREE.Points;
   private smokeMaterial!: THREE.PointsMaterial;
@@ -40,7 +45,8 @@ export class SmokePreset extends BasePreset {
       size: 0.45,
       transparent: true,
       opacity: 0.5,
-      blending: THREE.AdditiveBlending
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
 
     this.smokePoints = new THREE.Points(smokeGeom, this.smokeMaterial);

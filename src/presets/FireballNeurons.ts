@@ -6,6 +6,12 @@ export class FireballNeuronsPreset implements VisualizerPreset {
   name = 'Fireball & Neurons';
   category = 'Fluids & Heat' as const;
   description = 'High-energy turbulent plasma core with synaptic neural dendrite axon pulses.';
+  cameraConfig = {
+    position: [0, 0, 9] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: true,
+    autoRotateSpeed: 0.3
+  };
 
   private group!: THREE.Group;
   private coreMesh!: THREE.Mesh;

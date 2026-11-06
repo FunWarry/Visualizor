@@ -8,6 +8,11 @@ export class RainWaterPreset extends BasePreset {
   public override readonly name = 'Rain Water';
   public override readonly category = 'Fluids & Heat' as const;
   public override readonly description = 'Concentric circular rain ripple water surface.';
+  public override cameraConfig = {
+    position: [0, 8, 16] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private waterPlane!: THREE.Mesh;
   private waterMaterial!: THREE.ShaderMaterial;

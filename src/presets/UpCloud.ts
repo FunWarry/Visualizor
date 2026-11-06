@@ -8,6 +8,12 @@ export class UpCloudPreset extends BasePreset {
   public override readonly name = 'Up Cloud';
   public override readonly category = 'Organic & Nature' as const;
   public override readonly description = 'Volumetric sky clouds with silver lining sunlight rim.';
+  public override cameraConfig = {
+    position: [0, -4, 12] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false,
+    bloomIntensity: 0.0
+  };
 
   private cloudMesh!: THREE.Mesh;
   private cloudMaterial!: THREE.ShaderMaterial;

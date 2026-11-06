@@ -8,6 +8,11 @@ export class HauntedForestPreset extends BasePreset {
   public override readonly name = 'Haunted Forest';
   public override readonly category = 'Organic & Nature' as const;
   public override readonly description = 'Gnarled trees in graveyard mist with floating spirit wisps.';
+  public override cameraConfig = {
+    position: [0, 0, 10] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private readonly trees: THREE.LineSegments[] = [];
   private spiritPoints!: THREE.Points;
@@ -30,7 +35,7 @@ export class HauntedForestPreset extends BasePreset {
     this.group.position.y = -2;
 
     this.treeMaterial = new THREE.LineBasicMaterial({
-      color: 0x445566,
+      color: new THREE.Color(ctx.theme.primary).multiplyScalar(0.7),
       linewidth: 2,
       transparent: true,
       opacity: 0.8
@@ -77,7 +82,8 @@ export class HauntedForestPreset extends BasePreset {
       size: 0.35,
       transparent: true,
       opacity: 0.85,
-      blending: THREE.AdditiveBlending
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
     this.spiritPoints = new THREE.Points(spiritGeom, this.spiritMaterial);
     this.group.add(this.spiritPoints);

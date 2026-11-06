@@ -86,6 +86,31 @@ export class CameraController {
     this.reset();
   }
 
+  public setCameraPosition(x: number, y: number, z: number, target?: THREE.Vector3): void {
+    if (target) {
+      this.target.copy(target);
+    } else {
+      this.target.set(0, 0, 0);
+    }
+    const dx = x - this.target.x;
+    const dy = y - this.target.y;
+    const dz = z - this.target.z;
+    const totalDist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    const clampedDist = Math.max(this.minDistance, Math.min(this.maxDistance, totalDist));
+
+    this.radius = clampedDist;
+    this.targetRadius = clampedDist;
+    this.rotAngle = Math.atan2(dx, dz);
+    this.targetRotAngle = this.rotAngle;
+
+    const tilt = clampedDist > 0 ? Math.asin(Math.max(-1, Math.min(1, dy / clampedDist))) : 0;
+    this.tiltAngle = Math.max(CameraController.MIN_TILT, Math.min(CameraController.MAX_TILT, tilt));
+    this.targetTiltAngle = this.tiltAngle;
+
+    this.isTransitioning = false;
+    this.applyTransform();
+  }
+
   public setPosition(rot: number, tilt: number, zoom?: number, immediate: boolean = false): void {
     const validRot = Number.isFinite(rot) ? rot : 0;
     const validTilt = Number.isFinite(tilt) ? tilt : 0;

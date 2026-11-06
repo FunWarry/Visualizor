@@ -8,6 +8,12 @@ export class Tesseract4DPreset extends BasePreset {
   public override readonly name = 'Tesseract';
   public override readonly category = 'Structures' as const;
   public override readonly description = '4D hypercube projected stereographically into 3D space.';
+  public override cameraConfig = {
+    position: [0, 0, 9] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: true,
+    autoRotateSpeed: 0.35
+  };
 
   private edgeLines!: THREE.LineSegments;
   private vertexNodes!: THREE.Points;
@@ -57,7 +63,9 @@ export class Tesseract4DPreset extends BasePreset {
       color: new THREE.Color(ctx.theme.primary),
       linewidth: 2,
       transparent: true,
-      opacity: 0.85
+      opacity: 0.9,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
     this.edgeLines = new THREE.LineSegments(lineGeom, this.lineMaterial);
     this.group.add(this.edgeLines);
@@ -70,7 +78,9 @@ export class Tesseract4DPreset extends BasePreset {
       color: new THREE.Color(ctx.theme.accent),
       size: 0.25,
       transparent: true,
-      opacity: 0.95
+      opacity: 0.95,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
     this.vertexNodes = new THREE.Points(nodeGeom, this.nodeMaterial);
     this.group.add(this.vertexNodes);

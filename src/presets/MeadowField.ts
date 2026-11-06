@@ -8,6 +8,11 @@ export class MeadowFieldPreset extends BasePreset {
   public override readonly name = 'Meadow';
   public override readonly category = 'Organic & Nature' as const;
   public override readonly description = '25,000 instanced grass blades swaying dynamically in wind.';
+  public override cameraConfig = {
+    position: [0, 2.5, 12] as [number, number, number],
+    target: [0, -1, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private grassMesh!: THREE.InstancedMesh;
   private grassMaterial!: THREE.MeshStandardMaterial;

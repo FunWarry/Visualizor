@@ -8,6 +8,11 @@ export class UnfoldingMatterPreset extends BasePreset {
   public override readonly name = 'Unfolding Matter';
   public override readonly category = 'Abstract & Space' as const;
   public override readonly description = 'Crystalline fractal polyhedron facets unfolding like origami.';
+  public override cameraConfig = {
+    position: [0, 0, 9] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private readonly facets: THREE.Mesh[] = [];
   private facetMaterial!: THREE.MeshPhysicalMaterial;

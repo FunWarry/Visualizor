@@ -8,6 +8,12 @@ export class WarpGridPreset extends BasePreset {
   public override readonly name = 'Warp Grid';
   public override readonly category = 'Structures' as const;
   public override readonly description = 'Distorted spacetime wireframe lattice warping on transients.';
+  public override cameraConfig = {
+    position: [0, 8, 16] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: true,
+    autoRotateSpeed: 0.3
+  };
 
   private mesh!: THREE.Mesh;
   private geometry!: THREE.PlaneGeometry;
@@ -26,7 +32,7 @@ export class WarpGridPreset extends BasePreset {
 
   protected setup(ctx: PresetContext): void {
     this.geometry = new THREE.PlaneGeometry(20, 20, this.segments, this.segments);
-    this.geometry.rotateX(-Math.PI / 2.2);
+    this.geometry.rotateX(-Math.PI / 2);
 
     const pos = this.geometry.attributes.position.array as Float32Array;
     this.basePositions = new Float32Array(pos);
@@ -50,7 +56,7 @@ export class WarpGridPreset extends BasePreset {
     const reactivity = this.paramStore.getValue('reactivity');
     const dip = this.paramStore.getValue('density');
 
-    this.group.rotation.z += delta * 0.08 * speed;
+    this.group.rotation.y += delta * 0.08 * speed;
 
     const pos = this.geometry.attributes.position.array as Float32Array;
     const kickForce = (audio.bass * 2.0 + audio.beatEnergy * 2.5) * reactivity;

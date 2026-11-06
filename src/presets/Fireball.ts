@@ -8,6 +8,12 @@ export class FireballPreset extends BasePreset {
   public override readonly name = 'Fireball';
   public override readonly category = 'Fluids & Heat' as const;
   public override readonly description = 'Blazing plasma energy sphere with solar combustion tongues.';
+  public override cameraConfig = {
+    position: [0, 0, 8] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: true,
+    autoRotateSpeed: 0.3
+  };
 
   private coreMesh!: THREE.Mesh;
   private sparksPoints!: THREE.Points;
@@ -94,7 +100,8 @@ export class FireballPreset extends BasePreset {
       size: 0.15,
       transparent: true,
       opacity: 0.9,
-      blending: THREE.AdditiveBlending
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
 
     this.sparksPoints = new THREE.Points(sparkGeom, this.sparksMaterial);

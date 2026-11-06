@@ -8,6 +8,11 @@ export class PendulumPreset extends BasePreset {
   public override readonly name = 'Pendulum';
   public override readonly category = 'Structures' as const;
   public override readonly description = 'Array of harmonic suspended spheres forming a phase-aligned wave.';
+  public override cameraConfig = {
+    position: [0, 1.5, 10] as [number, number, number],
+    target: [0, 1.5, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private readonly numPendulums = 24;
   private readonly sphereMeshes: THREE.Mesh[] = [];

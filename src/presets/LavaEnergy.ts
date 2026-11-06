@@ -8,6 +8,12 @@ export class LavaEnergyPreset extends BasePreset {
   public override readonly name = 'Lava';
   public override readonly category = 'Fluids & Heat' as const;
   public override readonly description = 'Molten magma energy blob with glowing crust fissures.';
+  public override cameraConfig = {
+    position: [0, 2, 8] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: true,
+    autoRotateSpeed: 0.25
+  };
 
   private mesh!: THREE.Mesh;
   private geometry!: THREE.SphereGeometry;

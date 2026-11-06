@@ -8,6 +8,12 @@ export class SpectrogramPreset extends BasePreset {
   public override readonly name = 'The Spectogram';
   public override readonly category = 'Retro & Digital' as const;
   public override readonly description = 'Skeuomorphic 3D instrument chassis with log spectrum bars.';
+  public override cameraConfig = {
+    position: [0, 8, 14] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false,
+    bloomIntensity: 0.0
+  };
 
   private waterfallMesh!: THREE.Mesh;
   private waterfallMaterial!: THREE.ShaderMaterial;

@@ -8,6 +8,11 @@ export class FacePreset extends BasePreset {
   public override readonly name = 'Face';
   public override readonly category = 'Abstract & Space' as const;
   public override readonly description = 'Stylized 3D cybernetic neon mask deforming expressions.';
+  public override cameraConfig = {
+    position: [0, 0, 7.5] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private faceMesh!: THREE.Mesh;
   private wireframe!: THREE.LineSegments;
@@ -38,7 +43,7 @@ export class FacePreset extends BasePreset {
     geom.computeVertexNormals();
 
     this.material = new THREE.MeshStandardMaterial({
-      color: 0x05050c,
+      color: new THREE.Color(ctx.theme.background).offsetHSL(0, 0, 0.04),
       emissive: new THREE.Color(ctx.theme.primary),
       emissiveIntensity: 0.35,
       roughness: 0.15,

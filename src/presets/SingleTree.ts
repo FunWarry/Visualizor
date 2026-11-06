@@ -8,6 +8,11 @@ export class SingleTreePreset extends BasePreset {
   public override readonly name = 'Single Tree';
   public override readonly category = 'Organic & Nature' as const;
   public override readonly description = 'Solitary procedural lone bonsai tree with seasonal blossoms.';
+  public override cameraConfig = {
+    position: [0, 0, 10] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private treeLines!: THREE.LineSegments;
   private petalPoints!: THREE.Points;
@@ -73,7 +78,8 @@ export class SingleTreePreset extends BasePreset {
       size: 0.18,
       transparent: true,
       opacity: 0.9,
-      blending: THREE.AdditiveBlending
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
     this.petalPoints = new THREE.Points(petalGeom, this.petalMaterial);
     this.group.add(this.petalPoints);

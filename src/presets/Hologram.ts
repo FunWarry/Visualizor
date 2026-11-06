@@ -8,6 +8,12 @@ export class HologramPreset extends BasePreset {
   public override readonly name = 'Hologram';
   public override readonly category = 'Structures' as const;
   public override readonly description = 'Sci-fi projection glitch plane with scanlines and chromatic fringe.';
+  public override cameraConfig = {
+    position: [0, 2, 8] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: true,
+    autoRotateSpeed: 0.3
+  };
 
   private planeMesh!: THREE.Mesh;
   private emitterCone!: THREE.Mesh;
@@ -92,7 +98,7 @@ export class HologramPreset extends BasePreset {
     const coneGeom = new THREE.ConeGeometry(2.0, 2.5, 32, 1, true);
     coneGeom.rotateX(Math.PI);
     this.emitterMaterial = new THREE.MeshStandardMaterial({
-      color: 0x1a1a24,
+      color: new THREE.Color(ctx.theme.background).offsetHSL(0, 0, 0.08),
       emissive: new THREE.Color(ctx.theme.primary),
       emissiveIntensity: 0.3,
       wireframe: true

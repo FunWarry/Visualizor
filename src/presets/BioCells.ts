@@ -8,6 +8,11 @@ export class BioCellsPreset extends BasePreset {
   public override readonly name = 'Bio Cells';
   public override readonly category = 'Organic & Nature' as const;
   public override readonly description = 'Microscopic biological cell clusters undergoing mitosis.';
+  public override cameraConfig = {
+    position: [0, 0, 10] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private readonly cells: THREE.Mesh[] = [];
   private readonly numCells = 12;

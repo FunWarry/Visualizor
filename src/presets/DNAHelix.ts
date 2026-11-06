@@ -8,6 +8,12 @@ export class DNAHelixPreset extends BasePreset {
   public override readonly name = 'DNA Helix';
   public override readonly category = 'Structures' as const;
   public override readonly description = 'Intertwined double helix strands rotating and vibrating.';
+  public override cameraConfig = {
+    position: [0, 0, 12] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: true,
+    autoRotateSpeed: 0.25
+  };
 
   private sphereMesh!: THREE.InstancedMesh;
   private rungsMesh!: THREE.InstancedMesh;

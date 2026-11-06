@@ -6,6 +6,11 @@ export class LightningArcsPreset implements VisualizerPreset {
   name = 'Lightning Plasma Arcs';
   category = 'Particles & Light' as const;
   description = 'High-voltage electric arcs discharging and branching on audio transients.';
+  cameraConfig = {
+    position: [0, 0, 10] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private group!: THREE.Group;
   private readonly boltLines: THREE.Line[] = [];

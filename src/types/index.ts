@@ -44,11 +44,23 @@ export interface ParameterDefinition {
   description?: string;
 }
 
+export interface PresetCameraConfig {
+  position?: [number, number, number];
+  target?: [number, number, number];
+  rotAngle?: number;
+  tiltAngle?: number;
+  zoom?: number;
+  autoRotate?: boolean;
+  autoRotateSpeed?: number;
+  bloomIntensity?: number;
+}
+
 export interface VisualizerPreset {
   id: string;
   name: string;
   category: 'Structures' | 'Abstract & Space' | 'Particles & Light' | 'Fluids & Heat' | 'Tunnels' | 'Retro & Digital' | 'Organic & Nature';
   description: string;
+  cameraConfig?: PresetCameraConfig;
   init(ctx: PresetContext): void;
   update(ctx: PresetContext, audio: AudioFeatures, time: number, delta: number): void;
   onThemeChange?(theme: VisualizerTheme): void;

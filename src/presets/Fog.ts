@@ -8,6 +8,11 @@ export class FogPreset extends BasePreset {
   public override readonly name = 'Fog';
   public override readonly category = 'Fluids & Heat' as const;
   public override readonly description = 'Fractional Brownian motion (fBm) domain-warped mist.';
+  public override cameraConfig = {
+    position: [0, 0, 8] as [number, number, number],
+    target: [0, 0, -10] as [number, number, number],
+    autoRotate: false
+  };
 
   private readonly mistPlanes: THREE.Mesh[] = [];
   private readonly materials: THREE.ShaderMaterial[] = [];

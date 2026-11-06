@@ -8,6 +8,12 @@ export class GravityForcePreset extends BasePreset {
   public override readonly name = 'Gravity Force';
   public override readonly category = 'Abstract & Space' as const;
   public override readonly description = 'Particle attractor velocity field with gravitational feedback.';
+  public override cameraConfig = {
+    position: [0, 0, 11] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false,
+    bloomIntensity: 0.0
+  };
 
   private particles!: THREE.Points;
   private material!: THREE.PointsMaterial;
@@ -51,7 +57,8 @@ export class GravityForcePreset extends BasePreset {
       size: 0.15,
       transparent: true,
       opacity: 0.85,
-      blending: THREE.AdditiveBlending
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
 
     this.particles = new THREE.Points(geometry, this.material);

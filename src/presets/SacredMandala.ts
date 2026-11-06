@@ -8,6 +8,11 @@ export class SacredMandalaPreset extends BasePreset {
   public override readonly name = 'Sacred';
   public override readonly category = 'Abstract & Space' as const;
   public override readonly description = 'Sacred geometry mandalas unfolding with harmonic counter-rotation.';
+  public override cameraConfig = {
+    position: [0, 0, 9] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private readonly mandalaRings: THREE.LineLoop[] = [];
   private ringMaterial!: THREE.LineBasicMaterial;
@@ -27,7 +32,9 @@ export class SacredMandalaPreset extends BasePreset {
     this.ringMaterial = new THREE.LineBasicMaterial({
       color: new THREE.Color(ctx.theme.accent),
       transparent: true,
-      opacity: 0.75
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
 
     const ringCounts = [12, 16, 24, 32, 48];

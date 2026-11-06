@@ -8,6 +8,11 @@ export class TunnelPreset extends BasePreset {
   public override readonly name = 'Tunnel';
   public override readonly category = 'Tunnels' as const;
   public override readonly description = 'Infinite depth perspective portal corridor.';
+  public override cameraConfig = {
+    position: [0, 0, 8] as [number, number, number],
+    target: [0, 0, -50] as [number, number, number],
+    autoRotate: false
+  };
 
   private tunnelMesh!: THREE.Mesh;
   private tunnelMaterial!: THREE.ShaderMaterial;

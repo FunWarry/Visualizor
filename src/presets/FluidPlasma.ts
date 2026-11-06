@@ -6,6 +6,11 @@ export class FluidPlasmaPreset implements VisualizerPreset {
   name = 'Liquid Fluid & Plasma';
   category = 'Fluids & Heat' as const;
   description = 'Viscous multi-chroma fluid advection simulation with audio-reactive turbulence.';
+  cameraConfig = {
+    position: [0, 0, 10] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private mesh!: THREE.Mesh;
   private material!: THREE.ShaderMaterial;

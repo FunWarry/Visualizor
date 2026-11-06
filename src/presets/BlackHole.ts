@@ -8,6 +8,12 @@ export class BlackHolePreset extends BasePreset {
   public override readonly name = 'Black Hole';
   public override readonly category = 'Abstract & Space' as const;
   public override readonly description = 'Relativistic accretion disk with gravitational lensing vortex.';
+  public override cameraConfig = {
+    position: [0, 5.5, 10.5] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: true,
+    autoRotateSpeed: 0.25
+  };
 
   private coreMesh!: THREE.Mesh;
   private diskPoints!: THREE.Points;
@@ -56,14 +62,14 @@ export class BlackHolePreset extends BasePreset {
       size: 0.18,
       transparent: true,
       opacity: 0.85,
-      blending: THREE.AdditiveBlending
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
 
     this.diskPoints = new THREE.Points(this.diskGeometry, this.diskMaterial);
     this.group.add(this.diskPoints);
 
-    this.group.rotation.x = 0.55;
-    this.group.rotation.z = 0.2;
+    this.group.rotation.set(0, 0, 0);
   }
 
   public update(_ctx: PresetContext, audio: AudioFeatures, _time: number, delta: number): void {

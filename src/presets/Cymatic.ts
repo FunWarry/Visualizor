@@ -8,6 +8,12 @@ export class CymaticPreset extends BasePreset {
   public override readonly name = 'Cymatic';
   public override readonly category = 'Structures' as const;
   public override readonly description = 'Standing wave resonance plate organizing nodal sand figures.';
+  public override cameraConfig = {
+    position: [0, 8, 14] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: true,
+    autoRotateSpeed: 0.25
+  };
 
   private plateMesh!: THREE.Mesh;
   private sandParticles!: THREE.Points;
@@ -27,10 +33,9 @@ export class CymaticPreset extends BasePreset {
 
   protected setup(ctx: PresetContext): void {
     const plateGeom = new THREE.CylinderGeometry(6, 6, 0.2, 64);
-    plateGeom.rotateX(Math.PI / 6);
 
     this.material = new THREE.MeshStandardMaterial({
-      color: 0x111118,
+      color: new THREE.Color(ctx.theme.background).offsetHSL(0, 0, 0.08),
       roughness: 0.4,
       metalness: 0.85,
       emissive: new THREE.Color(ctx.theme.primary),
@@ -64,7 +69,9 @@ export class CymaticPreset extends BasePreset {
       color: new THREE.Color(ctx.theme.accent),
       size: 0.08,
       transparent: true,
-      opacity: 0.85
+      opacity: 0.9,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
 
     this.sandParticles = new THREE.Points(particleGeom, this.particleMaterial);

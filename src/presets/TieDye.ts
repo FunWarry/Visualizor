@@ -8,6 +8,11 @@ export class TieDyePreset extends BasePreset {
   public override readonly name = 'Tie Dye';
   public override readonly category = 'Abstract & Space' as const;
   public override readonly description = 'Psychedelic spiral fabric shader with color advection.';
+  public override cameraConfig = {
+    position: [0, 0, 10] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private mesh!: THREE.Mesh;
   private material!: THREE.ShaderMaterial;

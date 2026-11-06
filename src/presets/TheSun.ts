@@ -8,6 +8,11 @@ export class TheSunPreset extends BasePreset {
   public override readonly name = 'The Sun';
   public override readonly category = 'Abstract & Space' as const;
   public override readonly description = 'Layered solar corona with prominence flares and heat shimmer.';
+  public override cameraConfig = {
+    position: [0, 0, 8.5] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private coreMesh!: THREE.Mesh;
   private coronaMesh!: THREE.Mesh;
@@ -128,7 +133,8 @@ export class TheSunPreset extends BasePreset {
       size: 0.12,
       transparent: true,
       opacity: 0.85,
-      blending: THREE.AdditiveBlending
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
     this.flarePoints = new THREE.Points(flareGeom, this.flareMaterial);
     this.group.add(this.flarePoints);

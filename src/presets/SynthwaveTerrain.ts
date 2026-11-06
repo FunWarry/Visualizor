@@ -8,6 +8,11 @@ export class SynthwaveTerrainPreset extends BasePreset {
   public override readonly name = 'Terrain';
   public override readonly category = 'Abstract & Space' as const;
   public override readonly description = 'Infinite synthwave flyover grid with mountain ridges.';
+  public override cameraConfig = {
+    position: [0, 2.5, 12] as [number, number, number],
+    target: [0, 1.5, -30] as [number, number, number],
+    autoRotate: false
+  };
 
   private terrainMesh!: THREE.Mesh;
   private terrainGeom!: THREE.PlaneGeometry;

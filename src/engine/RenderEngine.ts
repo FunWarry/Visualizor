@@ -124,18 +124,18 @@ export class RenderEngine {
   constructor(canvas: HTMLCanvasElement, initialTheme: VisualizerTheme) {
     this.currentTheme = initialTheme;
     this.config = {
-      bloomStrength: 0.9,
-      bloomRadius: 0.38,
-      bloomThreshold: 0.4,
+      bloomStrength: 0.36,
+      bloomRadius: 0.45,
+      bloomThreshold: 0.85,
       persistence: 0.0,
-      chromaticAberration: 0.35,
-      filmGrain: 0.12,
-      vignette: 0.45,
+      chromaticAberration: 0.0,
+      filmGrain: 0.0,
+      vignette: 0.0,
       scanlines: 0.0,
       crtBend: 0.0,
       cameraShake: true,
       autoRotate: true,
-      autoRotateSpeed: 0.4
+      autoRotateSpeed: 0.35
     };
 
     // Scene setup
@@ -189,7 +189,8 @@ export class RenderEngine {
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.1;
+    this.renderer.toneMappingExposure = 1.2;
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     // Post-Processing Composer
     this.composer = new EffectComposer(this.renderer);
@@ -254,8 +255,33 @@ export class RenderEngine {
     }
 
     this.activePreset = preset;
-    this.camera.position.copy(this.cameraBasePos);
-    this.camera.lookAt(0, 0, 0);
+
+    // Apply preset-specific camera configuration
+    const cfg = preset.cameraConfig;
+    if (cfg?.position) {
+      const targetVec = cfg.target ? new THREE.Vector3(...cfg.target) : new THREE.Vector3(0, 0, 0);
+      this.cameraController.setCameraPosition(cfg.position[0], cfg.position[1], cfg.position[2], targetVec);
+      if (cfg.autoRotate !== undefined) {
+        this.cameraController.autoRotate = cfg.autoRotate;
+        this.config.autoRotate = cfg.autoRotate;
+      }
+      if (cfg.autoRotateSpeed !== undefined) {
+        this.cameraController.autoRotateSpeed = cfg.autoRotateSpeed;
+        this.config.autoRotateSpeed = cfg.autoRotateSpeed;
+      }
+    } else {
+      this.cameraController.setCameraPosition(0, 4.5, 12, new THREE.Vector3(0, 0, 0));
+      this.cameraController.autoRotate = true;
+      this.cameraController.autoRotateSpeed = 0.35;
+      this.config.autoRotate = true;
+      this.config.autoRotateSpeed = 0.35;
+    }
+
+    // Apply preset-specific bloom intensity if defined
+    const intensity = cfg?.bloomIntensity ?? 0.5;
+    this.bloomPass.strength = intensity * 0.72;
+    this.bloomPass.threshold = Math.max(0.05, 1.0 - (intensity * 0.3));
+    this.bloomPass.radius = 0.3 + (intensity * 0.3);
 
     preset.init({
       scene: this.scene,
@@ -277,9 +303,15 @@ export class RenderEngine {
 
   public updateConfig(newConfig: Partial<PostProcessingConfig>) {
     Object.assign(this.config, newConfig);
-    this.bloomPass.strength = this.config.bloomStrength;
-    this.bloomPass.radius = this.config.bloomRadius;
-    this.bloomPass.threshold = this.config.bloomThreshold;
+    if (newConfig.bloomStrength !== undefined) {
+      const intensity = newConfig.bloomStrength;
+      this.bloomPass.strength = intensity * 0.72;
+      this.bloomPass.threshold = Math.max(0.05, 1.0 - (intensity * 0.3));
+      this.bloomPass.radius = 0.3 + (intensity * 0.3);
+    } else {
+      if (newConfig.bloomRadius !== undefined) this.bloomPass.radius = newConfig.bloomRadius;
+      if (newConfig.bloomThreshold !== undefined) this.bloomPass.threshold = newConfig.bloomThreshold;
+    }
     if (newConfig.autoRotate !== undefined) {
       this.cameraController.autoRotate = newConfig.autoRotate;
     }

@@ -8,6 +8,12 @@ export class FirefliesPreset extends BasePreset {
   public override readonly name = 'Fireflies';
   public override readonly category = 'Particles & Light' as const;
   public override readonly description = 'Bioluminescent swarm of wandering fireflies pulsing softly.';
+  public override cameraConfig = {
+    position: [0, 2, 12] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: true,
+    autoRotateSpeed: 0.25
+  };
 
   private points!: THREE.Points;
   private material!: THREE.PointsMaterial;
@@ -43,7 +49,8 @@ export class FirefliesPreset extends BasePreset {
       size: this.paramStore.getValue('density'),
       transparent: true,
       opacity: 0.9,
-      blending: THREE.AdditiveBlending
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
 
     this.points = new THREE.Points(geom, this.material);

@@ -8,6 +8,12 @@ export class AuroraPreset extends BasePreset {
   public override readonly name = 'Aurora';
   public override readonly category = 'Abstract & Space' as const;
   public override readonly description = 'Undulating ethereal northern light curtains in upper atmosphere.';
+  public override cameraConfig = {
+    position: [0, 3, 11] as [number, number, number],
+    target: [0, 1, 0] as [number, number, number],
+    autoRotate: true,
+    autoRotateSpeed: 0.2
+  };
 
   private auroraMesh!: THREE.Mesh;
   private auroraMaterial!: THREE.ShaderMaterial;

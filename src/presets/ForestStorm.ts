@@ -8,6 +8,11 @@ export class ForestStormPreset extends BasePreset {
   public override readonly name = 'Forest';
   public override readonly category = 'Organic & Nature' as const;
   public override readonly description = 'Cathedral tree canopy dome with god rays.';
+  public override cameraConfig = {
+    position: [0, 0, 11] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
+    autoRotate: false
+  };
 
   private treeLines!: THREE.LineSegments;
   private godRays!: THREE.LineSegments;
@@ -69,7 +74,9 @@ export class ForestStormPreset extends BasePreset {
     this.rayMaterial = new THREE.LineBasicMaterial({
       color: new THREE.Color(ctx.theme.primary),
       transparent: true,
-      opacity: 0.4
+      opacity: 0.5,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
     this.godRays = new THREE.LineSegments(rayGeom, this.rayMaterial);
     this.group.add(this.godRays);
