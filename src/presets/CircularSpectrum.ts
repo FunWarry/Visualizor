@@ -207,9 +207,22 @@ export class CircularSpectrumPreset extends BasePreset {
     const radiusMultiplier = this.paramStore.getValue('radius') / 3.0;
     const activeRings = Math.floor(this.paramStore.getValue('density'));
 
-    // --- 1. Primary 16-Ring Frequency Waves ---
     this.group.rotation.z += delta * (0.15 + audio.mid * 0.3 * reactivity) * speed;
+    this.updateRings(audio, time, speed, reactivity, radiusMultiplier, activeRings);
 
+    if (this.ambientGroup) {
+      this.updateAmbient(audio, time, delta, speed, reactivity, radiusMultiplier);
+    }
+  }
+
+  private updateRings(
+    audio: AudioFeatures,
+    time: number,
+    speed: number,
+    reactivity: number,
+    radiusMultiplier: number,
+    activeRings: number
+  ): void {
     for (let r = 0; r < this.numRings; r++) {
       const line = this.rings[r];
       if (r >= activeRings) {
@@ -239,13 +252,20 @@ export class CircularSpectrumPreset extends BasePreset {
 
       geom.attributes.position.needsUpdate = true;
     }
+  }
 
-    // --- 2. Ambient Volumetric Composition Animations ---
+  private updateAmbient(
+    audio: AudioFeatures,
+    time: number,
+    delta: number,
+    speed: number,
+    reactivity: number,
+    radiusMultiplier: number
+  ): void {
     if (!this.ambientGroup) return;
 
     this.ambientGroup.rotation.z = this.group.rotation.z * 0.6;
 
-    // Core pulsing & rotation
     const corePulse = 1.0 + (audio.bass * 0.45 + (audio.beat ? 0.35 : 0)) * reactivity;
     this.coreMesh.scale.set(corePulse, corePulse, corePulse);
     this.coreWireframe.scale.set(corePulse * 1.05, corePulse * 1.05, corePulse * 1.05);
@@ -255,7 +275,6 @@ export class CircularSpectrumPreset extends BasePreset {
     this.coreWireframe.rotation.y -= delta * 0.5 * speed;
     this.coreWireframe.rotation.z += delta * 0.3 * speed;
 
-    // Orbital Gimbal Rings Celestial Rotation
     for (let i = 0; i < this.orbitalRings.length; i++) {
       const ring = this.orbitalRings[i];
       const dir = i % 2 === 0 ? 1 : -1;
@@ -263,7 +282,16 @@ export class CircularSpectrumPreset extends BasePreset {
       ring.rotation.z += delta * 0.1 * speed * (i + 1);
     }
 
-    // Stardust Particle Disk Dynamics
+    this.updateParticles(audio, time, speed, reactivity, radiusMultiplier);
+  }
+
+  private updateParticles(
+    audio: AudioFeatures,
+    time: number,
+    speed: number,
+    reactivity: number,
+    radiusMultiplier: number
+  ): void {
     const positions = this.particlePositions;
     const beatKick = audio.beat ? 0.25 * reactivity : 0;
     this.pointsMaterial.size = audio.beat ? 0.22 : 0.16;
@@ -296,6 +324,11 @@ export class CircularSpectrumPreset extends BasePreset {
     const accent = new THREE.Color(theme.accent);
     const goldCol = new THREE.Color('#f59e0b');
 
+    this.updateThemeMaterials(primary, accent);
+    this.updateParticleThemeColors(primary, accent, goldCol);
+  }
+
+  private updateThemeMaterials(primary: THREE.Color, accent: THREE.Color): void {
     for (let r = 0; r < this.numRings; r++) {
       const color = new THREE.Color().lerpColors(primary, accent, r / this.numRings);
       if (this.ringMaterials[r]) {
@@ -313,20 +346,24 @@ export class CircularSpectrumPreset extends BasePreset {
     for (let i = 0; i < this.orbitalRingMaterials.length; i++) {
       this.orbitalRingMaterials[i].color.copy(i % 2 === 0 ? primary : accent);
     }
+  }
 
-    if (this.particleColors && this.stardustPoints?.geometry.attributes.color) {
-      for (let i = 0; i < this.numParticles; i++) {
-        const normR = Math.min(1.0, (this.particleRadii[i] - 1.3) / 6.5);
-        const c = new THREE.Color();
-        if (normR < 0.35) {
-          c.lerpColors(goldCol, primary, normR / 0.35);
-        } else {
-          c.lerpColors(primary, accent, (normR - 0.35) / 0.65);
-        }
-        c.toArray(this.particleColors, i * 3);
-      }
-      this.stardustPoints.geometry.attributes.color.needsUpdate = true;
+  private updateParticleThemeColors(primary: THREE.Color, accent: THREE.Color, goldCol: THREE.Color): void {
+    if (!this.particleColors || !this.stardustPoints?.geometry.attributes.color) {
+      return;
     }
+
+    for (let i = 0; i < this.numParticles; i++) {
+      const normR = Math.min(1.0, (this.particleRadii[i] - 1.3) / 6.5);
+      const c = new THREE.Color();
+      if (normR < 0.35) {
+        c.lerpColors(goldCol, primary, normR / 0.35);
+      } else {
+        c.lerpColors(primary, accent, (normR - 0.35) / 0.65);
+      }
+      c.toArray(this.particleColors, i * 3);
+    }
+    this.stardustPoints.geometry.attributes.color.needsUpdate = true;
   }
 
   protected override onDispose(): void {
