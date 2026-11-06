@@ -12,6 +12,7 @@ import './tier1-features/studio.test';
 import './tier1-features/midi.test';
 import './tier1-features/presets.test';
 import './tier1-features/audio-dsp.test';
+import './tier1-features/tickets-1-37.test';
 
 // Import Tier 2 Boundary & Corner Case Suites
 import './tier2-boundaries/themes-boundary.test';
