@@ -245,8 +245,8 @@ describe('Tier 2: Preset Tuning Empirical Stress & Boundary Hardening (#41)', ()
         (preset.getCustomParameters()?.length ?? 0) > 0
       );
 
-      updateTuningButtonState(preset, railBtn, tuningPanel);
-      renderTuningPanel(preset, content);
+      updateTuningButtonState(preset, railBtn as unknown as HTMLElement, tuningPanel as unknown as HTMLElement);
+      renderTuningPanel(preset, content as unknown as HTMLElement);
 
       if (isTunable) {
         expect(railBtn.classList.contains('is-collapsed')).toBe(false);
@@ -288,7 +288,7 @@ describe('Tier 2: Preset Tuning Empirical Stress & Boundary Hardening (#41)', ()
     document.body.appendChild(content as unknown as HTMLElement);
 
     const wavePreset = new WaveFormPreset();
-    renderTuningPanel(wavePreset, content);
+    renderTuningPanel(wavePreset, content as unknown as HTMLElement);
 
     const initialSpeedSlider = content.querySelector('#tuning_speed_slider') as MockElement;
     expect(initialSpeedSlider).toBeDefined();
@@ -299,7 +299,7 @@ describe('Tier 2: Preset Tuning Empirical Stress & Boundary Hardening (#41)', ()
 
     // Re-render with ParticleFieldPreset
     const particlePreset = new ParticleFieldPreset();
-    renderTuningPanel(particlePreset, content);
+    renderTuningPanel(particlePreset, content as unknown as HTMLElement);
 
     const particleSpeedSlider = content.querySelector('#tuning_speed_slider') as MockElement;
     expect(particleSpeedSlider).toBeDefined();
@@ -342,7 +342,7 @@ describe('Tier 2: Preset Tuning Empirical Stress & Boundary Hardening (#41)', ()
         p.setCustomParameter!(def.id, def.min);
       }
 
-      renderTuningPanel(p, content);
+      renderTuningPanel(p, content as unknown as HTMLElement);
 
       const resetBtn = content.querySelector('#resetTuningBtn') as MockElement;
       expect(resetBtn).toBeDefined();

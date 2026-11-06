@@ -64,7 +64,7 @@ const canvas = document.getElementById('webgl-canvas') as unknown as HTMLCanvasE
 
 // Fix headless WebGL mock getExtension to return null for un-implemented multisampled extension
 const origGetContext = canvas.getContext.bind(canvas);
-canvas.getContext = (type: string) => {
+canvas.getContext = ((type: string) => {
   const gl = origGetContext(type) as { getExtension?: (name: string) => unknown };
   if (gl && gl.getExtension) {
     const origGetExt = gl.getExtension.bind(gl);
@@ -76,7 +76,7 @@ canvas.getContext = (type: string) => {
     };
   }
   return gl;
-};
+}) as unknown as typeof canvas.getContext;
 
 const defaultTheme = getTheme('ember');
 

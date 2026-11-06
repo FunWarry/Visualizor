@@ -59,7 +59,7 @@ export class CameraController {
   private targetRadius: number = 12.0;
   private targetRotAngle: number = 0.0;
   private targetTiltAngle: number = 0.0;
-  private isTransitioning: boolean = false;
+  public isTransitioning: boolean = false;
   private activeViewpointId: string = 'default';
 
   // Auto-orbit state

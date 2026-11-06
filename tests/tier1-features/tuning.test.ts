@@ -173,8 +173,8 @@ describe('Tier 1: Preset Fine-Tuning (#41)', () => {
     document.body.appendChild(tuningPanel as unknown as HTMLElement);
 
     const preset = new WaveFormPreset();
-    updateTuningButtonState(preset, railBtn, tuningPanel);
-    renderTuningPanel(preset, content);
+    updateTuningButtonState(preset, railBtn as unknown as HTMLElement, tuningPanel as unknown as HTMLElement);
+    renderTuningPanel(preset, content as unknown as HTMLElement);
 
     // Rail button becomes visible (uncollapsed)
     expect(railBtn.classList.contains('is-collapsed')).toBe(false);
@@ -201,7 +201,7 @@ describe('Tier 1: Preset Fine-Tuning (#41)', () => {
     document.body.appendChild(content as unknown as HTMLElement);
 
     const preset = new WaveFormPreset();
-    renderTuningPanel(preset, content);
+    renderTuningPanel(preset, content as unknown as HTMLElement);
 
     const speedSlider = content.querySelector('#tuning_speed_slider') as MockElement;
     const speedReadout = content.querySelector('#tuning_speed_val') as MockElement;
@@ -224,7 +224,7 @@ describe('Tier 1: Preset Fine-Tuning (#41)', () => {
     document.body.appendChild(content as unknown as HTMLElement);
 
     const preset = new WaveFormPreset();
-    renderTuningPanel(preset, content);
+    renderTuningPanel(preset, content as unknown as HTMLElement);
 
     const speedSlider = content.querySelector('#tuning_speed_slider') as MockElement;
     const speedReadout = content.querySelector('#tuning_speed_val') as MockElement;
@@ -261,8 +261,8 @@ describe('Tier 1: Preset Fine-Tuning (#41)', () => {
     document.body.appendChild(tuningPanel as unknown as HTMLElement);
 
     const milkdrop = new MilkDropPreset();
-    updateTuningButtonState(milkdrop, railBtn, tuningPanel);
-    renderTuningPanel(milkdrop, content);
+    updateTuningButtonState(milkdrop, railBtn as unknown as HTMLElement, tuningPanel as unknown as HTMLElement);
+    renderTuningPanel(milkdrop, content as unknown as HTMLElement);
 
     // Rail button collapsed
     expect(railBtn.classList.contains('is-collapsed')).toBe(true);

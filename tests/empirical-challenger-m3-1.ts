@@ -319,8 +319,8 @@ check('3.1: Mount and unmount #tuningPanel 50 times in rapid succession with div
       (preset.getCustomParameters()?.length ?? 0) > 0
     );
 
-    updateTuningButtonState(preset, railBtn, tuningPanel);
-    renderTuningPanel(preset, content);
+    updateTuningButtonState(preset, railBtn as unknown as HTMLElement, tuningPanel as unknown as HTMLElement);
+    renderTuningPanel(preset, content as unknown as HTMLElement);
 
     if (isTunable) {
       assert(!railBtn.classList.contains('is-collapsed'), `Cycle ${cycle}: railBtn should not be collapsed for tunable ${preset!.id}`);
@@ -366,7 +366,7 @@ check('3.2: Event listener leak check and slider recreation verification', () =>
   document.body.appendChild(content as unknown as HTMLElement);
 
   const wavePreset = new WaveFormPreset();
-  renderTuningPanel(wavePreset, content);
+  renderTuningPanel(wavePreset, content as unknown as HTMLElement);
 
   const initialSpeedSlider = content.querySelector('#tuning_speed_slider') as MockElement;
   assert(initialSpeedSlider !== null, 'WaveForm speed slider missing');
@@ -378,7 +378,7 @@ check('3.2: Event listener leak check and slider recreation verification', () =>
 
   // Now re-render with ParticleFieldPreset (WaveForm slider is destroyed)
   const particlePreset = new ParticleFieldPreset();
-  renderTuningPanel(particlePreset, content);
+  renderTuningPanel(particlePreset, content as unknown as HTMLElement);
 
   const particleSpeedSlider = content.querySelector('#tuning_speed_slider') as MockElement;
   assert(particleSpeedSlider !== null, 'ParticleField speed slider missing');
@@ -426,7 +426,7 @@ check('3.3: Reset to defaults restores exact initial values in preset and DOM ac
       p.setCustomParameter!(def.id, def.min);
     }
 
-    renderTuningPanel(p, content);
+    renderTuningPanel(p, content as unknown as HTMLElement);
 
     // Verify DOM reflects mutated state before reset
     for (const def of params) {

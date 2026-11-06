@@ -30,7 +30,7 @@ function check(title: string, fn: () => void): void {
   }
 }
 
-function assert(condition: unknown, msg: string): asserts condition {
+function assert(condition: unknown, msg: string): void {
   if (!condition) throw new Error(msg);
 }
 

@@ -106,7 +106,7 @@ export class RenderEngine {
   private readonly masterPass: ShaderPass;
 
   // Feedback targets for motion persistence
-  private readonly feedbackTargets: [THREE.WebGLRenderTarget, THREE.WebGLRenderTarget];
+  public readonly feedbackTargets: [THREE.WebGLRenderTarget, THREE.WebGLRenderTarget];
   private currentFeedbackIndex = 0;
   private readonly copyScene: THREE.Scene;
   private readonly copyCamera: THREE.OrthographicCamera;

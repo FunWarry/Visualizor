@@ -13,8 +13,10 @@ import {
   ENGINE_FAMILIES_META,
   FAMILY_GENE_DEFAULTS,
   EngineFamily,
-  StudioRecipe
+  StudioRecipe,
+  EngineRecipe
 } from '../src/studio/types';
+import { PresetContext, AudioFeatures } from '../src/types';
 import {
   createDefaultRecipe,
   StudioRecipeManager,
@@ -174,8 +176,8 @@ async function runAdversarialSuite() {
   assert(autoForgeValid, '5.1: Auto-Forge generates 50 valid recipes with finite bounded parameters');
 
   // Mode 2: Curated Deterministic Generation
-  const curA = manager.generateCuratedRecipe('Singularity Core');
-  const curB = manager.generateCuratedRecipe('Singularity Core');
+  const curA = manager.generateCuratedRecipe('Singularity Core') as EngineRecipe;
+  const curB = manager.generateCuratedRecipe('Singularity Core') as EngineRecipe;
   assert(curA.seed === curB.seed, '5.2: Curated mode derives identical seed from identical prompt');
   assert(curA.familyId === curB.familyId, '5.3: Curated mode derives identical family from identical prompt');
   assert(curA.genes.scale === curB.genes.scale, '5.4: Curated mode derives identical genes from identical prompt');
@@ -273,7 +275,7 @@ async function runAdversarialSuite() {
 
   // WebGL 3D Scene Initialization
   const scene = new THREE.Scene();
-  const mockPresetContext = {
+  const mockPresetContext: PresetContext = {
     scene,
     camera: new THREE.PerspectiveCamera(),
     renderer: {} as THREE.WebGLRenderer,
@@ -284,25 +286,26 @@ async function runAdversarialSuite() {
       secondary: '#ff8800',
       accent: '#ffaa00',
       background: '#0a0a0c',
-      panelBg: 'rgba(20, 20, 25, 0.75)'
+      glow: '#ff5c00'
     },
-    canvas: { width: 1920, height: 1080 } as HTMLCanvasElement
+    width: 1920,
+    height: 1080
   };
 
   preset.init(mockPresetContext);
   assert(scene.children.length > 0, '7.13: preset.init populates Three.js scene');
 
   // 1,000 Frames Simulation under adversarial audio transients
-  const testAudio = {
+  const testAudio: AudioFeatures = {
+    frequencyData: new Uint8Array(128),
+    timeDomainData: new Uint8Array(128),
+    beatEnergy: 0.5,
+    bpm: 120,
     subBass: 0.5,
     bass: 0.8,
     mid: 0.4,
     treble: 0.3,
     rms: 0.6,
-    spectralCentroid: 0.5,
-    spectralSpread: 0.3,
-    spectralFlux: 0.2,
-    spectralRolloff: 0.7,
     beat: true
   };
 
@@ -344,7 +347,7 @@ async function runAdversarialSuite() {
       secondary: '#00b0ff',
       accent: '#76ff03',
       background: '#041008',
-      panelBg: 'rgba(10, 25, 15, 0.75)'
+      glow: '#00e676'
     });
   } catch {
     themeSwitchOk = false;

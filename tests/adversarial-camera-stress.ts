@@ -46,8 +46,8 @@ function check(title: string, fn: () => void): void {
   }
 }
 
-function assert(condition: unknown, msg: string): asserts condition {
-  if (!condition) throw new Error(msg);
+function assert(condition: unknown, msg?: string): void {
+  if (!condition) throw new Error(msg || 'Assertion failed');
 }
 
 // Initialize headless environment
@@ -424,7 +424,7 @@ check('2.1: engine.config and cameraController autoRotate property descriptor pr
 
   // Test cameraController -> config
   engine.cameraController.autoRotate = false;
-  assert(engine.config.autoRotate === false, 'Setting cameraController.autoRotate=false must reflect in config');
+  assert((engine.config.autoRotate as boolean) === false, 'Setting cameraController.autoRotate=false must reflect in config');
 
   engine.cameraController.autoRotate = true;
   assert(engine.config.autoRotate === true, 'Setting cameraController.autoRotate=true must reflect in config');
@@ -452,7 +452,7 @@ check('2.3: engine.config and cameraController cameraShake property descriptor p
   assert(engine.cameraController.cameraShakeEnabled === true, 'config.cameraShake=true must enable shake on controller');
 
   engine.cameraController.setCameraShakeEnabled(false);
-  assert(engine.config.cameraShake === false, 'setCameraShakeEnabled(false) must reflect in config');
+  assert((engine.config.cameraShake as boolean) === false, 'setCameraShakeEnabled(false) must reflect in config');
 });
 
 check('2.4: Active render loop NEVER desynchronizes or clobbers cameraController state', () => {
