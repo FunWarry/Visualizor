@@ -139,4 +139,15 @@ export class HologramPreset extends BasePreset {
     this.hologramMaterial.uniforms.uAccent.value.set(theme.accent);
     this.emitterMaterial.emissive.set(theme.primary);
   }
+
+  protected override onDispose(): void {
+    if (this.planeMesh) {
+      this.planeMesh.geometry.dispose();
+      this.hologramMaterial.dispose();
+    }
+    if (this.emitterCone) {
+      this.emitterCone.geometry.dispose();
+      this.emitterMaterial.dispose();
+    }
+  }
 }

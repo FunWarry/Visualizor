@@ -84,4 +84,13 @@ export class BloomFlowerPreset extends BasePreset {
     this.petalMaterial.color.set(theme.primary);
     this.petalMaterial.emissive.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    for (const p of this.petals) {
+      p.geometry.dispose();
+    }
+    this.petals.length = 0;
+    this.petalBaseRotations.length = 0;
+    this.petalMaterial?.dispose();
+  }
 }

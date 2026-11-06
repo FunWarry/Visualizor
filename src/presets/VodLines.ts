@@ -101,4 +101,15 @@ export class VodLinesPreset extends BasePreset {
       this.channelMaterials[c].color.copy(colors[c % colors.length]);
     }
   }
+
+  protected override onDispose(): void {
+    for (const c of this.channels) {
+      c.geometry.dispose();
+    }
+    for (const m of this.channelMaterials) {
+      m.dispose();
+    }
+    this.channels.length = 0;
+    this.channelMaterials.length = 0;
+  }
 }

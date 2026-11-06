@@ -112,4 +112,16 @@ export class JellyfishPreset extends BasePreset {
     this.bellMaterial.emissive.set(theme.accent);
     this.tentacleMaterial.color.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.bellMesh) {
+      this.bellMesh.geometry.dispose();
+      this.bellMaterial?.dispose();
+    }
+    for (const t of this.tentacles) {
+      t.geometry.dispose();
+    }
+    this.tentacles.length = 0;
+    this.tentacleMaterial?.dispose();
+  }
 }

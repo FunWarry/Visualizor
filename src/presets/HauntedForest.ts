@@ -109,4 +109,16 @@ export class HauntedForestPreset extends BasePreset {
     this.treeMaterial.color.set(theme.primary);
     this.spiritMaterial.color.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    for (const t of this.trees) {
+      t.geometry.dispose();
+    }
+    this.trees.length = 0;
+    this.treeMaterial?.dispose();
+    if (this.spiritPoints) {
+      this.spiritPoints.geometry.dispose();
+      this.spiritMaterial?.dispose();
+    }
+  }
 }

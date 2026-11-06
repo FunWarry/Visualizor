@@ -111,4 +111,15 @@ export class NeonTunnelPreset extends BasePreset {
       this.materials[i].color.copy(color);
     }
   }
+
+  protected override onDispose(): void {
+    for (const r of this.rings) {
+      r.geometry.dispose();
+    }
+    for (const m of this.materials) {
+      m.dispose();
+    }
+    this.rings.length = 0;
+    this.materials.length = 0;
+  }
 }

@@ -88,4 +88,11 @@ export class InkDiffusionPreset extends BasePreset {
   public override onThemeChange(theme: VisualizerTheme): void {
     this.inkMaterial.color.set(theme.primary);
   }
+
+  protected override onDispose(): void {
+    if (this.inkParticles) {
+      this.inkParticles.geometry.dispose();
+      this.inkMaterial?.dispose();
+    }
+  }
 }

@@ -88,4 +88,9 @@ export class LavaEnergyPreset extends BasePreset {
     this.material.color.set(theme.primary);
     this.material.emissive.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    this.geometry?.dispose();
+    this.material?.dispose();
+  }
 }

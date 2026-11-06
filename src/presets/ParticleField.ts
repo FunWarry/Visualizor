@@ -102,4 +102,9 @@ export class ParticleFieldPreset extends BasePreset {
   public override onThemeChange(theme: VisualizerTheme): void {
     this.material.color.set(theme.primary);
   }
+
+  protected override onDispose(): void {
+    this.geometry?.dispose();
+    this.material?.dispose();
+  }
 }

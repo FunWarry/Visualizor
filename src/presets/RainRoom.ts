@@ -116,4 +116,15 @@ export class RainRoomPreset extends BasePreset {
     this.rainMaterial.color.set(theme.accent);
     this.splashMaterial.color.set(theme.primary);
   }
+
+  protected override onDispose(): void {
+    if (this.rainLines) {
+      this.rainLines.geometry.dispose();
+      this.rainMaterial?.dispose();
+    }
+    if (this.splashPoints) {
+      this.splashPoints.geometry.dispose();
+      this.splashMaterial?.dispose();
+    }
+  }
 }

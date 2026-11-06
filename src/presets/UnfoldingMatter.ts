@@ -111,4 +111,18 @@ export class UnfoldingMatterPreset extends BasePreset {
     this.facetMaterial.emissive.set(theme.accent);
     this.wireMaterial.color.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    for (const mesh of this.facets) {
+      mesh.geometry.dispose();
+      mesh.children.forEach(c => {
+        if (c instanceof THREE.LineSegments) {
+          c.geometry.dispose();
+        }
+      });
+    }
+    this.facets.length = 0;
+    this.facetMaterial?.dispose();
+    this.wireMaterial?.dispose();
+  }
 }

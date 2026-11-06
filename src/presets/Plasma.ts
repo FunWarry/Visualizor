@@ -119,4 +119,15 @@ export class PlasmaPreset extends BasePreset {
     this.torusMaterial.uniforms.uAccent.value.set(theme.accent);
     this.filamentMaterial.color.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.torusMesh) {
+      this.torusMesh.geometry.dispose();
+      this.torusMaterial?.dispose();
+    }
+    if (this.filaments) {
+      this.filaments.geometry.dispose();
+      this.filamentMaterial?.dispose();
+    }
+  }
 }

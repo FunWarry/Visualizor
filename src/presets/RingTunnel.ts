@@ -78,4 +78,12 @@ export class RingTunnelPreset extends BasePreset {
     this.ringMaterial.color.set(theme.primary);
     this.ringMaterial.emissive.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    for (const r of this.rings) {
+      r.geometry.dispose();
+    }
+    this.rings.length = 0;
+    this.ringMaterial?.dispose();
+  }
 }

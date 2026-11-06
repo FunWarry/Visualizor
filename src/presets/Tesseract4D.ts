@@ -160,4 +160,15 @@ export class Tesseract4DPreset extends BasePreset {
     this.lineMaterial.color.set(theme.primary);
     this.nodeMaterial.color.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.edgeLines) {
+      this.edgeLines.geometry.dispose();
+      this.lineMaterial.dispose();
+    }
+    if (this.vertexNodes) {
+      this.vertexNodes.geometry.dispose();
+      this.nodeMaterial.dispose();
+    }
+  }
 }

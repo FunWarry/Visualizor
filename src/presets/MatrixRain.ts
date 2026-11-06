@@ -91,4 +91,11 @@ export class MatrixRainPreset extends BasePreset {
   public override onThemeChange(theme: VisualizerTheme): void {
     (this.instancedMesh.material as THREE.MeshBasicMaterial).color.set(theme.primary);
   }
+
+  protected override onDispose(): void {
+    if (this.instancedMesh) {
+      this.instancedMesh.geometry.dispose();
+      (this.instancedMesh.material as THREE.Material).dispose();
+    }
+  }
 }

@@ -93,4 +93,11 @@ export class SpectrogramPreset extends BasePreset {
     this.waterfallMaterial.uniforms.uColor1.value.set(theme.primary);
     this.waterfallMaterial.uniforms.uAccent.value.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.waterfallMesh) {
+      this.waterfallMesh.geometry.dispose();
+      this.waterfallMaterial?.dispose();
+    }
+  }
 }

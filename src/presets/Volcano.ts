@@ -129,4 +129,19 @@ export class VolcanoPreset extends BasePreset {
     this.magmaMaterial.color.set(theme.accent);
     this.sparkMaterial.color.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.mountainMesh) {
+      this.mountainMesh.geometry.dispose();
+      this.mountainMaterial?.dispose();
+    }
+    if (this.magmaLake) {
+      this.magmaLake.geometry.dispose();
+      this.magmaMaterial?.dispose();
+    }
+    if (this.lavaSparks) {
+      this.lavaSparks.geometry.dispose();
+      this.sparkMaterial?.dispose();
+    }
+  }
 }

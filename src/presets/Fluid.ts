@@ -143,4 +143,19 @@ export class FluidPreset extends BasePreset {
     this.waterMaterial.uniforms.uAccent.value.set(theme.accent);
     this.bubbleMaterial.color.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.tankFrame) {
+      this.tankFrame.geometry.dispose();
+      this.frameMaterial?.dispose();
+    }
+    if (this.waterSurface) {
+      this.waterSurface.geometry.dispose();
+      this.waterMaterial?.dispose();
+    }
+    if (this.bubblePoints) {
+      this.bubblePoints.geometry.dispose();
+      this.bubbleMaterial?.dispose();
+    }
+  }
 }

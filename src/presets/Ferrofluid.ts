@@ -104,4 +104,9 @@ export class FerrofluidPreset extends BasePreset {
   public override onThemeChange(theme: VisualizerTheme): void {
     this.material.emissive.set(theme.primary);
   }
+
+  protected override onDispose(): void {
+    if (this.geometry) this.geometry.dispose();
+    if (this.material) this.material.dispose();
+  }
 }

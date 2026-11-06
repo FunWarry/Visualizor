@@ -97,4 +97,11 @@ export class GeissPreset extends BasePreset {
     this.material.uniforms.uPrimary.value.set(theme.primary);
     this.material.uniforms.uAccent.value.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.mesh) {
+      this.mesh.geometry.dispose();
+      this.material?.dispose();
+    }
+  }
 }

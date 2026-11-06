@@ -105,4 +105,11 @@ export class VeinTunnelPreset extends BasePreset {
     this.material.uniforms.uColor1.value.set(theme.primary);
     this.material.uniforms.uColor2.value.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.mesh) {
+      this.mesh.geometry.dispose();
+      this.material?.dispose();
+    }
+  }
 }

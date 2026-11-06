@@ -129,4 +129,15 @@ export class StormCellPreset extends BasePreset {
     this.cloudMaterial.uniforms.uColor.value.set(theme.primary);
     this.cloudMaterial.uniforms.uAccent.value.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.cloudVortex) {
+      this.cloudVortex.geometry.dispose();
+      this.cloudMaterial?.dispose();
+    }
+    if (this.lightningLines) {
+      this.lightningLines.geometry.dispose();
+      this.lightningMaterial?.dispose();
+    }
+  }
 }

@@ -101,4 +101,17 @@ export class OrbitalRingsPreset extends BasePreset {
     this.ringMaterial.color.set(theme.secondary);
     this.ringMaterial.emissive.set(theme.primary);
   }
+
+  protected override onDispose(): void {
+    if (this.coreMesh) {
+      this.coreMesh.geometry.dispose();
+      this.coreMaterial.dispose();
+    }
+    this.rings.forEach(ring => {
+      ring.geometry.dispose();
+    });
+    if (this.ringMaterial) {
+      this.ringMaterial.dispose();
+    }
+  }
 }

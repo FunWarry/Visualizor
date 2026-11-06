@@ -96,4 +96,15 @@ export class ForestStormPreset extends BasePreset {
     this.lineMaterial.color.set(theme.accent);
     this.rayMaterial.color.set(theme.primary);
   }
+
+  protected override onDispose(): void {
+    if (this.treeLines) {
+      this.treeLines.geometry.dispose();
+      this.lineMaterial?.dispose();
+    }
+    if (this.godRays) {
+      this.godRays.geometry.dispose();
+      this.rayMaterial?.dispose();
+    }
+  }
 }

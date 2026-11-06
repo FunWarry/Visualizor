@@ -113,4 +113,13 @@ export class SynthwaveTerrainPreset extends BasePreset {
     this.terrainMat.emissive.set(theme.accent);
     this.sunMat.color.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    this.terrainGeom?.dispose();
+    this.terrainMat?.dispose();
+    if (this.sunMesh) {
+      this.sunMesh.geometry.dispose();
+      this.sunMat?.dispose();
+    }
+  }
 }

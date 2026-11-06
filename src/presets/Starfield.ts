@@ -87,4 +87,11 @@ export class StarfieldPreset extends BasePreset {
   public override onThemeChange(theme: VisualizerTheme): void {
     this.material.color.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.points) {
+      this.geometry.dispose();
+      this.material.dispose();
+    }
+  }
 }

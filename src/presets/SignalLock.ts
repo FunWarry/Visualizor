@@ -138,4 +138,15 @@ export class SignalLockPreset extends BasePreset {
     this.cardMaterial.uniforms.uAccent.value.set(theme.accent);
     this.lissajousMaterial.color.set(theme.glow);
   }
+
+  protected override onDispose(): void {
+    if (this.testCardMesh) {
+      this.testCardMesh.geometry.dispose();
+      this.cardMaterial?.dispose();
+    }
+    if (this.lissajousLine) {
+      this.lissajousLine.geometry.dispose();
+      this.lissajousMaterial?.dispose();
+    }
+  }
 }

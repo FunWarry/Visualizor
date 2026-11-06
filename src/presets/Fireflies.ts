@@ -90,4 +90,11 @@ export class FirefliesPreset extends BasePreset {
   public override onThemeChange(theme: VisualizerTheme): void {
     this.material.color.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.points) {
+      this.points.geometry.dispose();
+      this.material?.dispose();
+    }
+  }
 }

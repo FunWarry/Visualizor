@@ -109,4 +109,15 @@ export class SingleTreePreset extends BasePreset {
     this.lineMaterial.color.set(theme.primary);
     this.petalMaterial.color.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.treeLines) {
+      this.treeLines.geometry.dispose();
+      this.lineMaterial?.dispose();
+    }
+    if (this.petalPoints) {
+      this.petalPoints.geometry.dispose();
+      this.petalMaterial?.dispose();
+    }
+  }
 }

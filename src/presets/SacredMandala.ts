@@ -73,4 +73,12 @@ export class SacredMandalaPreset extends BasePreset {
   public override onThemeChange(theme: VisualizerTheme): void {
     this.ringMaterial.color.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    for (const ring of this.mandalaRings) {
+      ring.geometry.dispose();
+    }
+    this.mandalaRings.length = 0;
+    this.ringMaterial?.dispose();
+  }
 }

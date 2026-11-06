@@ -93,4 +93,11 @@ export class OceanWavesPreset extends BasePreset {
     this.oceanMaterial.uniforms.uColor2.value.set(theme.secondary);
     this.oceanMaterial.uniforms.uAccent.value.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.oceanMesh) {
+      this.oceanMesh.geometry.dispose();
+      this.oceanMaterial?.dispose();
+    }
+  }
 }

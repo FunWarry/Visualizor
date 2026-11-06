@@ -133,4 +133,19 @@ export class WaterNeuronsPreset extends BasePreset {
     this.lineMaterial.color.set(theme.accent);
     this.synNodeMaterial.color.set(theme.primary);
   }
+
+  protected override onDispose(): void {
+    if (this.coreMesh) {
+      this.coreMesh.geometry.dispose();
+      this.coreMaterial?.dispose();
+    }
+    if (this.neuronLines) {
+      this.neuronLines.geometry.dispose();
+      this.lineMaterial?.dispose();
+    }
+    if (this.synNodePoints) {
+      this.synNodePoints.geometry.dispose();
+      this.synNodeMaterial?.dispose();
+    }
+  }
 }

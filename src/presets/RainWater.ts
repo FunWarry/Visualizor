@@ -97,4 +97,11 @@ export class RainWaterPreset extends BasePreset {
     this.waterMaterial.uniforms.uColor1.value.set(theme.primary);
     this.waterMaterial.uniforms.uAccent.value.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.waterPlane) {
+      this.waterPlane.geometry.dispose();
+      this.waterMaterial?.dispose();
+    }
+  }
 }

@@ -106,4 +106,11 @@ export class UpCloudPreset extends BasePreset {
     this.cloudMaterial.uniforms.uColor1.value.set(theme.primary);
     this.cloudMaterial.uniforms.uAccent.value.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.cloudMesh) {
+      this.cloudMesh.geometry.dispose();
+      this.cloudMaterial?.dispose();
+    }
+  }
 }

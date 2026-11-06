@@ -101,4 +101,15 @@ export class ObsidianPolyPreset extends BasePreset {
     this.material.emissive.set(theme.primary);
     this.wireMaterial.color.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.mesh) {
+      this.mesh.geometry.dispose();
+      this.material.dispose();
+    }
+    if (this.wireframe) {
+      this.wireframe.geometry.dispose();
+      this.wireMaterial.dispose();
+    }
+  }
 }

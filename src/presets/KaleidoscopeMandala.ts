@@ -103,4 +103,15 @@ export class KaleidoscopeMandalaPreset extends BasePreset {
       this.materials[r].color.copy(color);
     }
   }
+
+  protected override onDispose(): void {
+    for (const r of this.rings) {
+      r.geometry.dispose();
+    }
+    for (const m of this.materials) {
+      m.dispose();
+    }
+    this.rings.length = 0;
+    this.materials.length = 0;
+  }
 }

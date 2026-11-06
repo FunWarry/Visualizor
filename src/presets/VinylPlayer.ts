@@ -98,4 +98,25 @@ export class VinylPlayerPreset extends BasePreset {
   public override onThemeChange(theme: VisualizerTheme): void {
     this.labelMaterial.color.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.vinylDisc) {
+      this.vinylDisc.traverse(child => {
+        if (child instanceof THREE.Mesh) {
+          child.geometry.dispose();
+          if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+          else child.material.dispose();
+        }
+      });
+    }
+    if (this.toneArm) {
+      this.toneArm.traverse(child => {
+        if (child instanceof THREE.Mesh) {
+          child.geometry.dispose();
+          if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+          else child.material.dispose();
+        }
+      });
+    }
+  }
 }

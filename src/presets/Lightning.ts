@@ -105,4 +105,16 @@ export class LightningPreset extends BasePreset {
       m.color.set(theme.accent);
     }
   }
+
+  protected override onDispose(): void {
+    for (const g of this.boltGeometries) {
+      g.dispose();
+    }
+    for (const m of this.boltMaterials) {
+      m.dispose();
+    }
+    this.boltLines.length = 0;
+    this.boltGeometries.length = 0;
+    this.boltMaterials.length = 0;
+  }
 }

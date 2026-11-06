@@ -123,4 +123,11 @@ export class LiquidPreset extends BasePreset {
     this.material.uniforms.uColor2.value.set(theme.secondary);
     this.material.uniforms.uAccent.value.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.mesh) {
+      this.mesh.geometry.dispose();
+      this.material?.dispose();
+    }
+  }
 }

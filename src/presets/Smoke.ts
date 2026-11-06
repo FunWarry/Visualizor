@@ -77,4 +77,11 @@ export class SmokePreset extends BasePreset {
   public override onThemeChange(theme: VisualizerTheme): void {
     this.smokeMaterial.color.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.smokePoints) {
+      this.smokePoints.geometry.dispose();
+      this.smokeMaterial?.dispose();
+    }
+  }
 }

@@ -114,4 +114,15 @@ export class CymaticPreset extends BasePreset {
     this.material.emissive.set(theme.primary);
     this.particleMaterial.color.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.plateMesh) {
+      this.plateMesh.geometry.dispose();
+      this.material.dispose();
+    }
+    if (this.sandParticles) {
+      this.sandParticles.geometry.dispose();
+      this.particleMaterial.dispose();
+    }
+  }
 }

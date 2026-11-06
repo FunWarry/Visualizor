@@ -98,4 +98,11 @@ export class HaloPreset extends BasePreset {
     this.material.uniforms.uColor1.value.set(theme.primary);
     this.material.uniforms.uColor2.value.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.discMesh) {
+      this.discMesh.geometry.dispose();
+      this.material.dispose();
+    }
+  }
 }

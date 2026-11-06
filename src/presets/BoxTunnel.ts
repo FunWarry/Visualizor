@@ -96,4 +96,15 @@ export class BoxTunnelPreset extends BasePreset {
       this.materials[i].color.copy(color);
     }
   }
+
+  protected override onDispose(): void {
+    for (const f of this.frames) {
+      f.geometry.dispose();
+    }
+    for (const m of this.materials) {
+      m.dispose();
+    }
+    this.frames.length = 0;
+    this.materials.length = 0;
+  }
 }

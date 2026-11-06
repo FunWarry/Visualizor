@@ -93,4 +93,11 @@ export class AuroraPreset extends BasePreset {
     this.auroraMaterial.uniforms.uColor1.value.set(theme.primary);
     this.auroraMaterial.uniforms.uColor2.value.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.auroraMesh) {
+      this.auroraMesh.geometry.dispose();
+      this.auroraMaterial.dispose();
+    }
+  }
 }

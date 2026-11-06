@@ -140,4 +140,15 @@ export class MilkDropPreset extends BasePreset {
     this.material.uniforms.uAccent.value.set(theme.accent);
     this.waveMaterial.color.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.mesh) {
+      this.mesh.geometry.dispose();
+      this.material?.dispose();
+    }
+    if (this.waveformWave) {
+      this.waveformWave.geometry.dispose();
+      this.waveMaterial?.dispose();
+    }
+  }
 }

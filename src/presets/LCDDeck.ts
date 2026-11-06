@@ -97,4 +97,20 @@ export class LCDDeckPreset extends BasePreset {
     this.cdMaterial.color.set(theme.primary);
     (this.deckChassis.material as THREE.MeshStandardMaterial).color.set(theme.background).offsetHSL(0, 0, 0.08);
   }
+
+  protected override onDispose(): void {
+    if (this.deckChassis) {
+      this.deckChassis.geometry.dispose();
+      (this.deckChassis.material as THREE.Material).dispose();
+    }
+    if (this.cdDisc) {
+      this.cdDisc.geometry.dispose();
+      this.cdMaterial?.dispose();
+    }
+    for (const bar of this.vuBars) {
+      bar.geometry.dispose();
+    }
+    this.vuBars.length = 0;
+    this.vuMaterial?.dispose();
+  }
 }

@@ -176,4 +176,19 @@ export class TheSunPreset extends BasePreset {
     this.coronaMaterial.uniforms.uCoronaColor.value.set(theme.accent);
     this.flareMaterial.color.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.coreMesh) {
+      this.coreMesh.geometry.dispose();
+      this.coreMaterial.dispose();
+    }
+    if (this.coronaMesh) {
+      this.coronaMesh.geometry.dispose();
+      this.coronaMaterial.dispose();
+    }
+    if (this.flarePoints) {
+      this.flarePoints.geometry.dispose();
+      this.flareMaterial.dispose();
+    }
+  }
 }

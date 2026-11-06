@@ -121,4 +121,15 @@ export class DNAHelixPreset extends BasePreset {
       this.sphereMesh.instanceColor.needsUpdate = true;
     }
   }
+
+  protected override onDispose(): void {
+    if (this.sphereMesh) {
+      this.sphereMesh.geometry.dispose();
+      (this.sphereMesh.material as THREE.Material).dispose();
+    }
+    if (this.rungsMesh) {
+      this.rungsMesh.geometry.dispose();
+      (this.rungsMesh.material as THREE.Material).dispose();
+    }
+  }
 }

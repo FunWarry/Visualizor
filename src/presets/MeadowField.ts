@@ -80,4 +80,12 @@ export class MeadowFieldPreset extends BasePreset {
   public override onThemeChange(theme: VisualizerTheme): void {
     this.grassMaterial.color.set(theme.primary);
   }
+
+  protected override onDispose(): void {
+    if (this.grassMesh) {
+      this.grassMesh.geometry.dispose();
+      this.grassMaterial?.dispose();
+    }
+    this.basePositions.length = 0;
+  }
 }

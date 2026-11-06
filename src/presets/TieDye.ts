@@ -96,4 +96,11 @@ export class TieDyePreset extends BasePreset {
     this.material.uniforms.uSecondary.value.set(theme.secondary);
     this.material.uniforms.uAccent.value.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.mesh) {
+      this.mesh.geometry.dispose();
+      this.material.dispose();
+    }
+  }
 }

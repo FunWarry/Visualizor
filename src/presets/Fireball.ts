@@ -142,4 +142,15 @@ export class FireballPreset extends BasePreset {
     this.coreMaterial.uniforms.uColor2.value.set(theme.accent);
     this.sparksMaterial.color.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.coreMesh) {
+      this.coreMesh.geometry.dispose();
+      this.coreMaterial?.dispose();
+    }
+    if (this.sparksPoints) {
+      this.sparksPoints.geometry.dispose();
+      this.sparksMaterial?.dispose();
+    }
+  }
 }

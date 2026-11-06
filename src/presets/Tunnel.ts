@@ -102,4 +102,11 @@ export class TunnelPreset extends BasePreset {
     this.tunnelMaterial.uniforms.uColor2.value.set(theme.secondary);
     this.tunnelMaterial.uniforms.uAccent.value.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.tunnelMesh) {
+      this.tunnelMesh.geometry.dispose();
+      this.tunnelMaterial?.dispose();
+    }
+  }
 }

@@ -95,4 +95,13 @@ export class BioCellsPreset extends BasePreset {
     this.cellMaterial.color.set(theme.primary);
     this.cellMaterial.emissive.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    for (const c of this.cells) {
+      c.geometry.dispose();
+    }
+    this.cells.length = 0;
+    this.cellBasePositions.length = 0;
+    this.cellMaterial?.dispose();
+  }
 }

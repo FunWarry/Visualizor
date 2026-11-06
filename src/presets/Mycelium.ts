@@ -94,4 +94,15 @@ export class MyceliumPreset extends BasePreset {
     this.lineMaterial.color.set(theme.primary);
     this.nodeMaterial.color.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.hyphaeLines) {
+      this.hyphaeLines.geometry.dispose();
+      this.lineMaterial?.dispose();
+    }
+    if (this.nodePoints) {
+      this.nodePoints.geometry.dispose();
+      this.nodeMaterial?.dispose();
+    }
+  }
 }

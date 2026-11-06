@@ -140,4 +140,19 @@ export class NightRadarPreset extends BasePreset {
     this.sweepMaterial.color.set(theme.accent);
     this.blipMaterial.color.set(theme.accent);
   }
+
+  protected override onDispose(): void {
+    if (this.radarScope) {
+      this.radarScope.geometry.dispose();
+      this.scopeMaterial?.dispose();
+    }
+    if (this.sweepLine) {
+      this.sweepLine.geometry.dispose();
+      this.sweepMaterial?.dispose();
+    }
+    if (this.blipPoints) {
+      this.blipPoints.geometry.dispose();
+      this.blipMaterial?.dispose();
+    }
+  }
 }

@@ -118,4 +118,15 @@ export class FogPreset extends BasePreset {
       mat.uniforms.uColor2.value.set(theme.secondary);
     }
   }
+
+  protected override onDispose(): void {
+    for (const mesh of this.mistPlanes) {
+      mesh.geometry.dispose();
+    }
+    for (const mat of this.materials) {
+      mat.dispose();
+    }
+    this.mistPlanes.length = 0;
+    this.materials.length = 0;
+  }
 }
