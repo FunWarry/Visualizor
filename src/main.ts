@@ -2,7 +2,8 @@ import { AudioEngine, PlaylistTrack } from './audio/AudioEngine';
 import { RenderEngine } from './engine/RenderEngine';
 import { MilkdropEngine } from './engine/MilkdropEngine';
 import { ExportManager } from './export/ExportManager';
-import { THEMES, getTheme } from './themes/themes';
+import { THEMES, getTheme, SINGLE_COLOR_THEMES, EARTHY_THEMES, DUO_TONE_THEMES } from './themes/themes';
+import { VisualizerTheme } from './types';
 import { PRESETS, getPreset } from './presets';
 import { StudioComposerPreset } from './studio/StudioComposer';
 import {
@@ -177,21 +178,165 @@ renderEngine.setPreset(PRESETS[0]);
 updateTuningButtonState(PRESETS[0]);
 renderTuningPanel(PRESETS[0]);
 
-// Build Color Themes List
-const themesList = document.getElementById('themesList') as HTMLElement;
-THEMES.forEach(t => {
-  const card = document.createElement('div');
-  card.className = `theme-card ${t.id === renderEngine.currentTheme.id ? 'active' : ''}`;
-  card.innerHTML = `
-    <div class="theme-swatch-circle" style="background: linear-gradient(135deg, ${t.primary}, ${t.accent});"></div>
-    <span style="font-size:12px;font-weight:600;">${t.name}</span>
-  `;
-  card.addEventListener('click', () => {
-    renderEngine.setTheme(t);
-    document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active'));
-    card.classList.add('active');
+// --- Canonical 4-Column Colors Panel (Matching Image 3) ---
+function updateColorCalloutAndInputs(theme: VisualizerTheme): void {
+  const calloutName = document.getElementById('themeCalloutName');
+  if (calloutName) calloutName.textContent = theme.name;
+
+  const box = document.getElementById('customColorBox');
+  if (box) box.style.backgroundColor = theme.primary;
+
+  const hexInput = document.getElementById('customHexInput') as HTMLInputElement | null;
+  if (hexInput) hexInput.value = theme.primary.toUpperCase();
+
+  const satSlider = document.getElementById('themeSaturationSlider') as HTMLInputElement | null;
+  if (satSlider) {
+    satSlider.style.background = `linear-gradient(90deg, #666666, ${theme.primary})`;
+  }
+}
+
+function applyAppTheme(theme: VisualizerTheme): void {
+  renderEngine.setTheme(theme);
+  document.querySelectorAll('.theme-swatch-card').forEach(c => {
+    c.classList.toggle('active', c.getAttribute('data-theme-id') === theme.id);
   });
-  themesList.appendChild(card);
+  updateColorCalloutAndInputs(theme);
+}
+
+function createThemeSwatchCard(
+  theme: VisualizerTheme,
+  displayName: string,
+  isDuo: boolean
+): HTMLElement {
+  const card = document.createElement('div');
+  card.className = `theme-swatch-card ${theme.id === renderEngine.currentTheme.id ? 'active' : ''}`;
+  card.setAttribute('data-theme-id', theme.id);
+  card.title = `${displayName} (${theme.primary})`;
+
+  const bg = isDuo
+    ? `linear-gradient(135deg, ${theme.primary} 50%, ${theme.secondary || theme.accent} 50%)`
+    : theme.primary;
+
+  card.innerHTML = `
+    <div class="swatch-block" style="background: ${bg};"></div>
+    <span class="swatch-name">${displayName}</span>
+  `;
+
+  card.addEventListener('click', () => {
+    applyAppTheme(theme);
+  });
+
+  return card;
+}
+
+function populateThemeGrid(
+  containerId: string,
+  themeIds: readonly string[],
+  nameResolver?: (id: string, name: string) => string,
+  isDuo: boolean = false
+): void {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+
+  for (const id of themeIds) {
+    const theme = getTheme(id);
+    const name = nameResolver ? nameResolver(id, theme.name) : theme.name;
+    const card = createThemeSwatchCard(theme, name, isDuo);
+    container.appendChild(card);
+  }
+}
+
+// 1. Single Color (12 swatches)
+populateThemeGrid('singleColorGrid', SINGLE_COLOR_THEMES, undefined, false);
+
+// 2. Earthy (4 swatches: Terra-cotta, Forest, Sand, Lavender)
+populateThemeGrid('earthyColorGrid', EARTHY_THEMES, (id, name) => id === 'earthy' ? 'Forest' : name, false);
+
+// 3. Duo Tones (12 diagonal split swatches)
+populateThemeGrid('duoTonesGrid', DUO_TONE_THEMES, undefined, true);
+
+// Initial callout & inputs
+updateColorCalloutAndInputs(renderEngine.currentTheme);
+
+// Random Theme Button (Top right of Colors Drawer)
+const randomThemeBtn = document.getElementById('randomThemeBtn');
+randomThemeBtn?.addEventListener('click', () => {
+  const randTheme = THEMES[Math.floor(Math.random() * THEMES.length)];
+  applyAppTheme(randTheme);
+});
+
+// Saturation Slider
+const themeSaturationSlider = document.getElementById('themeSaturationSlider') as HTMLInputElement | null;
+const themeSaturationVal = document.getElementById('themeSaturationVal');
+themeSaturationSlider?.addEventListener('input', () => {
+  const val = Number.parseInt(themeSaturationSlider.value, 10);
+  if (themeSaturationVal) themeSaturationVal.textContent = `${val}%`;
+});
+
+// Custom Color Controls
+const customHexInput = document.getElementById('customHexInput') as HTMLInputElement | null;
+const eyeDropperBtn = document.getElementById('eyeDropperBtn');
+const hiddenNativeColorPicker = document.getElementById('hiddenNativeColorPicker') as HTMLInputElement | null;
+const randomCustomColorBtn = document.getElementById('randomCustomColorBtn');
+
+function applyCustomColor(hex: string): void {
+  if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) return;
+  const customTheme: VisualizerTheme = {
+    id: 'custom',
+    name: 'Custom',
+    primary: hex,
+    secondary: hex,
+    accent: hex,
+    background: '#0a0a0c',
+    glow: hex
+  };
+  applyAppTheme(customTheme);
+}
+
+customHexInput?.addEventListener('change', () => {
+  let val = customHexInput.value.trim();
+  if (!val.startsWith('#')) val = '#' + val;
+  applyCustomColor(val);
+});
+
+eyeDropperBtn?.addEventListener('click', async () => {
+  const win = window as unknown as { EyeDropper?: new () => { open: () => Promise<{ sRGBHex: string }> } };
+  if (win.EyeDropper) {
+    try {
+      const dropper = new win.EyeDropper();
+      const res = await dropper.open();
+      if (res?.sRGBHex) {
+        applyCustomColor(res.sRGBHex);
+      }
+    } catch {
+      // User cancelled dropper
+    }
+  } else if (hiddenNativeColorPicker) {
+    hiddenNativeColorPicker.click();
+  }
+});
+
+hiddenNativeColorPicker?.addEventListener('input', () => {
+  if (hiddenNativeColorPicker.value) {
+    applyCustomColor(hiddenNativeColorPicker.value);
+  }
+});
+
+randomCustomColorBtn?.addEventListener('click', () => {
+  const randHex = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+  applyCustomColor(randHex);
+});
+
+const customSolidBtn = document.getElementById('customSolidBtn');
+const customGradientBtn = document.getElementById('customGradientBtn');
+customSolidBtn?.addEventListener('click', () => {
+  customSolidBtn.classList.add('active');
+  customGradientBtn?.classList.remove('active');
+});
+customGradientBtn?.addEventListener('click', () => {
+  customGradientBtn.classList.add('active');
+  customSolidBtn?.classList.remove('active');
 });
 
 const ARIA_SELECTED = 'aria-selected';

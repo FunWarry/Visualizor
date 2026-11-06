@@ -124,9 +124,9 @@ export class RenderEngine {
   constructor(canvas: HTMLCanvasElement, initialTheme: VisualizerTheme) {
     this.currentTheme = initialTheme;
     this.config = {
-      bloomStrength: 1.2,
-      bloomRadius: 0.45,
-      bloomThreshold: 0.15,
+      bloomStrength: 0.9,
+      bloomRadius: 0.38,
+      bloomThreshold: 0.4,
       persistence: 0.0,
       chromaticAberration: 0.35,
       filmGrain: 0.12,

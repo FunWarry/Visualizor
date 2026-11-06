@@ -284,14 +284,76 @@
     </div>
   </div>
 
-  <!-- 3. Themes Drawer Panel -->
+  <!-- 3. Themes / Colors Drawer Panel (Matching Image 3) -->
   <div class="drawer-panel glass-panel detail-panel" id="themesPanel" data-panel="colors">
     <div class="panel-header">
-      <span>Color Themes</span>
-      <button class="btn-icon closeThemeBtn close-drawer-btn" style="width:28px;height:28px;" aria-label="Close themes panel">✕</button>
+      <span>Colors</span>
+      <div class="header-tools">
+        <button class="tool-icon-btn" id="randomThemeBtn" title="Random Theme (Shuffle)">🔀</button>
+        <button class="btn-icon closeThemeBtn close-drawer-btn" style="width:26px;height:26px;" aria-label="Close themes panel">✕</button>
+      </div>
     </div>
-    <div class="panel-content">
-      <div class="themes-grid" id="themesList"></div>
+    <div class="panel-content" id="colorsPanelContent">
+      <!-- Section 1: Single Color -->
+      <div class="color-section-header">
+        <span class="color-section-title">Single Color</span>
+      </div>
+      <div class="theme-swatch-grid" id="singleColorGrid"></div>
+
+      <!-- Section 2: EARTHY -->
+      <div class="color-section-header" style="margin-top: 18px;">
+        <span class="color-section-title">EARTHY</span>
+        <span class="badge-premium">Premium</span>
+      </div>
+      <div class="theme-swatch-grid" id="earthyColorGrid"></div>
+
+      <!-- Section 3: Duo Tones -->
+      <div class="color-section-header" style="margin-top: 18px;">
+        <span class="color-section-title">Duo Tones</span>
+        <span class="badge-preview">Preview</span>
+        <span class="help-tooltip-icon" title="Two-tone complementary harmonic gradients">?</span>
+      </div>
+      <div class="theme-swatch-grid" id="duoTonesGrid"></div>
+
+      <!-- Callout Banner -->
+      <div class="theme-callout-banner" id="themeCalloutBanner">
+        <div class="theme-callout-text">
+          <strong id="themeCalloutName">Eclipse</strong> is a Preview · export needs Premium
+        </div>
+        <button class="theme-unlock-btn" id="themeUnlockBtn">👑 Unlock</button>
+      </div>
+
+      <!-- Section 4: Saturation -->
+      <div class="color-saturation-wrap">
+        <div class="control-label">
+          <span>Saturation <span class="help-tooltip-icon" title="Color saturation level">?</span> <span class="badge-premium">Premium</span></span>
+          <span id="themeSaturationVal">50%</span>
+        </div>
+        <input class="ui-slider theme-sat-slider" type="range" id="themeSaturationSlider" min="0" max="100" step="1" value="50" aria-label="Theme Saturation">
+      </div>
+
+      <!-- Section 5: Custom -->
+      <div class="color-custom-wrap">
+        <div class="color-custom-header">
+          <span class="color-section-title">Custom</span>
+          <div class="custom-toggle-pills">
+            <button class="custom-pill-btn active" id="customSolidBtn">Solid</button>
+            <button class="custom-pill-btn" id="customGradientBtn">Gradient <span class="badge-premium-mini">Premium</span></button>
+          </div>
+          <button class="tool-icon-btn" id="randomCustomColorBtn" title="Random Color">🎲</button>
+        </div>
+        <div class="custom-color-row">
+          <div class="custom-swatch-preview" id="customColorBox" style="background-color: #2E196B;"></div>
+          <input type="text" class="custom-hex-input" id="customHexInput" value="#2E196B" maxlength="7" aria-label="Custom Hex Color">
+          <button class="custom-picker-btn" id="eyeDropperBtn" title="Pick color with eyedropper">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2 2 0 0 1 0-2.8l.4-.4"/></svg>
+          </button>
+          <input type="color" id="hiddenNativeColorPicker" value="#2E196B" style="opacity:0;position:absolute;pointer-events:none;width:0;height:0;">
+        </div>
+      </div>
+
+      <!-- Hidden legacy container for compatibility -->
+      <div id="themesList" style="display:none;"></div>
     </div>
   </div>
 
