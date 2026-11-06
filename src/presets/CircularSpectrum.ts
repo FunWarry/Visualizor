@@ -14,7 +14,7 @@ function createGlowTexture(): THREE.DataTexture {
       const idx = (y * size + x) * 4;
       const dx = x - center;
       const dy = y - center;
-      const dist = Math.sqrt(dx * dx + dy * dy);
+      const dist = Math.hypot(dx, dy);
       const norm = Math.max(0, 1.0 - dist / maxR);
       const alpha = Math.round(Math.pow(norm, 2.0) * 255);
 
@@ -238,9 +238,7 @@ export class CircularSpectrumPreset extends BasePreset {
     pointsGeom.setAttribute('position', new THREE.BufferAttribute(this.particlePositions, 3));
     pointsGeom.setAttribute('color', new THREE.BufferAttribute(this.particleColors, 3));
 
-    if (!this.glowTexture) {
-      this.glowTexture = createGlowTexture();
-    }
+    this.glowTexture ??= createGlowTexture();
 
     this.pointsMaterial = new THREE.PointsMaterial({
       size: 0.30,

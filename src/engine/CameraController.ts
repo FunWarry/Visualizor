@@ -29,7 +29,7 @@ export interface CameraControllerOptions {
 }
 
 export function computeZoomDistance(normalizedZoom: number): number {
-  if (typeof normalizedZoom !== 'number' || isNaN(normalizedZoom)) return 0.7;
+  if (typeof normalizedZoom !== 'number' || Number.isNaN(normalizedZoom)) return 0.7;
   const clamped = Math.max(0, Math.min(1, normalizedZoom));
   return 0.7 + (2.5 - 0.7) * clamped;
 }
@@ -95,7 +95,7 @@ export class CameraController {
     const dx = x - this.target.x;
     const dy = y - this.target.y;
     const dz = z - this.target.z;
-    const totalDist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    const totalDist = Math.hypot(dx, dy, dz);
     const clampedDist = Math.max(this.minDistance, Math.min(this.maxDistance, totalDist));
 
     this.radius = clampedDist;
@@ -156,7 +156,7 @@ export class CameraController {
   }
 
   public nudge(axis: 'orbit' | 'tilt', direction: 1 | -1, delta?: number): void {
-    const step = (delta !== undefined ? delta : this.dpadStepAngle) * direction;
+    const step = (delta ?? this.dpadStepAngle) * direction;
     if (axis === 'orbit') {
       this.nudgeOrbit(step);
     } else {

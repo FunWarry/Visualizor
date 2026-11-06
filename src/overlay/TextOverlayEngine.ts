@@ -166,7 +166,7 @@ export class TextOverlayEngine {
   }
 
   public setFontSize(size: number): void {
-    const val = typeof size === 'number' && !isNaN(size) ? size : 32;
+    const val = typeof size === 'number' && !Number.isNaN(size) ? size : 32;
     this.config.fontSize = Math.max(12, Math.min(96, Math.round(val)));
     this.isDirty = true;
   }
@@ -186,19 +186,19 @@ export class TextOverlayEngine {
   }
 
   public setGlowIntensity(intensity: number): void {
-    const val = typeof intensity === 'number' && !isNaN(intensity) ? intensity : 0.8;
+    const val = typeof intensity === 'number' && !Number.isNaN(intensity) ? intensity : 0.8;
     this.config.glowIntensity = Math.max(0.0, Math.min(2.0, Number(val.toFixed(2))));
     this.isDirty = true;
   }
 
   public setOpacity(opacity: number): void {
-    const val = typeof opacity === 'number' && !isNaN(opacity) ? opacity : 1.0;
+    const val = typeof opacity === 'number' && !Number.isNaN(opacity) ? opacity : 1.0;
     this.config.opacity = Math.max(0.0, Math.min(1.0, Number(val.toFixed(2))));
     this.isDirty = true;
   }
 
   public setAnimationIntensity(intensity: number): void {
-    const val = typeof intensity === 'number' && !isNaN(intensity) ? intensity : 0.5;
+    const val = typeof intensity === 'number' && !Number.isNaN(intensity) ? intensity : 0.5;
     this.config.animationIntensity = Math.max(0.0, Math.min(1.0, Number(val.toFixed(2))));
     this.isDirty = true;
   }
@@ -246,15 +246,14 @@ export class TextOverlayEngine {
     height: number,
     dpr = Math.min(typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1, 2)
   ): void {
-    const validW = typeof width === 'number' && Number.isFinite(width)
-      ? Math.max(1, width)
-      : (this.width > 0 ? this.width : 1920);
-    const validH = typeof height === 'number' && Number.isFinite(height)
-      ? Math.max(1, height)
-      : (this.height > 0 ? this.height : 1080);
-    const validDpr = typeof dpr === 'number' && Number.isFinite(dpr) && dpr > 0
-      ? Math.min(dpr, 4)
-      : (this.dpr > 0 ? this.dpr : 1);
+    const fallbackW = this.width > 0 ? this.width : 1920;
+    const validW = typeof width === 'number' && Number.isFinite(width) ? Math.max(1, width) : fallbackW;
+
+    const fallbackH = this.height > 0 ? this.height : 1080;
+    const validH = typeof height === 'number' && Number.isFinite(height) ? Math.max(1, height) : fallbackH;
+
+    const fallbackDpr = this.dpr > 0 ? this.dpr : 1;
+    const validDpr = typeof dpr === 'number' && Number.isFinite(dpr) && dpr > 0 ? Math.min(dpr, 4) : fallbackDpr;
 
     this.width = validW;
     this.height = validH;

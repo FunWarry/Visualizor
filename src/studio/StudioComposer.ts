@@ -36,7 +36,7 @@ const STORAGE_KEY_ACTIVE = 'visuval_studio_active_recipe_v2';
 export function createDefaultGenes(family: EngineFamily): Record<string, number> {
   return {
     ...BASE_GENE_DEFAULTS,
-    ...(FAMILY_GENE_DEFAULTS[family] || {})
+    ...FAMILY_GENE_DEFAULTS[family]
   };
 }
 
@@ -74,7 +74,7 @@ export class StudioRecipeManager {
   constructor(listener?: (recipe: StudioRecipe) => void) {
     this.onActiveRecipeChange = listener;
     this.activeRecipe = createDefaultRecipe('force');
-    this.draftRecipe = JSON.parse(JSON.stringify(this.activeRecipe));
+    this.draftRecipe = structuredClone(this.activeRecipe);
     this.loadFromStorage();
   }
 
@@ -101,7 +101,7 @@ export class StudioRecipeManager {
       this.activeRecipe.seed = ENGINE_FAMILIES_META[family]?.defaultSeed || 2867;
       this.activeRecipe.updatedAt = Date.now();
     }
-    this.draftRecipe = JSON.parse(JSON.stringify(this.activeRecipe));
+    this.draftRecipe = structuredClone(this.activeRecipe);
     this.notifyChange();
     this.persistActive();
   }
@@ -112,7 +112,7 @@ export class StudioRecipeManager {
       this.activeRecipe.genes[key] = clamped;
       this.activeRecipe.updatedAt = Date.now();
     }
-    this.draftRecipe = JSON.parse(JSON.stringify(this.activeRecipe));
+    this.draftRecipe = structuredClone(this.activeRecipe);
     this.notifyChange();
     this.persistActive();
   }
@@ -122,7 +122,7 @@ export class StudioRecipeManager {
       Object.assign(this.activeRecipe.stage, stage);
       this.activeRecipe.updatedAt = Date.now();
     }
-    this.draftRecipe = JSON.parse(JSON.stringify(this.activeRecipe));
+    this.draftRecipe = structuredClone(this.activeRecipe);
     this.notifyChange();
     this.persistActive();
   }
@@ -132,7 +132,7 @@ export class StudioRecipeManager {
       Object.assign(this.activeRecipe.hero, hero);
       this.activeRecipe.updatedAt = Date.now();
     }
-    this.draftRecipe = JSON.parse(JSON.stringify(this.activeRecipe));
+    this.draftRecipe = structuredClone(this.activeRecipe);
     this.notifyChange();
     this.persistActive();
   }
@@ -142,7 +142,7 @@ export class StudioRecipeManager {
       Object.assign(this.activeRecipe.mood, mood);
       this.activeRecipe.updatedAt = Date.now();
     }
-    this.draftRecipe = JSON.parse(JSON.stringify(this.activeRecipe));
+    this.draftRecipe = structuredClone(this.activeRecipe);
     this.notifyChange();
     this.persistActive();
   }
@@ -234,7 +234,7 @@ export class StudioRecipeManager {
    * Controlled stochastic perturbation (±10% to ±25%) of current active recipe
    */
   public remixCurrent(): StudioRecipe {
-    const base = JSON.parse(JSON.stringify(this.activeRecipe)) as StudioRecipe;
+    const base = structuredClone(this.activeRecipe);
     if (base.kind === 'engine') {
       base.id = `sc_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
       base.name = `Remix of ${base.name}`;

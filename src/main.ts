@@ -3,7 +3,6 @@ import { RenderEngine } from './engine/RenderEngine';
 import { MilkdropEngine } from './engine/MilkdropEngine';
 import { ExportManager } from './export/ExportManager';
 import { THEMES, getTheme, SINGLE_COLOR_THEMES, EARTHY_THEMES, DUO_TONE_THEMES } from './themes/themes';
-import { VisualizerTheme } from './types';
 import { PRESETS, getPreset } from './presets';
 import { StudioComposerPreset } from './studio/StudioComposer';
 import {
@@ -17,7 +16,7 @@ import {
   StageConfig,
   HeroConfig
 } from './studio/types';
-import { ExportSettings, VisualizerPreset } from './types';
+import { VisualizerTheme, ExportSettings, VisualizerPreset } from './types';
 import { renderTuningPanel, updateTuningButtonState as syncTuningButtonState } from './tuning/TuningPanel';
 import { TextAnchor, TextAnimationMode } from './overlay/types';
 import { MidiManager, initMidiPanel } from './midi';
@@ -198,7 +197,7 @@ function updateColorCalloutAndInputs(theme: VisualizerTheme): void {
 function applyAppTheme(theme: VisualizerTheme): void {
   renderEngine.setTheme(theme);
   document.querySelectorAll('.theme-swatch-card').forEach(c => {
-    c.classList.toggle('active', c.getAttribute('data-theme-id') === theme.id);
+    c.classList.toggle('active', (c as HTMLElement).dataset.themeId === theme.id);
   });
   updateColorCalloutAndInputs(theme);
 }
@@ -210,7 +209,7 @@ function createThemeSwatchCard(
 ): HTMLElement {
   const card = document.createElement('div');
   card.className = `theme-swatch-card ${theme.id === renderEngine.currentTheme.id ? 'active' : ''}`;
-  card.setAttribute('data-theme-id', theme.id);
+  card.dataset.themeId = theme.id;
   card.title = `${displayName} (${theme.primary})`;
 
   const bg = isDuo
@@ -416,7 +415,7 @@ function renderCategoryPresets(cat: typeof CATEGORIES[0], q: string): void {
     catPresets = catPresets.filter(p =>
       p.name.toLowerCase().includes(q) ||
       p.category.toLowerCase().includes(q) ||
-      (p.description && p.description.toLowerCase().includes(q))
+      Boolean(p.description?.toLowerCase().includes(q))
     );
   }
   if (currentFilter === 'fav') {
@@ -439,8 +438,8 @@ function renderCategoryPresets(cat: typeof CATEGORIES[0], q: string): void {
 
     const card = document.createElement('div');
     card.className = `preset-card-3 ${isActive ? 'active' : ''}`;
-    card.setAttribute('data-preset-id', p.id);
-    card.setAttribute('data-category', p.category);
+    card.dataset.presetId = p.id;
+    card.dataset.category = p.category;
     card.setAttribute('role', 'button');
     card.setAttribute('tabindex', '0');
     card.innerHTML = `
@@ -727,13 +726,8 @@ repeatBtn.addEventListener('click', () => {
 
 // More extras popover state manager
 function setRailMoreExpanded(expanded: boolean) {
-  if (expanded) {
-    railMoreWrapper?.classList.add('expanded');
-    railMoreBtn?.setAttribute(ARIA_EXPANDED, 'true');
-  } else {
-    railMoreWrapper?.classList.remove('expanded');
-    railMoreBtn?.setAttribute(ARIA_EXPANDED, 'false');
-  }
+  railMoreWrapper?.classList.toggle('expanded', expanded);
+  railMoreBtn?.setAttribute(ARIA_EXPANDED, expanded ? 'true' : 'false');
 }
 
 // 15 Navigation Rail Tool Switcher (drawers only; special buttons handled individually below)
@@ -782,7 +776,7 @@ ambientModeBtn?.addEventListener('click', () => {
   document.body.classList.toggle(AMBIENT_MODE_CLASS);
 });
 bugReportBtn?.addEventListener('click', () => {
-  window.open('https://github.com/FunWarry/Visualizor/issues', '_blank');
+  window.open('https://github.com/FunWarry/Visualizor/issues', '_blank', 'noopener,noreferrer');
 });
 document.addEventListener('click', (e: MouseEvent) => {
   if (railMoreWrapper?.classList.contains('expanded') && !railMoreWrapper.contains(e.target as Node)) {
@@ -1787,12 +1781,11 @@ studioExportJsonBtn?.addEventListener('click', () => {
   URL.revokeObjectURL(url);
 });
 
-studioImportFileInput?.addEventListener('change', () => {
+studioImportFileInput?.addEventListener('change', async () => {
   const file = studioImportFileInput.files?.[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const content = e.target?.result as string;
+  try {
+    const content = await file.text();
     if (content) {
       const imported = studioPreset.importRecipeJson(content);
       if (imported) {
@@ -1800,9 +1793,9 @@ studioImportFileInput?.addEventListener('change', () => {
         syncStudioUIFromActiveRecipe();
       }
     }
+  } finally {
     studioImportFileInput.value = '';
-  };
-  reader.readAsText(file);
+  }
 });
 
 function refreshSavedRecipesUI() {

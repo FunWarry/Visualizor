@@ -275,7 +275,7 @@ export class MidiPanel {
 
     const row = document.createElement('div');
     row.className = `midi-mapping-row${isTargetLearning ? ' learning' : ''}`;
-    row.setAttribute('data-target-id', target);
+    row.dataset.targetId = target;
 
     const top = document.createElement('div');
     top.className = 'midi-mapping-top';
@@ -302,7 +302,7 @@ export class MidiPanel {
     track.className = 'midi-value-track';
     const fill = document.createElement('div');
     fill.className = 'midi-value-fill';
-    fill.setAttribute('data-fill-target', target);
+    fill.dataset.fillTarget = target;
 
     const currentVal = this.manager.parameterValues.get(target) ?? 0;
     const pct = Math.round(Math.max(0, Math.min(1, currentVal)) * 100);

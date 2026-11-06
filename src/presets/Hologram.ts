@@ -119,7 +119,12 @@ export class HologramPreset extends BasePreset {
     this.hologramMaterial.uniforms.uScanSpeed.value = speed;
     this.hologramMaterial.uniforms.uOpacity.value = opacity;
 
-    const glitch = audio.beat ? 0.35 * reactivity : (audio.treble > 0.6 ? 0.15 * reactivity : 0.0);
+    let glitch = 0.0;
+    if (audio.beat) {
+      glitch = 0.35 * reactivity;
+    } else if (audio.treble > 0.6) {
+      glitch = 0.15 * reactivity;
+    }
     this.hologramMaterial.uniforms.uGlitch.value = glitch;
 
     if (audio.beat) {

@@ -7,19 +7,25 @@ export class GalaxyPreset extends BasePreset {
   public override readonly id = 'galaxy';
   public override readonly name = 'Galaxy';
   public override readonly category = 'Abstract & Space' as const;
-  public override readonly description = 'Instanced billboard spiral galaxies in deep space warp flight.';
+  public override readonly description = 'Spiral galaxy disc with orbital resonance rings and pulsating galactic core.';
+  
   public override cameraConfig = {
-    position: [0, 9, 14] as [number, number, number],
+    position: [0, 8.5, 14.5] as [number, number, number],
     target: [0, 0, 0] as [number, number, number],
     autoRotate: true,
-    autoRotateSpeed: 0.25
+    autoRotateSpeed: 0.22,
+    bloomIntensity: 0.3
   };
 
   private galaxyPoints!: THREE.Points;
   private coreMesh!: THREE.Mesh;
   private particleMaterial!: THREE.PointsMaterial;
   private coreMaterial!: THREE.MeshStandardMaterial;
-  private readonly numParticles = 6000;
+  private ringGroup!: THREE.Group;
+  private ringMaterial!: THREE.LineBasicMaterial;
+  private readonly ringGeometries: THREE.BufferGeometry[] = [];
+
+  private readonly numParticles = 7000;
   private particlePositions!: Float32Array;
 
   constructor() {
@@ -32,28 +38,35 @@ export class GalaxyPreset extends BasePreset {
   }
 
   protected setup(ctx: PresetContext): void {
+    this.setupParticles(ctx);
+    this.setupCore(ctx);
+    this.setupOrbitalRings(ctx);
+    this.group.rotation.set(0, 0, 0);
+  }
+
+  private setupParticles(ctx: PresetContext): void {
     const geometry = new THREE.BufferGeometry();
     this.particlePositions = new Float32Array(this.numParticles * 3);
     const colors = new Float32Array(this.numParticles * 3);
 
     const arms = 3;
-    const maxRadius = 9.0;
+    const maxRadius = 9.5;
     const tightness = this.paramStore.getValue('density');
 
     const primary = new THREE.Color(ctx.theme.primary);
     const accent = new THREE.Color(ctx.theme.accent);
 
     for (let i = 0; i < this.numParticles; i++) {
-      const r = Math.pow(Math.random(), 1.8) * maxRadius;
+      const r = Math.pow(Math.random(), 1.6) * maxRadius;
       const armIndex = i % arms;
       const armAngle = (armIndex / arms) * Math.PI * 2;
-      const spiralAngle = r * tightness * 0.4;
+      const spiralAngle = r * tightness * 0.38;
       const angle = armAngle + spiralAngle + (Math.random() - 0.5) * 0.35;
 
-      const spreadZ = (Math.random() - 0.5) * (0.8 / (1.0 + r * 0.2));
+      const spreadY = (Math.random() - 0.5) * (0.8 / (1.0 + r * 0.2));
 
       this.particlePositions[i * 3] = Math.cos(angle) * r;
-      this.particlePositions[i * 3 + 1] = spreadZ;
+      this.particlePositions[i * 3 + 1] = spreadY;
       this.particlePositions[i * 3 + 2] = Math.sin(angle) * r;
 
       const col = new THREE.Color().lerpColors(primary, accent, r / maxRadius);
@@ -64,49 +77,98 @@ export class GalaxyPreset extends BasePreset {
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
     this.particleMaterial = new THREE.PointsMaterial({
-      size: 0.12,
+      size: 0.14,
       vertexColors: true,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.88,
       blending: THREE.AdditiveBlending,
       depthWrite: false
     });
 
     this.galaxyPoints = new THREE.Points(geometry, this.particleMaterial);
     this.group.add(this.galaxyPoints);
+  }
 
-    // Glowing Galactic Center Bulge
-    const coreGeom = new THREE.SphereGeometry(0.8, 24, 24);
+  private setupCore(ctx: PresetContext): void {
+    const coreGeom = new THREE.SphereGeometry(0.85, 32, 32);
     this.coreMaterial = new THREE.MeshStandardMaterial({
       color: 0xffffff,
       emissive: new THREE.Color(ctx.theme.accent),
-      emissiveIntensity: 0.9,
-      roughness: 0.1
+      emissiveIntensity: 0.85,
+      roughness: 0.15,
+      metalness: 0.2
     });
     this.coreMesh = new THREE.Mesh(coreGeom, this.coreMaterial);
     this.group.add(this.coreMesh);
+  }
 
-    this.group.rotation.set(0, 0, 0);
+  private setupOrbitalRings(ctx: PresetContext): void {
+    this.ringGroup = new THREE.Group();
+    const numRings = 9;
+    this.ringMaterial = new THREE.LineBasicMaterial({
+      color: new THREE.Color(ctx.theme.primary),
+      transparent: true,
+      opacity: 0.38
+    });
+
+    for (let i = 1; i <= numRings; i++) {
+      const radius = (i / numRings) * 8.8;
+      const circleGeom = new THREE.BufferGeometry();
+      const points: THREE.Vector3[] = [];
+      const segments = 64;
+      for (let s = 0; s <= segments; s++) {
+        const theta = (s / segments) * Math.PI * 2;
+        points.push(new THREE.Vector3(Math.cos(theta) * radius, 0, Math.sin(theta) * radius));
+      }
+      circleGeom.setFromPoints(points);
+      this.ringGeometries.push(circleGeom);
+      const line = new THREE.LineLoop(circleGeom, this.ringMaterial);
+      this.ringGroup.add(line);
+    }
+    this.coreMesh.add(this.ringGroup);
   }
 
   public update(_ctx: PresetContext, audio: AudioFeatures, _time: number, delta: number): void {
     const speed = this.paramStore.getValue('speed');
     const reactivity = this.paramStore.getValue('reactivity');
 
-    this.galaxyPoints.rotation.y += delta * 0.25 * speed;
-    this.group.rotation.y += delta * 0.05 * speed;
+    this.galaxyPoints.rotation.y += delta * 0.22 * speed;
+    if (this.ringGroup) {
+      this.ringGroup.rotation.y += delta * 0.08 * speed;
+    }
+    this.group.rotation.y += delta * 0.04 * speed;
 
-    const corePulse = 1.0 + (audio.bass * 0.4 + audio.beatEnergy * 0.6) * reactivity;
+    const corePulse = 1.0 + (audio.bass * 0.35 + audio.beatEnergy * 0.55) * reactivity;
     this.coreMesh.scale.set(corePulse, corePulse, corePulse);
 
     if (audio.beat) {
-      this.particleMaterial.size = 0.22;
+      this.particleMaterial.size = 0.22 * reactivity;
+      this.coreMaterial.emissiveIntensity = 1.4 * reactivity;
     } else {
-      this.particleMaterial.size = 0.12;
+      this.particleMaterial.size = Math.max(0.14, this.particleMaterial.size * 0.94);
+      this.coreMaterial.emissiveIntensity = Math.max(0.7, this.coreMaterial.emissiveIntensity * 0.94);
     }
   }
 
   public override onThemeChange(theme: VisualizerTheme): void {
     this.coreMaterial.emissive.set(theme.accent);
+    if (this.ringMaterial) {
+      this.ringMaterial.color.set(theme.primary);
+    }
+  }
+
+  protected override onDispose(): void {
+    if (this.galaxyPoints) {
+      this.galaxyPoints.geometry.dispose();
+      this.particleMaterial.dispose();
+    }
+    if (this.coreMesh) {
+      this.coreMesh.geometry.dispose();
+      this.coreMaterial.dispose();
+    }
+    this.ringGeometries.forEach(g => g.dispose());
+    if (this.ringMaterial) {
+      this.ringMaterial.dispose();
+    }
   }
 }
