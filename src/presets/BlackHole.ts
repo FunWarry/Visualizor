@@ -19,6 +19,9 @@ export class BlackHolePreset extends BasePreset {
   private diskPoints!: THREE.Points;
   private diskGeometry!: THREE.BufferGeometry;
   private diskMaterial!: THREE.PointsMaterial;
+  private ringGroup!: THREE.Group;
+  private ringMaterial!: THREE.LineBasicMaterial;
+  private readonly ringGeometries: THREE.BufferGeometry[] = [];
   private readonly count = 5000;
   private angles!: Float32Array;
   private radii!: Float32Array;
@@ -38,11 +41,41 @@ export class BlackHolePreset extends BasePreset {
     this.coreMesh = new THREE.Mesh(coreGeom, coreMat);
     this.group.add(this.coreMesh);
 
+    // Relativistic photon orbit rings
+    this.ringGroup = new THREE.Group();
+    const numRings = 8;
+    this.ringMaterial = new THREE.LineBasicMaterial({
+      color: new THREE.Color(ctx.theme.primary),
+      transparent: true,
+      opacity: 0.38
+    });
+
+    for (let i = 1; i <= numRings; i++) {
+      const radius = 2.0 + (i / numRings) * 7.5;
+      const circleGeom = new THREE.BufferGeometry();
+      const points: THREE.Vector3[] = [];
+      const segments = 64;
+      for (let s = 0; s <= segments; s++) {
+        const theta = (s / segments) * Math.PI * 2;
+        points.push(new THREE.Vector3(Math.cos(theta) * radius, 0, Math.sin(theta) * radius));
+      }
+      circleGeom.setFromPoints(points);
+      this.ringGeometries.push(circleGeom);
+      const line = new THREE.LineLoop(circleGeom, this.ringMaterial);
+      this.ringGroup.add(line);
+    }
+    this.coreMesh.add(this.ringGroup);
+
     this.diskGeometry = new THREE.BufferGeometry();
     const positions = new Float32Array(this.count * 3);
+    const colors = new Float32Array(this.count * 3);
     this.angles = new Float32Array(this.count);
     this.radii = new Float32Array(this.count);
     const maxRadius = this.paramStore.getValue('density');
+
+    const whiteColor = new THREE.Color('#ffffff');
+    const primaryColor = new THREE.Color(ctx.theme.primary || '#ffaa00');
+    const accentColor = new THREE.Color(ctx.theme.accent || '#ff3300');
 
     for (let i = 0; i < this.count; i++) {
       const radius = 2.0 + Math.pow(Math.random(), 1.5) * maxRadius;
@@ -53,15 +86,25 @@ export class BlackHolePreset extends BasePreset {
       positions[i * 3] = Math.cos(angle) * radius;
       positions[i * 3 + 1] = (Math.random() - 0.5) * 0.4 * (radius / 3.0);
       positions[i * 3 + 2] = Math.sin(angle) * radius;
+
+      const normR = Math.min(1.0, (radius - 2.0) / maxRadius);
+      const col = new THREE.Color();
+      if (normR < 0.2) {
+        col.lerpColors(whiteColor, primaryColor, normR / 0.2);
+      } else {
+        col.lerpColors(primaryColor, accentColor, (normR - 0.2) / 0.8);
+      }
+      col.toArray(colors, i * 3);
     }
 
     this.diskGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    this.diskGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
     this.diskMaterial = new THREE.PointsMaterial({
-      color: new THREE.Color(ctx.theme.accent),
       size: 0.18,
+      vertexColors: true,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.88,
       blending: THREE.AdditiveBlending,
       depthWrite: false
     });
@@ -96,6 +139,23 @@ export class BlackHolePreset extends BasePreset {
   }
 
   public override onThemeChange(theme: VisualizerTheme): void {
-    this.diskMaterial.color.set(theme.accent);
+    if (this.ringMaterial) {
+      this.ringMaterial.color.set(theme.primary);
+    }
+  }
+
+  protected override onDispose(): void {
+    if (this.coreMesh) {
+      this.coreMesh.geometry.dispose();
+      (this.coreMesh.material as THREE.Material).dispose();
+    }
+    if (this.diskPoints) {
+      this.diskGeometry.dispose();
+      this.diskMaterial.dispose();
+    }
+    this.ringGeometries.forEach(g => g.dispose());
+    if (this.ringMaterial) {
+      this.ringMaterial.dispose();
+    }
   }
 }

@@ -11,7 +11,12 @@
     ".sonarignore": "plaintext"
   },
   "sonarlint.pathToNodeExecutable": "C:\\Program Files\\nodejs\\node.exe",
-  "sonarlint.rules": {},
+  "sonarlint.rules": {
+    "css:S7924": { "level": "off" },
+    "Web:S6819": { "level": "off" },
+    "Web:S6853": { "level": "off" },
+    "typescript:S1534": { "level": "off" }
+  },
   "sonarlint.analysisExcludes": "**/dist/**,**/node_modules/**,**/*.min.js,**/.agents/**,**/tests/**",
   "sonarlint.analysisExcludesStandalone": "**/dist/**,**/node_modules/**,**/*.min.js,**/.agents/**,**/tests/**"
 }

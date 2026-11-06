@@ -59,7 +59,7 @@ export class TopoMapPreset extends BasePreset {
         varying vec3 vPos;
 
         void main() {
-          float elev = vPos.z * 1.2;
+          float elev = vPos.y * 1.2;
           float contour = abs(fract(elev * uBands - 0.5) - 0.5) / fwidth(elev * uBands);
           float line = 1.0 - clamp(contour, 0.0, 1.0);
 
@@ -88,12 +88,12 @@ export class TopoMapPreset extends BasePreset {
 
     for (let i = 0; i < pos.length; i += 3) {
       const x = this.basePositions[i] * 0.25;
-      const y = this.basePositions[i + 1] * 0.25;
+      const z = this.basePositions[i + 2] * 0.25;
 
-      const ridge1 = Math.sin(x * 1.8 + time * 1.5 * speed) * Math.cos(y * 1.8 + time * 1.2 * speed);
-      const ridge2 = Math.sin(Math.hypot(x, y) * 3.0 - time * 2.0 * speed) * 0.5;
+      const ridge1 = Math.sin(x * 1.8 + time * 1.5 * speed) * Math.cos(z * 1.8 + time * 1.2 * speed);
+      const ridge2 = Math.sin(Math.hypot(x, z) * 3.0 - time * 2.0 * speed) * 0.5;
 
-      pos[i + 2] = (ridge1 + ridge2) * (1.2 + bassElevation * 0.8) + audio.mid * 0.5 * reactivity;
+      pos[i + 1] = (ridge1 + ridge2) * (1.2 + bassElevation * 0.8) + audio.mid * 0.5 * reactivity;
     }
 
     this.terrainMesh.geometry.attributes.position.needsUpdate = true;

@@ -348,7 +348,7 @@
           <button class="custom-picker-btn" id="eyeDropperBtn" title="Pick color with eyedropper">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2 2 0 0 1 0-2.8l.4-.4"/></svg>
           </button>
-          <input type="color" id="hiddenNativeColorPicker" value="#2E196B" style="opacity:0;position:absolute;pointer-events:none;width:0;height:0;">
+          <input type="color" id="hiddenNativeColorPicker" value="#2E196B" aria-label="Native Color Picker" style="opacity:0;position:absolute;pointer-events:none;width:0;height:0;">
         </div>
       </div>
 
@@ -403,13 +403,13 @@
     </div>
     <div class="panel-content camera-motion" id="cameraMotion">
       <!-- 1. View Directional Pad & Zoom Rig -->
-      <div class="camera-group camera-view" role="group" aria-labelledby="cameraViewLabel">
+      <div class="camera-group camera-view" aria-labelledby="cameraViewLabel">
         <div class="sidebar-label-row" style="display:flex;justify-content:space-between;margin-bottom:8px;">
           <span class="camera-group__label" id="cameraViewLabel" style="font-weight:600;">View</span>
           <span class="camera-hint" id="cameraViewHint" style="font-size:10px;color:var(--text-muted);">Tap to nudge · hold to glide</span>
         </div>
         <div class="camera-view__rig">
-          <div class="camera-pad" role="group" aria-label="Orbit and tilt">
+          <div class="camera-pad" aria-label="Orbit and tilt">
             <button type="button" class="camera-pad__arrow camera-pad__arrow--up" id="tiltUp" data-alias="camUpBtn" data-axis="tilt" data-direction="1" aria-label="Tilt up" title="Tilt up">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
             </button>
@@ -428,7 +428,7 @@
           </div>
 
           <!-- 2. Zoom Controls -->
-          <div class="camera-zoom" id="zoomControl" role="group" aria-label="Zoom">
+          <div class="camera-zoom" id="zoomControl" aria-label="Zoom">
             <span class="camera-zoom__readout" style="font-size:11px;">Zoom <span class="sidebar-value" id="zoomValue">50%</span></span>
             <button type="button" class="camera-icon-btn" id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button>
             <input class="ui-slider" type="range" id="zoomSlider" data-alias="camZoomSlider" min="0" max="1" step="0.05" value="0.5" aria-label="Zoom Slider">
@@ -440,7 +440,7 @@
       <!-- 2. Cinematic Viewpoints -->
       <div class="camera-group camera-viewpoints" style="margin-top:16px;">
         <span class="camera-group__label" id="viewpointsLabel" style="font-weight:600;font-size:12px;display:block;margin-bottom:8px;">Cinematic Viewpoints</span>
-        <div class="viewpoints-grid" id="viewpointsGrid" role="group" aria-labelledby="viewpointsLabel">
+        <div class="viewpoints-grid" id="viewpointsGrid" aria-labelledby="viewpointsLabel">
           <button type="button" class="viewpoint-btn active" id="viewDefaultBtn" data-view="default" title="Front View (0°)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
             <span class="viewpoint-name">Default</span>
@@ -473,8 +473,8 @@
           </div>
         </div>
         <div class="control-row" style="margin-top:8px;">
-          <label class="control-label"><span>Spin Direction</span></label>
-          <div class="camera-dir" id="rotateDirection" role="group" aria-label="Spin direction">
+          <span class="control-label"><span>Spin Direction</span></span>
+          <div class="camera-dir" id="rotateDirection" aria-label="Spin direction">
             <button type="button" class="seg-btn" id="camDirCcwBtn" data-direction="-1" aria-pressed="false" title="Spin counter-clockwise" aria-label="Spin counter-clockwise">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
             </button>
@@ -1096,7 +1096,7 @@
           <span class="control-section-title">Hardware Inputs</span>
           <button type="button" class="tool-icon-btn" id="midiRefreshPortsBtn" title="Refresh Port Enumeration">🔄</button>
         </div>
-        <div class="midi-ports-list" id="midiPortsList" role="list" aria-label="Connected MIDI Ports">
+        <div class="midi-ports-list" id="midiPortsList" aria-label="Connected MIDI Ports">
           <div class="midi-port-empty" id="midiPortEmpty">
             <span>No MIDI devices detected. Click "Connect MIDI" to enable access.</span>
           </div>

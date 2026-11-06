@@ -16,6 +16,7 @@ export class ThreeDBarsPreset extends BasePreset {
   };
 
   private instancedMesh!: THREE.InstancedMesh;
+  private material!: THREE.MeshStandardMaterial;
   private readonly dummy = new THREE.Object3D();
   private colors!: Float32Array;
   private readonly cols = 16;
@@ -34,13 +35,15 @@ export class ThreeDBarsPreset extends BasePreset {
 
   protected setup(ctx: PresetContext): void {
     const geometry = new THREE.BoxGeometry(0.5, 1, 0.5);
-    const material = new THREE.MeshStandardMaterial({
+    this.material = new THREE.MeshStandardMaterial({
       color: 0xffffff,
       roughness: 0.25,
-      metalness: 0.85
+      metalness: 0.85,
+      emissive: new THREE.Color(ctx.theme.primary),
+      emissiveIntensity: 0.35
     });
 
-    this.instancedMesh = new THREE.InstancedMesh(geometry, material, this.count);
+    this.instancedMesh = new THREE.InstancedMesh(geometry, this.material, this.count);
     this.colors = new Float32Array(this.count * 3);
 
     const primary = new THREE.Color(ctx.theme.primary);
@@ -95,9 +98,20 @@ export class ThreeDBarsPreset extends BasePreset {
     }
 
     this.instancedMesh.instanceMatrix.needsUpdate = true;
+
+    if (this.material) {
+      if (audio.beat) {
+        this.material.emissiveIntensity = 0.85 * reactivity;
+      } else {
+        this.material.emissiveIntensity = Math.max(0.3, this.material.emissiveIntensity * 0.92);
+      }
+    }
   }
 
   public override onThemeChange(theme: VisualizerTheme): void {
+    if (this.material) {
+      this.material.emissive.set(theme.primary);
+    }
     const primary = new THREE.Color(theme.primary);
     const accent = new THREE.Color(theme.accent);
 

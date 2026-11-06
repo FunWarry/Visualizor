@@ -63,15 +63,14 @@ export class WarpGridPreset extends BasePreset {
 
     for (let i = 0; i < pos.length; i += 3) {
       const bx = this.basePositions[i];
-      const by = this.basePositions[i + 1];
       const bz = this.basePositions[i + 2];
 
-      const dist = Math.hypot(bx, by);
+      const dist = Math.hypot(bx, bz);
       // Gravitational warp depression in center plus concentric ripples
       const warpSink = -dip / (1.0 + dist * 0.4) * (1.0 + kickForce * 0.8);
       const ripple = Math.sin(dist * 2.5 - time * 4.0 * speed) * (0.3 + audio.mid * 0.8 * reactivity);
 
-      pos[i + 2] = bz + warpSink + ripple;
+      pos[i + 1] = warpSink + ripple;
     }
 
     this.geometry.attributes.position.needsUpdate = true;

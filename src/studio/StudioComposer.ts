@@ -268,8 +268,8 @@ export class StudioRecipeManager {
 
   public applyRecipe(recipe: StudioRecipe): void {
     if (!recipe || typeof recipe !== 'object') return;
-    this.activeRecipe = JSON.parse(JSON.stringify(recipe));
-    this.draftRecipe = JSON.parse(JSON.stringify(recipe));
+    this.activeRecipe = structuredClone(recipe);
+    this.draftRecipe = structuredClone(recipe);
     this.notifyChange();
     this.persistActive();
   }
@@ -280,7 +280,7 @@ export class StudioRecipeManager {
       throw new Error('Recipe title is required to save');
     }
 
-    const saved: StudioRecipe = JSON.parse(JSON.stringify(this.activeRecipe));
+    const saved: StudioRecipe = structuredClone(this.activeRecipe);
     saved.id = `sc_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     saved.name = trimmed.slice(0, 60);
     saved.createdAt = Date.now();
@@ -338,10 +338,10 @@ export class StudioRecipeManager {
         name: String(parsed.name).trim().slice(0, 60),
         familyId: family,
         seed: Number(parsed.seed) >>> 0 || ENGINE_FAMILIES_META[family]?.defaultSeed || 2867,
-        stage: { ...DEFAULT_STAGE_CONFIG, ...(parsed.stage || {}) },
-        hero: { ...DEFAULT_HERO_CONFIG, ...(parsed.hero || {}) },
-        mood: { ...DEFAULT_MOOD_CONFIG, ...(parsed.mood || {}) },
-        genes: { ...createDefaultGenes(family), ...(parsed.genes || {}) },
+        stage: { ...DEFAULT_STAGE_CONFIG, ...parsed.stage },
+        hero: { ...DEFAULT_HERO_CONFIG, ...parsed.hero },
+        mood: { ...DEFAULT_MOOD_CONFIG, ...parsed.mood },
+        genes: { ...createDefaultGenes(family), ...parsed.genes },
         createdAt: Number(parsed.createdAt) || Date.now(),
         updatedAt: Date.now()
       };
@@ -406,7 +406,7 @@ export class StudioRecipeManager {
         const parsedActive = JSON.parse(rawActive);
         if (parsedActive && typeof parsedActive === 'object' && parsedActive.name) {
           this.activeRecipe = parsedActive;
-          this.draftRecipe = JSON.parse(JSON.stringify(parsedActive));
+          this.draftRecipe = structuredClone(parsedActive);
         }
       }
     } catch {
@@ -753,7 +753,7 @@ export class StudioComposerPreset implements VisualizerPreset {
   }
 
   private updateLiquidLayer(time: number, driveEnergy: number): void {
-    if (this.liquidMaterial && this.liquidMaterial.uniforms) {
+    if (this.liquidMaterial?.uniforms) {
       this.liquidMaterial.uniforms.uTime.value = time;
       this.liquidMaterial.uniforms.uBass.value = driveEnergy;
       this.liquidMaterial.uniforms.uWarp.value = this.config.liquidWarp;
@@ -772,7 +772,7 @@ export class StudioComposerPreset implements VisualizerPreset {
   }
 
   private updateVolumeParticles(driveEnergy: number, safeDelta: number): void {
-    if (!this.volumeParticles || !this.volumeParticles.geometry) return;
+    if (!this.volumeParticles?.geometry) return;
     const pos = (this.volumeParticles.geometry as THREE.BufferGeometry).attributes.position.array as Float32Array;
     const forceStrength = this.config.theForceAttraction * (1.0 + driveEnergy * 2.0);
     const attractorZ = -4.0;
@@ -836,7 +836,7 @@ export class StudioComposerPreset implements VisualizerPreset {
   }
 
   onThemeChange(theme: VisualizerTheme) {
-    if (this.liquidMaterial && this.liquidMaterial.uniforms) {
+    if (this.liquidMaterial?.uniforms) {
       this.liquidMaterial.uniforms.uColor1.value.set(theme.primary);
       this.liquidMaterial.uniforms.uColor2.value.set(theme.secondary);
     }

@@ -53,8 +53,11 @@ export class GalaxyPreset extends BasePreset {
     const maxRadius = 9.5;
     const tightness = this.paramStore.getValue('density');
 
-    const primary = new THREE.Color(ctx.theme.primary);
-    const accent = new THREE.Color(ctx.theme.accent);
+    const innerColor = new THREE.Color('#ffffff');
+    const magentaColor = new THREE.Color(ctx.theme.secondary || '#ff2a85');
+    const emeraldColor = new THREE.Color('#39ff88');
+    const yellowColor = new THREE.Color(ctx.theme.primary || '#ffaa00');
+    const orangeColor = new THREE.Color(ctx.theme.accent || '#ff5500');
 
     for (let i = 0; i < this.numParticles; i++) {
       const r = Math.pow(Math.random(), 1.6) * maxRadius;
@@ -69,7 +72,17 @@ export class GalaxyPreset extends BasePreset {
       this.particlePositions[i * 3 + 1] = spreadY;
       this.particlePositions[i * 3 + 2] = Math.sin(angle) * r;
 
-      const col = new THREE.Color().lerpColors(primary, accent, r / maxRadius);
+      const normR = r / maxRadius;
+      const col = new THREE.Color();
+      if (normR < 0.22) {
+        col.lerpColors(innerColor, magentaColor, normR / 0.22);
+      } else if (normR < 0.52) {
+        col.lerpColors(magentaColor, emeraldColor, (normR - 0.22) / 0.30);
+      } else if (normR < 0.78) {
+        col.lerpColors(emeraldColor, yellowColor, (normR - 0.52) / 0.26);
+      } else {
+        col.lerpColors(yellowColor, orangeColor, (normR - 0.78) / 0.22);
+      }
       col.toArray(colors, i * 3);
     }
 
@@ -92,13 +105,24 @@ export class GalaxyPreset extends BasePreset {
   private setupCore(ctx: PresetContext): void {
     const coreGeom = new THREE.SphereGeometry(0.85, 32, 32);
     this.coreMaterial = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
+      color: new THREE.Color(ctx.theme.primary),
       emissive: new THREE.Color(ctx.theme.accent),
       emissiveIntensity: 0.85,
       roughness: 0.15,
       metalness: 0.2
     });
     this.coreMesh = new THREE.Mesh(coreGeom, this.coreMaterial);
+
+    const wireGeom = new THREE.SphereGeometry(0.86, 16, 12);
+    const wireMat = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.35
+    });
+    const coreWire = new THREE.Mesh(wireGeom, wireMat);
+    this.coreMesh.add(coreWire);
+
     this.group.add(this.coreMesh);
   }
 
