@@ -12,6 +12,6 @@
   },
   "sonarlint.pathToNodeExecutable": "C:\\Program Files\\nodejs\\node.exe",
   "sonarlint.rules": {},
-  "sonarlint.analysisExcludes": "**/dist/**,**/node_modules/**,**/*.min.js,**/.agents/**",
-  "sonarlint.analysisExcludesStandalone": "**/dist/**,**/node_modules/**,**/*.min.js,**/.agents/**"
+  "sonarlint.analysisExcludes": "**/dist/**,**/node_modules/**,**/*.min.js,**/.agents/**,**/tests/**",
+  "sonarlint.analysisExcludesStandalone": "**/dist/**,**/node_modules/**,**/*.min.js,**/.agents/**,**/tests/**"
 }
