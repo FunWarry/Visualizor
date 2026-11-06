@@ -116,6 +116,8 @@ export class AudioEngine {
   private audioSourceNode: MediaElementAudioSourceNode | null = null;
   private micStream: MediaStream | null = null;
   private micSourceNode: MediaStreamAudioSourceNode | null = null;
+  private screenStream: MediaStream | null = null;
+  private screenSourceNode: MediaStreamAudioSourceNode | null = null;
 
   // Demo Synth
   private demoInterval: ReturnType<typeof setInterval> | null = null;
@@ -134,6 +136,8 @@ export class AudioEngine {
   public isRepeat = false;
 
   public isMicActive = false;
+  public isScreenAudioActive = false;
+  public onScreenAudioEnded?: () => void;
   public currentTrackName = 'No track loaded';
   public currentArtistName = 'Visuval Audio Engine';
   public duration = 0;
@@ -227,6 +231,7 @@ export class AudioEngine {
 
     this.stopDemo();
     this.disableMic();
+    this.disableScreenAudioCapture();
     this.initContext();
 
     if (track.file && this.audioElement) {
@@ -280,6 +285,14 @@ export class AudioEngine {
 
   public async togglePlay() {
     this.initContext();
+    if (this.isScreenAudioActive) {
+      this.disableScreenAudioCapture();
+      return;
+    }
+    if (this.isMicActive) {
+      this.disableMic();
+      return;
+    }
     if (this.isDemoPlaying) {
       this.stopDemo();
       return;
@@ -319,6 +332,7 @@ export class AudioEngine {
       return false;
     } else {
       this.stopDemo();
+      this.disableScreenAudioCapture();
       if (this.audioElement?.paused === false) {
         this.audioElement.pause();
         this.isPlaying = false;
@@ -351,9 +365,75 @@ export class AudioEngine {
     this.isMicActive = false;
   }
 
+  public async toggleScreenAudioCapture(): Promise<boolean> {
+    this.initContext();
+    if (this.isScreenAudioActive) {
+      this.disableScreenAudioCapture();
+      return false;
+    }
+
+    this.stopDemo();
+    this.disableMic();
+    if (this.audioElement?.paused === false) {
+      this.audioElement.pause();
+      this.isPlaying = false;
+    }
+
+    try {
+      this.screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: true
+      });
+
+      const audioTracks = this.screenStream.getAudioTracks();
+      if (audioTracks.length === 0) {
+        this.disableScreenAudioCapture();
+        throw new Error('NO_AUDIO_TRACK');
+      }
+
+      if (this.ctx && this.gainNode) {
+        this.screenSourceNode = this.ctx.createMediaStreamSource(this.screenStream);
+        this.screenSourceNode.connect(this.gainNode);
+        this.isScreenAudioActive = true;
+        this.currentTrackName = 'System / Screen Audio';
+        this.currentArtistName = 'Live Display Media Cast';
+
+        const onEndedHandler = () => {
+          this.disableScreenAudioCapture();
+          this.onScreenAudioEnded?.();
+        };
+
+        audioTracks[0].onended = onEndedHandler;
+        const videoTracks = this.screenStream.getVideoTracks();
+        if (videoTracks.length > 0) {
+          videoTracks[0].onended = onEndedHandler;
+        }
+
+        return true;
+      }
+    } catch (err: unknown) {
+      this.disableScreenAudioCapture();
+      if ((err as Error)?.message === 'NO_AUDIO_TRACK') {
+        throw err;
+      }
+      console.warn('System audio capture was cancelled or failed:', err);
+      return false;
+    }
+    return false;
+  }
+
+  public disableScreenAudioCapture() {
+    this.screenStream?.getTracks().forEach(track => track.stop());
+    this.screenStream = null;
+    this.screenSourceNode?.disconnect();
+    this.screenSourceNode = null;
+    this.isScreenAudioActive = false;
+  }
+
   public playDemo() {
     this.initContext();
     this.disableMic();
+    this.disableScreenAudioCapture();
     if (this.audioElement?.paused === false) {
       this.audioElement.pause();
       this.isPlaying = false;

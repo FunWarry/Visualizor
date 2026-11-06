@@ -591,35 +591,21 @@ function setRailMoreExpanded(expanded: boolean) {
   }
 }
 
-// 15 Navigation Rail Tool Switcher
+// 15 Navigation Rail Tool Switcher (drawers only; special buttons handled individually below)
 document.querySelectorAll('.rail-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const el = btn as HTMLElement;
     const toolId = el.dataset.panel || el.dataset.tab;
-    if (!toolId) return;
-
-    if (toolId === 'more') {
-      const isExpanded = !railMoreWrapper?.classList.contains('expanded');
-      setRailMoreExpanded(isExpanded);
-      return;
-    }
-
-    if (toolId === 'shortcuts') {
-      shortcutsModal?.classList.toggle('open');
-      return;
-    }
-
-    if (toolId === 'hideUi') {
-      toggleHideUI();
-      return;
-    }
-
+    if (!toolId || toolId === 'more' || toolId === 'shortcuts' || toolId === 'hideUi') return;
     toggleDrawer(toolId);
   });
 });
 
 // Hide UI & Show UI Handlers
-hideUiBtn?.addEventListener('click', toggleHideUI);
+hideUiBtn?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  toggleHideUI();
+});
 showUiBtn?.addEventListener('click', () => {
   appRoot.classList.remove('ui-hidden');
   document.documentElement.classList.remove('ui-hidden');
@@ -627,7 +613,9 @@ showUiBtn?.addEventListener('click', () => {
 });
 
 // Shortcuts Modal Handlers
-document.getElementById('shortcutHelpBtn')?.addEventListener('click', () => {
+const shortcutHelpBtn = document.getElementById('shortcutHelpBtn');
+shortcutHelpBtn?.addEventListener('click', (e) => {
+  e.stopPropagation();
   shortcutsModal?.classList.toggle('open');
 });
 closeShortcutsBtn?.addEventListener('click', () => {
@@ -640,7 +628,8 @@ shortcutsModal?.addEventListener('click', (e) => {
 });
 
 // More Extras Popover Handlers
-railMoreBtn?.addEventListener('click', () => {
+railMoreBtn?.addEventListener('click', (e) => {
+  e.stopPropagation();
   const isExpanded = !railMoreWrapper?.classList.contains('expanded');
   setRailMoreExpanded(isExpanded);
 });
@@ -1132,8 +1121,51 @@ micBtn.addEventListener('click', async () => {
   initMilkdropIfNeeded();
   const active = await audioEngine.toggleMic();
   micBtn.classList.toggle('active', active);
+  if (active) {
+    syncScreenAudioUI(false);
+  }
   updatePlayButton();
 });
+
+// Screen / Window / Tab Audio Capture Source Handler
+const screenAudioBtn = document.getElementById('screenAudioBtn') as HTMLButtonElement | null;
+const captureSystemAudioBtn = document.getElementById('captureSystemAudioBtn') as HTMLButtonElement | null;
+const captureSystemAudioLabel = document.getElementById('captureSystemAudioLabel');
+const audioSourceStatus = document.getElementById('audioSourceStatus');
+
+function syncScreenAudioUI(active: boolean) {
+  screenAudioBtn?.classList.toggle('active', active);
+  captureSystemAudioBtn?.classList.toggle('active', active);
+  captureSystemAudioBtn?.setAttribute('aria-pressed', String(active));
+  if (captureSystemAudioLabel) {
+    captureSystemAudioLabel.textContent = active ? 'Stop Screen Audio Capture' : 'Capture Screen / App Audio';
+  }
+  if (audioSourceStatus) {
+    audioSourceStatus.style.display = active ? 'block' : 'none';
+  }
+  updatePlayButton();
+}
+
+audioEngine.onScreenAudioEnded = () => {
+  syncScreenAudioUI(false);
+};
+
+async function handleScreenAudioToggle() {
+  initMilkdropIfNeeded();
+  try {
+    const active = await audioEngine.toggleScreenAudioCapture();
+    syncScreenAudioUI(active);
+    micBtn.classList.remove('active');
+  } catch (err: unknown) {
+    if ((err as Error)?.message === 'NO_AUDIO_TRACK') {
+      alert("No audio track shared!\n\nPlease make sure to check 'Also share tab audio' or 'Share system audio' when choosing the screen, window, or tab.");
+    }
+    syncScreenAudioUI(false);
+  }
+}
+
+screenAudioBtn?.addEventListener('click', handleScreenAudioToggle);
+captureSystemAudioBtn?.addEventListener('click', handleScreenAudioToggle);
 
 function updatePlayButton() {
   trackTitle.textContent = audioEngine.currentTrackName;
