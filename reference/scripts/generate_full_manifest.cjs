@@ -95,3 +95,4 @@ fs.writeFileSync(
 );
 
 console.log(`Generated full_71_presets_catalog.json with ${PRESET_MAP_71.length} presets!`);
+

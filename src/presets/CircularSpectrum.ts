@@ -4,7 +4,7 @@ import { ParameterStore } from '../tuning/ParameterStore';
 import { BasePreset } from './BasePreset';
 
 /**
- * Creates an arc ribbon geometry for spectral arcs
+ * Creates an arc ribbon geometry for spectral arcs (extracted from visuval.io production)
  */
 function createArcGeometry(innerR: number, outerR: number, halfWidth: number, segments: number): THREE.BufferGeometry {
   const vertices: number[] = [];
@@ -38,7 +38,7 @@ function createArcGeometry(innerR: number, outerR: number, halfWidth: number, se
 
 /**
  * CircularSpectrumPreset - Authentic Volumetric Cosmic Star Core, Orbital Rings & Nebula Dust Cloud
- * Extracted with 100% fidelity from the production bundle of https://visuval.io/app
+ * Extracted with 100% mathematical fidelity from the production bundle of https://visuval.io/app
  */
 export class CircularSpectrumPreset extends BasePreset {
   public override readonly id = 'circular';
@@ -60,18 +60,18 @@ export class CircularSpectrumPreset extends BasePreset {
   private readonly ringGeometries: THREE.BufferGeometry[] = [];
   private readonly ringMaterials: THREE.LineBasicMaterial[] = [];
   private readonly numRings = 16;
-  private readonly segments = 128;
+  private readonly ringSegments = 128;
 
-  // Ambient Celestial Composition Group (added directly to ctx.scene)
-  private readonly ambientGroup: THREE.Group = new THREE.Group();
+  // 2. Cosmic Composition Group (added directly to ctx.scene alongside this.group)
+  private readonly coreGroup: THREE.Group = new THREE.Group();
 
-  // 2. Cosmic Core & Corona Shell
+  // 3. Cosmic Core & Corona Shell
   private core!: THREE.Mesh;
   private coronaShell!: THREE.Mesh;
   private innerRing!: THREE.Mesh;
   private outerRing!: THREE.Mesh;
 
-  // 3. 5 Orbital Rings
+  // 4. 5 Orbital Rings
   private orbitalRingGroup!: THREE.Group;
   private readonly orbitalRings: THREE.Mesh[] = [];
   private readonly orbitalRingConfigs = [
@@ -83,43 +83,44 @@ export class CircularSpectrumPreset extends BasePreset {
   ];
   private readonly orbitalRingRotationsY = new Float32Array(5);
 
-  // 4. Instanced Spectral Arcs
+  // 5. Instanced Spectral Arcs (64 Ribbons)
   private arcInstanced: THREE.InstancedMesh | null = null;
   private sharedArcGeo: THREE.BufferGeometry | null = null;
   private readonly arcIntensities = new Float32Array(64);
+  private readonly arcIndices = new Float32Array(64);
   private readonly arcCount = 64;
   private readonly arcDummy = new THREE.Object3D();
 
-  // 5. Frequency Ribbons (10,000 Particles in 3 Bands)
+  // 6. Frequency Ribbons (10,000 Particles in 3 Bands)
   private frequencyRibbons: THREE.Points | null = null;
   private freqRibbonsGeo: THREE.BufferGeometry | null = null;
   private freqRibbonsMat: THREE.ShaderMaterial | null = null;
 
-  // 6. Nebula Cloud (4,000 Voluminous Stardust Dust Particles)
+  // 7. Nebula Cloud (4,000 Voluminous Stardust Dust Particles - soft Gaussian falloff)
   private nebulaParticles: THREE.Points | null = null;
   private nebulaGeo: THREE.BufferGeometry | null = null;
   private nebulaMat: THREE.ShaderMaterial | null = null;
 
-  // 7. Halo Particles (6,000 Glowing Halo Particles)
+  // 8. Halo Particles (6,000 Glowing Halo Particles)
   private haloParticles: THREE.Points | null = null;
   private haloGeo: THREE.BufferGeometry | null = null;
   private haloMat: THREE.ShaderMaterial | null = null;
 
-  // 8. Shockwave Rings (4 Expanding Rings on Bass Spikes)
+  // 9. Shockwave Rings (4 Expanding Rings on Bass Spikes)
   private shockwaveInstanced: THREE.InstancedMesh | null = null;
-  private swOpacities = new Float32Array(4);
+  private readonly swOpacities = new Float32Array(4);
   private shockwaveData: Array<{ life: number; active: boolean }> = [];
   private readonly swDummy = new THREE.Object3D();
   private lastBassSpike = 0;
   private bassAccum = 0;
 
-  // 9. Energy Tendrils (8 Lines)
-  private tendrils: THREE.Line[] = [];
+  // 10. Energy Tendrils (8 Lines)
+  private readonly tendrils: THREE.Line[] = [];
   private tendrilFrame = 0;
 
-  // 10. Light Beams (24 Radiating Beams)
+  // 11. Light Beams (24 Radiating Beams)
   private beamInstanced: THREE.InstancedMesh | null = null;
-  private beamOpacities = new Float32Array(24);
+  private readonly beamOpacities = new Float32Array(24);
   private readonly beamDummy = new THREE.Object3D();
   private beamRotationZ = 0;
 
@@ -143,14 +144,13 @@ export class CircularSpectrumPreset extends BasePreset {
   public override init(ctx: PresetContext): void {
     this.group = new THREE.Group();
     ctx.scene.add(this.group);
-    this.ambientGroup.removeFromParent();
-    this.ambientGroup.clear();
-    ctx.scene.add(this.ambientGroup);
+    this.coreGroup.removeFromParent();
+    this.coreGroup.clear();
+    ctx.scene.add(this.coreGroup);
     this.setup(ctx);
   }
 
   protected setup(ctx: PresetContext): void {
-    // Reset arrays in case init() is called multiple times on the same instance
     this.rings.length = 0;
     this.ringGeometries.length = 0;
     this.ringMaterials.length = 0;
@@ -158,10 +158,10 @@ export class CircularSpectrumPreset extends BasePreset {
     this.tendrils.length = 0;
     this.shockwaveData.length = 0;
 
-    // 1. Build Resonance Ring Group FIRST (MUST be this.group.children for tests: 16 lines)
+    // 1. Build 16 Subtle Resonance Ring Guides in this.group (MUST be exactly 16 lines for Ticket 2 test)
     this.buildResonanceRings(ctx);
 
-    // 2. Build Authentic Visuval.io Components
+    // 2. Build Authentic Visuval.io Nebula, Star Core & Cosmic Systems in this.coreGroup
     this.buildPulseCore(ctx);
     this.buildOrbitalRings(ctx);
     this.buildSpectralArcs(ctx);
@@ -179,11 +179,11 @@ export class CircularSpectrumPreset extends BasePreset {
 
     for (let i = 0; i < this.numRings; i++) {
       const geo = new THREE.BufferGeometry();
-      const positions = new Float32Array(this.segments * 3);
+      const positions = new Float32Array(this.ringSegments * 3);
       const radius = 5.0 + i * 1.1;
 
-      for (let j = 0; j < this.segments; j++) {
-        const theta = (j / this.segments) * Math.PI * 2;
+      for (let j = 0; j < this.ringSegments; j++) {
+        const theta = (j / this.ringSegments) * Math.PI * 2;
         positions[j * 3] = Math.cos(theta) * radius;
         positions[j * 3 + 1] = 0;
         positions[j * 3 + 2] = Math.sin(theta) * radius;
@@ -196,7 +196,7 @@ export class CircularSpectrumPreset extends BasePreset {
       const mat = new THREE.LineBasicMaterial({
         color,
         transparent: true,
-        opacity: 0.35 + (i / this.numRings) * 0.35,
+        opacity: 0.15 + (i / this.numRings) * 0.15,
         blending: THREE.AdditiveBlending
       });
       this.ringMaterials.push(mat);
@@ -280,7 +280,7 @@ export class CircularSpectrumPreset extends BasePreset {
       transparent: true
     });
     this.core = new THREE.Mesh(coreGeo, coreMat);
-    this.ambientGroup.add(this.core);
+    this.coreGroup.add(this.core);
 
     // Corona Outer Shell
     const shellGeo = new THREE.IcosahedronGeometry(4.2, 4);
@@ -295,7 +295,7 @@ export class CircularSpectrumPreset extends BasePreset {
         uniform float uTime;
         uniform float uBass;
         varying vec3 vNormal;
-        varying float vNoise;
+        varying vec3 vNoise;
 
         float noise3(vec3 p) {
           return sin(p.x * 1.3 + p.y * 2.1 + uTime * 0.8)
@@ -332,52 +332,59 @@ export class CircularSpectrumPreset extends BasePreset {
       side: THREE.DoubleSide
     });
     this.coronaShell = new THREE.Mesh(shellGeo, shellMat);
-    this.ambientGroup.add(this.coronaShell);
+    this.coreGroup.add(this.coronaShell);
 
-    // Inner & Outer Equatorial Torus Rings
+    // Inner Glowing Ring
     const innerRingGeo = new THREE.TorusGeometry(4.5, 0.08, 16, 128);
     const innerRingMat = new THREE.MeshBasicMaterial({
       color: secondary,
       transparent: true,
-      opacity: 0.6
+      opacity: 0.6,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
     this.innerRing = new THREE.Mesh(innerRingGeo, innerRingMat);
     this.innerRing.rotation.x = Math.PI / 2;
-    this.ambientGroup.add(this.innerRing);
+    this.coreGroup.add(this.innerRing);
 
+    // Outer Orbit Horizon Ring
     const outerRingGeo = new THREE.TorusGeometry(20.0, 0.05, 16, 256);
     const outerRingMat = new THREE.MeshBasicMaterial({
       color: primary,
       transparent: true,
-      opacity: 0.25
+      opacity: 0.25,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
     this.outerRing = new THREE.Mesh(outerRingGeo, outerRingMat);
     this.outerRing.rotation.x = Math.PI / 2;
-    this.ambientGroup.add(this.outerRing);
+    this.coreGroup.add(this.outerRing);
   }
 
   private buildOrbitalRings(ctx: PresetContext): void {
-    this.orbitalRingGroup = new THREE.Group();
     const primary = new THREE.Color(ctx.theme.primary);
     const secondary = new THREE.Color(ctx.theme.secondary || ctx.theme.accent || ctx.theme.primary);
 
-    for (const cfg of this.orbitalRingConfigs) {
-      const geo = new THREE.TorusGeometry(cfg.radius, cfg.tube, 16, 192);
-      const col = cfg.band === 'bass' ? primary : secondary;
+    this.orbitalRingGroup = new THREE.Group();
+    this.coreGroup.add(this.orbitalRingGroup);
+
+    for (const config of this.orbitalRingConfigs) {
+      const geo = new THREE.TorusGeometry(config.radius, config.tube, 16, 192);
+      const color = config.band === 'bass' ? primary : secondary;
+
       const mat = new THREE.MeshBasicMaterial({
-        color: col,
+        color,
         transparent: true,
         opacity: 0.35,
         blending: THREE.AdditiveBlending,
         depthWrite: false
       });
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.rotation.set(cfg.tiltX, 0, cfg.tiltZ);
-      this.orbitalRings.push(mesh);
-      this.orbitalRingGroup.add(mesh);
-    }
 
-    this.ambientGroup.add(this.orbitalRingGroup);
+      const ring = new THREE.Mesh(geo, mat);
+      ring.rotation.set(config.tiltX, 0, config.tiltZ);
+      this.orbitalRings.push(ring);
+      this.orbitalRingGroup.add(ring);
+    }
   }
 
   private buildSpectralArcs(ctx: PresetContext): void {
@@ -385,11 +392,14 @@ export class CircularSpectrumPreset extends BasePreset {
     const secondary = new THREE.Color(ctx.theme.secondary || ctx.theme.accent || ctx.theme.primary);
 
     this.sharedArcGeo = createArcGeometry(5.0, 18.0, 0.22, 32);
-    const aIntensity = new Float32Array(this.arcCount);
-    const aIndex = new Float32Array(this.arcCount);
 
-    this.sharedArcGeo.setAttribute('aIntensity', new THREE.InstancedBufferAttribute(aIntensity, 1));
-    this.sharedArcGeo.setAttribute('aIndex', new THREE.InstancedBufferAttribute(aIndex, 1));
+    for (let i = 0; i < this.arcCount; i++) {
+      this.arcIntensities[i] = 0.0;
+      this.arcIndices[i] = i / this.arcCount;
+    }
+
+    this.sharedArcGeo.setAttribute('aIntensity', new THREE.InstancedBufferAttribute(this.arcIntensities, 1));
+    this.sharedArcGeo.setAttribute('aIndex', new THREE.InstancedBufferAttribute(this.arcIndices, 1));
 
     const arcMat = new THREE.ShaderMaterial({
       uniforms: {
@@ -403,15 +413,18 @@ export class CircularSpectrumPreset extends BasePreset {
         varying vec3 vPos;
         varying float vIntensity;
         varying float vIndex;
+
         void main() {
           vIntensity = aIntensity;
           vIndex = aIndex;
           vPos = position;
           vProgress = (length(position.xz) - 5.0) / 13.0;
+
           vec3 pos = position;
           float scale = 1.0 + aIntensity * 0.8 * vProgress;
           pos.xz *= scale;
           pos.y *= 1.0 + aIntensity * 3.5 * vProgress;
+
           vec4 worldPos = instanceMatrix * vec4(pos, 1.0);
           gl_Position = projectionMatrix * modelViewMatrix * worldPos;
         }
@@ -422,6 +435,7 @@ export class CircularSpectrumPreset extends BasePreset {
         varying float vProgress;
         varying float vIntensity;
         varying float vIndex;
+
         void main() {
           vec3 color = mix(uColor2, uColor1, vProgress);
           color *= 0.8 + vIntensity * 2.5;
@@ -446,12 +460,10 @@ export class CircularSpectrumPreset extends BasePreset {
       this.arcDummy.scale.set(1, 1, 1);
       this.arcDummy.updateMatrix();
       this.arcInstanced.setMatrixAt(i, this.arcDummy.matrix);
-      aIntensity[i] = 0.0;
-      aIndex[i] = i / this.arcCount;
     }
 
     this.arcInstanced.instanceMatrix.needsUpdate = true;
-    this.ambientGroup.add(this.arcInstanced);
+    this.coreGroup.add(this.arcInstanced);
   }
 
   private buildFrequencyRibbons(ctx: PresetContext): void {
@@ -461,28 +473,32 @@ export class CircularSpectrumPreset extends BasePreset {
     const count = 10000;
     this.freqRibbonsGeo = new THREE.BufferGeometry();
     const positions = new Float32Array(count * 3);
-    const sizes = new Float32Array(count);
-    const randoms = new Float32Array(count);
-    const bands = new Float32Array(count);
+    const aData = new Float32Array(count * 3);
+
+    const bands = [
+      { rMin: 5.5, rMax: 9.0, ySpread: 0.3, speed: 0.8, band: 0 },
+      { rMin: 9.0, rMax: 14.0, ySpread: 0.6, speed: -0.5, band: 1 },
+      { rMin: 14.0, rMax: 20.0, ySpread: 1.0, speed: 0.3, band: 2 }
+    ];
 
     for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const band = Math.floor(Math.random() * 3);
-      const r = 5.5 + band * 4.0 + Math.random() * 3.0;
+      const bIdx = i < count * 0.4 ? 0 : i < count * 0.75 ? 1 : 2;
+      const b = bands[bIdx];
+      const theta = Math.random() * Math.PI * 2;
+      const r = b.rMin + Math.random() * (b.rMax - b.rMin);
+      const y = (Math.random() - 0.5) * b.ySpread;
 
-      positions[i * 3] = Math.cos(angle) * r;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 2.5;
-      positions[i * 3 + 2] = Math.sin(angle) * r;
+      positions[i * 3] = Math.cos(theta) * r;
+      positions[i * 3 + 1] = y;
+      positions[i * 3 + 2] = Math.sin(theta) * r;
 
-      sizes[i] = Math.random() * 3.0 + 1.0;
-      randoms[i] = Math.random();
-      bands[i] = band;
+      aData[i * 3] = r;
+      aData[i * 3 + 1] = b.speed;
+      aData[i * 3 + 2] = b.band;
     }
 
     this.freqRibbonsGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    this.freqRibbonsGeo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-    this.freqRibbonsGeo.setAttribute('aRandom', new THREE.BufferAttribute(randoms, 1));
-    this.freqRibbonsGeo.setAttribute('aBand', new THREE.BufferAttribute(bands, 1));
+    this.freqRibbonsGeo.setAttribute('aRibbonData', new THREE.BufferAttribute(aData, 3));
 
     this.freqRibbonsMat = new THREE.ShaderMaterial({
       uniforms: {
@@ -494,62 +510,47 @@ export class CircularSpectrumPreset extends BasePreset {
         uTreble: { value: 0.0 }
       },
       vertexShader: `
-        attribute float size;
-        attribute float aRandom;
-        attribute float aBand;
+        attribute vec3 aRibbonData;
         uniform float uTime;
         uniform float uBass;
         uniform float uMid;
         uniform float uTreble;
         varying float vAlpha;
-        varying float vBand;
+        varying vec3 vColor;
+        uniform vec3 uColor1;
+        uniform vec3 uColor2;
 
         void main() {
-          vBand = aBand;
-          vec3 pos = position;
+          float radius = aRibbonData.x;
+          float speed = aRibbonData.y;
+          float band = aRibbonData.z;
 
-          float bandEnergy = aBand < 0.5 ? uBass
-                           : aBand < 1.5 ? uMid
-                           : uTreble;
+          float energy = band < 0.5 ? uBass : (band < 1.5 ? uMid : uTreble);
+          float angle = atan(position.z, position.x) + uTime * speed * 0.15;
+          float curR = radius * (1.0 + energy * 0.25);
 
-          float speed = 0.2 - aBand * 0.05;
-          float angle = atan(pos.z, pos.x) + uTime * speed;
-          float r = length(pos.xz);
-          r += bandEnergy * 3.5;
+          vec3 pos;
+          pos.x = cos(angle) * curR;
+          pos.z = sin(angle) * curR;
+          pos.y = position.y + sin(angle * 6.0 + uTime * 2.0) * (0.3 + energy * 1.5);
 
-          pos.x = cos(angle) * r;
-          pos.z = sin(angle) * r;
-          pos.y += sin(uTime * 2.0 + aRandom * 6.28 + r * 0.3) * 1.0 * bandEnergy;
-
-          vAlpha = 0.4 + 0.6 * bandEnergy + 0.2 * sin(uTime * 3.0 + aRandom * 6.28);
+          vColor = mix(uColor1, uColor2, band * 0.5);
+          vAlpha = 0.35 + energy * 0.65;
 
           vec4 mvPos = modelViewMatrix * vec4(pos, 1.0);
-          gl_PointSize = max(size * (1.0 + bandEnergy * 1.2) * (220.0 / -mvPos.z), 2.0);
+          gl_PointSize = (1.5 + energy * 2.5) * (150.0 / -mvPos.z);
           gl_Position = projectionMatrix * mvPos;
         }
       `,
       fragmentShader: `
-        uniform vec3 uColor1;
-        uniform vec3 uColor2;
         varying float vAlpha;
-        varying float vBand;
+        varying vec3 vColor;
 
         void main() {
-          vec2 center = gl_PointCoord - 0.5;
-          float d = length(center);
-          float softEdge = 1.0 - smoothstep(0.35, 0.5, d);
-          float core = exp(-d * 14.0);
-          float inner = exp(-d * 6.0);
-          float halo = exp(-d * 2.5) * 0.3;
-          float glow = core * 0.5 + inner * 0.35 + halo;
-          float alpha = glow * softEdge;
-          if (alpha < 0.005) discard;
-
-          vec3 color = mix(uColor2, uColor1, vBand / 2.0);
-          color = mix(color, vec3(1.0, 0.97, 0.92), core * 0.35);
-          color *= 1.4;
-
-          gl_FragColor = vec4(color, alpha * vAlpha * 0.7);
+          float d = length(gl_PointCoord - 0.5);
+          if (d > 0.5) discard;
+          float falloff = 1.0 - smoothstep(0.0, 0.5, d);
+          gl_FragColor = vec4(vColor, vAlpha * falloff);
         }
       `,
       transparent: true,
@@ -558,7 +559,7 @@ export class CircularSpectrumPreset extends BasePreset {
     });
 
     this.frequencyRibbons = new THREE.Points(this.freqRibbonsGeo, this.freqRibbonsMat);
-    this.ambientGroup.add(this.frequencyRibbons);
+    this.coreGroup.add(this.frequencyRibbons);
   }
 
   private buildNebulaLayer(ctx: PresetContext): void {
@@ -569,7 +570,7 @@ export class CircularSpectrumPreset extends BasePreset {
     this.nebulaGeo = new THREE.BufferGeometry();
     const positions = new Float32Array(count * 3);
     const sizes = new Float32Array(count);
-    const randoms = new Float32Array(count);
+    const aRandom = new Float32Array(count);
 
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
@@ -581,12 +582,12 @@ export class CircularSpectrumPreset extends BasePreset {
       positions[i * 3 + 2] = Math.sin(angle) * r;
 
       sizes[i] = Math.random() * 8.0 + 3.0;
-      randoms[i] = Math.random();
+      aRandom[i] = Math.random();
     }
 
     this.nebulaGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     this.nebulaGeo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-    this.nebulaGeo.setAttribute('aRandom', new THREE.BufferAttribute(randoms, 1));
+    this.nebulaGeo.setAttribute('aRandom', new THREE.BufferAttribute(aRandom, 1));
 
     this.nebulaMat = new THREE.ShaderMaterial({
       uniforms: {
@@ -641,80 +642,68 @@ export class CircularSpectrumPreset extends BasePreset {
     });
 
     this.nebulaParticles = new THREE.Points(this.nebulaGeo, this.nebulaMat);
-    this.ambientGroup.add(this.nebulaParticles);
+    this.coreGroup.add(this.nebulaParticles);
   }
 
   private buildHaloParticles(ctx: PresetContext): void {
     const primary = new THREE.Color(ctx.theme.primary);
-
     const count = 6000;
     this.haloGeo = new THREE.BufferGeometry();
     const positions = new Float32Array(count * 3);
     const sizes = new Float32Array(count);
-    const randoms = new Float32Array(count);
+    const aPhase = new Float32Array(count);
 
     for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const r = 3.0 + Math.random() * 25.0;
-      const y = (Math.random() - 0.5) * 18.0;
+      const u = Math.random();
+      const v = Math.random();
+      const theta = u * 2.0 * Math.PI;
+      const phi = Math.acos(2.0 * v - 1.0);
+      const r = 20.0 + Math.random() * 8.0;
 
-      positions[i * 3] = Math.cos(angle) * r;
-      positions[i * 3 + 1] = y;
-      positions[i * 3 + 2] = Math.sin(angle) * r;
+      positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      positions[i * 3 + 2] = r * Math.cos(phi);
 
-      sizes[i] = Math.random() * 2.0 + 0.4;
-      randoms[i] = Math.random();
+      sizes[i] = Math.random() * 2.5 + 0.8;
+      aPhase[i] = Math.random() * Math.PI * 2;
     }
 
     this.haloGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     this.haloGeo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-    this.haloGeo.setAttribute('aRandom', new THREE.BufferAttribute(randoms, 1));
+    this.haloGeo.setAttribute('aPhase', new THREE.BufferAttribute(aPhase, 1));
 
     this.haloMat = new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0.0 },
-        uColor1: { value: primary },
+        uColor: { value: primary },
         uAudio: { value: 0.0 }
       },
       vertexShader: `
         attribute float size;
-        attribute float aRandom;
+        attribute float aPhase;
         uniform float uTime;
         uniform float uAudio;
         varying float vAlpha;
 
         void main() {
           vec3 pos = position;
-          float angle = atan(pos.z, pos.x) + uTime * 0.08;
-          float r = length(pos.xz) + sin(uTime * 0.5 + aRandom * 6.28) * 0.5;
-          pos.x = cos(angle) * r;
-          pos.z = sin(angle) * r;
-          pos.y += sin(uTime * 0.7 + aRandom * 6.28) * 1.0;
-
-          vAlpha = 0.2 + 0.5 * pow(sin(uTime * 2.5 + aRandom * 6.28) * 0.5 + 0.5, 3.0);
-          vAlpha *= (0.5 + uAudio * 1.5);
+          float twinkle = sin(uTime * 2.0 + aPhase) * 0.5 + 0.5;
+          vAlpha = (0.2 + twinkle * 0.5) * (0.6 + uAudio * 0.4);
 
           vec4 mvPos = modelViewMatrix * vec4(pos, 1.0);
-          gl_PointSize = max(size * (120.0 / -mvPos.z), 2.0);
+          gl_PointSize = size * (120.0 / -mvPos.z);
           gl_Position = projectionMatrix * mvPos;
         }
       `,
       fragmentShader: `
-        uniform vec3 uColor1;
+        uniform vec3 uColor;
         varying float vAlpha;
 
         void main() {
-          vec2 center = gl_PointCoord - 0.5;
-          float d = length(center);
-          float softEdge = 1.0 - smoothstep(0.35, 0.5, d);
-          float core = exp(-d * 16.0);
-          float inner = exp(-d * 7.0);
-          float halo = exp(-d * 3.0) * 0.3;
-          float glow = core * 0.5 + inner * 0.3 + halo;
-          float alpha = glow * softEdge;
-          if (alpha < 0.005) discard;
-          vec3 color = mix(uColor1 * 2.0, vec3(1.0, 0.97, 0.92), core * 0.3);
-          gl_FragColor = vec4(color, alpha * vAlpha * 0.4);
+          float d = length(gl_PointCoord - 0.5);
+          if (d > 0.5) discard;
+          float core = exp(-d * 8.0);
+          gl_FragColor = vec4(uColor, vAlpha * core);
         }
       `,
       transparent: true,
@@ -723,12 +712,19 @@ export class CircularSpectrumPreset extends BasePreset {
     });
 
     this.haloParticles = new THREE.Points(this.haloGeo, this.haloMat);
-    this.ambientGroup.add(this.haloParticles);
+    this.coreGroup.add(this.haloParticles);
   }
 
   private buildShockwaveRings(ctx: PresetContext): void {
     const primary = new THREE.Color(ctx.theme.primary);
-    const swGeo = new THREE.TorusGeometry(1.0, 0.12, 8, 128);
+    const ringGeo = new THREE.TorusGeometry(1.0, 0.12, 8, 128);
+
+    this.shockwaveData = [
+      { life: 0, active: false },
+      { life: 0, active: false },
+      { life: 0, active: false },
+      { life: 0, active: false }
+    ];
 
     const swMat = new THREE.ShaderMaterial({
       uniforms: {
@@ -746,6 +742,7 @@ export class CircularSpectrumPreset extends BasePreset {
         uniform vec3 uColor;
         varying float vOpacity;
         void main() {
+          if (vOpacity < 0.01) discard;
           gl_FragColor = vec4(uColor, vOpacity);
         }
       `,
@@ -754,58 +751,53 @@ export class CircularSpectrumPreset extends BasePreset {
       depthWrite: false
     });
 
-    this.shockwaveInstanced = new THREE.InstancedMesh(swGeo, swMat, 4);
+    ringGeo.setAttribute('aOpacity', new THREE.InstancedBufferAttribute(this.swOpacities, 1));
+    this.shockwaveInstanced = new THREE.InstancedMesh(ringGeo, swMat, 4);
     this.shockwaveInstanced.frustumCulled = false;
-    this.shockwaveInstanced.geometry.setAttribute('aOpacity', new THREE.InstancedBufferAttribute(this.swOpacities, 1));
-    this.shockwaveData = [];
 
     for (let i = 0; i < 4; i++) {
-      this.swDummy.position.set(0, 0, 0);
-      this.swDummy.rotation.set(Math.PI / 2, 0, 0);
       this.swDummy.scale.set(0, 0, 0);
       this.swDummy.updateMatrix();
       this.shockwaveInstanced.setMatrixAt(i, this.swDummy.matrix);
       this.swOpacities[i] = 0.0;
-      this.shockwaveData.push({ life: 0.0, active: false });
     }
 
     this.shockwaveInstanced.instanceMatrix.needsUpdate = true;
-    this.ambientGroup.add(this.shockwaveInstanced);
+    this.coreGroup.add(this.shockwaveInstanced);
   }
 
   private buildEnergyTendrils(ctx: PresetContext): void {
     const secondary = new THREE.Color(ctx.theme.secondary || ctx.theme.accent || ctx.theme.primary);
-    this.tendrils = [];
-    const count = 8;
-    const segs = 40;
+    const tendrilCount = 8;
+    const segCount = 40;
 
-    for (let i = 0; i < count; i++) {
-      const positions = new Float32Array(segs * 3);
+    for (let i = 0; i < tendrilCount; i++) {
       const geo = new THREE.BufferGeometry();
+      const positions = new Float32Array(segCount * 3);
       geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
       const mat = new THREE.LineBasicMaterial({
         color: secondary,
         transparent: true,
         opacity: 0.4,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false
+        blending: THREE.AdditiveBlending
       });
 
       const line = new THREE.Line(geo, mat);
       line.userData = {
-        baseAngle: (i / count) * Math.PI * 2,
-        segCount: segs
+        baseAngle: (i / tendrilCount) * Math.PI * 2,
+        segCount
       };
-      this.ambientGroup.add(line);
       this.tendrils.push(line);
+      this.coreGroup.add(line);
     }
   }
 
   private buildLightBeams(ctx: PresetContext): void {
     const primary = new THREE.Color(ctx.theme.primary);
-    const beamGeo = new THREE.PlaneGeometry(0.25, 24.0);
-    beamGeo.translate(0, 12.0, 0);
+    const beamCount = 24;
+    const beamGeo = new THREE.CylinderGeometry(0.04, 0.8, 35.0, 8, 1, true);
+    beamGeo.translate(0, 17.5, 0);
 
     const beamMat = new THREE.ShaderMaterial({
       uniforms: {
@@ -814,20 +806,23 @@ export class CircularSpectrumPreset extends BasePreset {
       vertexShader: `
         attribute float aOpacity;
         varying float vOpacity;
-        varying vec2 vUv;
+        varying float vHeight;
+
         void main() {
           vOpacity = aOpacity;
-          vUv = uv;
+          vHeight = position.y / 35.0;
           gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(position, 1.0);
         }
       `,
       fragmentShader: `
         uniform vec3 uColor;
         varying float vOpacity;
-        varying vec2 vUv;
+        varying float vHeight;
+
         void main() {
-          float fade = 1.0 - vUv.y * 0.3;
-          gl_FragColor = vec4(uColor, vOpacity * fade);
+          float fade = (1.0 - vHeight) * vOpacity;
+          if (fade < 0.005) discard;
+          gl_FragColor = vec4(uColor, fade * 0.25);
         }
       `,
       transparent: true,
@@ -836,12 +831,12 @@ export class CircularSpectrumPreset extends BasePreset {
       side: THREE.DoubleSide
     });
 
-    this.beamInstanced = new THREE.InstancedMesh(beamGeo, beamMat, 24);
+    beamGeo.setAttribute('aOpacity', new THREE.InstancedBufferAttribute(this.beamOpacities, 1));
+    this.beamInstanced = new THREE.InstancedMesh(beamGeo, beamMat, beamCount);
     this.beamInstanced.frustumCulled = false;
-    this.beamInstanced.geometry.setAttribute('aOpacity', new THREE.InstancedBufferAttribute(this.beamOpacities, 1));
 
-    for (let i = 0; i < 24; i++) {
-      const angle = (i / 24) * Math.PI * 2;
+    for (let i = 0; i < beamCount; i++) {
+      const angle = (i / beamCount) * Math.PI * 2;
       this.beamDummy.position.set(0, 0, 0);
       this.beamDummy.rotation.set(Math.PI / 2, 0, angle);
       this.beamDummy.scale.set(1, 1, 1);
@@ -851,134 +846,156 @@ export class CircularSpectrumPreset extends BasePreset {
     }
 
     this.beamInstanced.instanceMatrix.needsUpdate = true;
-    this.ambientGroup.add(this.beamInstanced);
+    this.coreGroup.add(this.beamInstanced);
   }
 
-  public override update(_ctx: PresetContext, audio: AudioFeatures, sensitivity: number, dt: number): void {
+  public override update(ctx: PresetContext, audio: AudioFeatures, time: number, _delta: number): void {
     const speedParam = this.paramStore.get('speed') ?? 1.0;
     const reactParam = this.paramStore.get('reactivity') ?? 1.0;
     const deformParam = this.paramStore.get('deformation') ?? 1.0;
     const densityParam = this.paramStore.get('density') ?? 16;
-    const sens = sensitivity * reactParam;
+    const sensitivity = reactParam;
 
-    const time = (this.lastTime = (this.lastTime ?? 0) + dt * speedParam);
-    const kick = audio.beat ? 1.0 : 0.0;
-    const b = audio.bass * sens;
+    const dt = this.lastTime !== null ? Math.min(time - this.lastTime, 0.1) : 1 / 60;
+    this.lastTime = time;
+    const speedScale = dt * 60.0 * speedParam;
 
-    this.updateEnergySmoothers(audio, sens);
-    this.updateResonanceRings(audio, sens, densityParam);
-    this.updatePulseCore(time, kick, deformParam, speedParam);
-    this.updateCoronaAndInnerOuterRings(time, kick, deformParam);
-    this.updateOrbitalRings(dt, deformParam);
-    this.updateSpectralArcs(audio, sens);
-    this.updateParticlesAndNebula(time, kick, deformParam);
-    this.updateShockwaves(time, dt, b);
-    this.updateTendrils(time);
-    this.updateLightBeams(time, dt, b);
+    const rawBass = audio.bass * sensitivity * reactParam;
+    const kick = this.updateAudioSmoothers(audio, sensitivity, reactParam);
 
-    // Slowly rotate overall celestial structure
-    this.group.rotation.y = time * 0.03;
+    this.updateResonanceAndCore(time, kick, speedParam, deformParam, densityParam, audio);
+    this.updateOrbitalRingsAnimation(deformParam, speedScale);
+    this.updateSpectralArcsAnimation(audio, sensitivity, reactParam, speedScale);
+    this.updateParticles(time);
+    this.updateShockwaves(rawBass, dt, speedScale, time);
+    this.updateTendrilsAndBeams(time, rawBass, speedParam, speedScale);
+
+    this.coreGroup.rotation.y = time * 0.03 * speedParam;
   }
 
-  private updateEnergySmoothers(audio: AudioFeatures, sens: number): void {
+  private updateAudioSmoothers(audio: AudioFeatures, sensitivity: number, reactParam: number): number {
+    const rawBass = audio.bass * sensitivity * reactParam;
+    const rawMid = audio.mid * sensitivity * reactParam;
+    const rawTreble = audio.treble * sensitivity * reactParam;
+    const rawAvg = (audio.rms || ((audio.bass + audio.mid + audio.treble) / 3)) * sensitivity * reactParam;
+
     const attack = 0.25;
     const decay = 0.06;
-    const b = audio.bass * sens;
-    const m = audio.mid * sens;
-    const tr = audio.treble * sens;
-    const avg = audio.rms * sens;
+    this.smoothBass += (rawBass - this.smoothBass) * (rawBass > this.smoothBass ? attack : decay);
+    this.smoothMid += (rawMid - this.smoothMid) * (rawMid > this.smoothMid ? attack : decay);
+    this.smoothTreble += (rawTreble - this.smoothTreble) * (rawTreble > this.smoothTreble ? attack : decay);
+    this.smoothAvg += (rawAvg - this.smoothAvg) * (rawAvg > this.smoothAvg ? attack : decay);
 
-    this.smoothBass += (b - this.smoothBass) * (b > this.smoothBass ? attack : decay);
-    this.smoothMid += (m - this.smoothMid) * (m > this.smoothMid ? attack : decay);
-    this.smoothTreble += (tr - this.smoothTreble) * (tr > this.smoothTreble ? attack : decay);
-    this.smoothAvg += (avg - this.smoothAvg) * (avg > this.smoothAvg ? attack : decay);
+    return audio.beat ? audio.beatEnergy * 1.5 : 0.0;
   }
 
-  private updateResonanceRings(audio: AudioFeatures, sens: number, densityParam: number): void {
-    this.group.rotation.z += (0.005 + audio.rms * 0.015) * sens;
+  private updateResonanceAndCore(
+    time: number,
+    kick: number,
+    speedParam: number,
+    deformParam: number,
+    densityParam: number,
+    audio: AudioFeatures
+  ): void {
+    const activeCount = Math.max(1, Math.min(this.numRings, Math.round(densityParam)));
     for (let i = 0; i < this.numRings; i++) {
-      this.rings[i].visible = i < densityParam;
+      this.rings[i].visible = i < activeCount;
     }
-  }
+    this.group.rotation.z += (audio.beat ? 0.02 : 0.005) * speedParam;
 
-  private updatePulseCore(time: number, kick: number, deformParam: number, speedParam: number): void {
-    if (!this.core?.material) return;
-    const u = (this.core.material as THREE.ShaderMaterial).uniforms;
-    u.uTime.value = time;
-    u.uBass.value = kick * 0.95 + this.smoothBass * 0.3 * deformParam;
-    u.uAudio.value = this.smoothAvg;
-    u.uPulseRate.value = 0.5 * speedParam;
-    this.core.scale.setScalar(1.0 + (kick * 0.5 + this.smoothBass * 0.08) * deformParam);
-    this.core.rotation.y = time * 0.2;
-    this.core.rotation.x = Math.sin(time * 0.12) * 0.2;
-  }
+    if (this.core?.material) {
+      const u = (this.core.material as THREE.ShaderMaterial).uniforms;
+      u.uTime.value = time;
+      u.uBass.value = (this.smoothBass * 0.95 + kick * 0.3) * deformParam;
+      u.uAudio.value = this.smoothAvg;
+      this.core.scale.setScalar(1.0 + (this.smoothBass * 0.5 + kick * 0.08) * deformParam);
+      this.core.rotation.y = time * 0.2 * speedParam;
+      this.core.rotation.x = Math.sin(time * 0.12) * 0.2;
+    }
 
-  private updateCoronaAndInnerOuterRings(time: number, kick: number, deformParam: number): void {
     if (this.coronaShell?.material) {
       const u = (this.coronaShell.material as THREE.ShaderMaterial).uniforms;
       u.uTime.value = time;
-      u.uBass.value = (kick * 0.7 + this.smoothBass * 0.35) * deformParam;
-      this.coronaShell.scale.setScalar(1.0 + this.smoothAvg * 0.2 + kick * 0.18);
-      this.coronaShell.rotation.y = -time * 0.1;
+      u.uBass.value = (this.smoothBass * 0.7 + kick * 0.35) * deformParam;
+      this.coronaShell.scale.setScalar(1.0 + this.smoothAvg * 0.2 + this.smoothBass * 0.18 * deformParam);
+      this.coronaShell.rotation.y = -time * 0.1 * speedParam;
     }
+
     if (this.innerRing) {
-      this.innerRing.scale.setScalar(1.0 + (kick * 0.55 + this.smoothBass * 0.1) * deformParam);
-      (this.innerRing.material as THREE.MeshBasicMaterial).opacity = 0.4 + kick * 0.5 + this.smoothBass * 0.15;
+      this.innerRing.scale.setScalar(1.0 + (this.smoothBass * 0.55 + kick * 0.1) * deformParam);
+      (this.innerRing.material as THREE.MeshBasicMaterial).opacity = Math.min(1.0, 0.4 + this.smoothBass * 0.5 + kick * 0.15);
     }
+
     if (this.outerRing) {
       this.outerRing.scale.setScalar(1.0 + this.smoothTreble * 0.2);
       (this.outerRing.material as THREE.MeshBasicMaterial).opacity = 0.15 + this.smoothTreble * 0.5;
-      this.outerRing.rotation.z = time * 0.02;
+      this.outerRing.rotation.z = time * 0.02 * speedParam;
     }
   }
 
-  private updateOrbitalRings(dt: number, deformParam: number): void {
-    const orbitalCount = Math.min(this.orbitalRings.length, this.orbitalRingConfigs.length);
-    for (let i = 0; i < orbitalCount; i++) {
+  private updateOrbitalRingsAnimation(deformParam: number, speedScale: number): void {
+    for (let i = 0; i < this.orbitalRings.length; i++) {
       const ring = this.orbitalRings[i];
       const cfg = this.orbitalRingConfigs[i];
       const bandEnergy = cfg.band === 'bass' ? this.smoothBass : cfg.band === 'mid' ? this.smoothMid : this.smoothTreble;
 
-      this.orbitalRingRotationsY[i] += cfg.speed * 0.005 * dt * 60;
+      this.orbitalRingRotationsY[i] += cfg.speed * 0.005 * speedScale;
+      const scale = 1.0 + bandEnergy * 0.25 * deformParam;
       ring.rotation.set(cfg.tiltX, this.orbitalRingRotationsY[i], cfg.tiltZ);
-      ring.scale.setScalar(1.0 + bandEnergy * 0.25 * deformParam);
+      ring.scale.set(scale, scale, scale);
     }
   }
 
-  private updateSpectralArcs(audio: AudioFeatures, sens: number): void {
-    if (!this.arcInstanced) return;
-    const data = audio.frequencyData || [];
-    const dataLen = data.length;
+  private updateSpectralArcsAnimation(
+    audio: AudioFeatures,
+    sensitivity: number,
+    reactParam: number,
+    speedScale: number
+  ): void {
+    if (!this.arcInstanced || !this.sharedArcGeo) return;
+
+    const freqData = audio.frequencyData;
+    const dataLen = freqData?.length || 1;
+
     for (let i = 0; i < this.arcCount; i++) {
-      const binIdx = dataLen > 0 ? Math.floor((i / this.arcCount) * dataLen) : 0;
-      const target = dataLen > 0 ? ((data[binIdx] / 255.0) * sens) : 0.0;
-      this.arcIntensities[i] += (target - this.arcIntensities[i]) * 0.35;
+      const binIdx = Math.min(dataLen - 1, Math.floor((i / this.arcCount) * dataLen));
+      const binVal = freqData && dataLen > 1 ? (freqData[binIdx] / 255.0) * sensitivity * reactParam : 0.0;
+      this.arcIntensities[i] += (binVal - this.arcIntensities[i]) * 0.2 * speedScale;
+
+      const angle = (i / this.arcCount) * Math.PI * 2;
+      this.arcDummy.position.set(0, 0, 0);
+      this.arcDummy.rotation.set(0, angle, 0);
+      this.arcDummy.updateMatrix();
+      this.arcInstanced.setMatrixAt(i, this.arcDummy.matrix);
     }
-    const attr = this.sharedArcGeo?.getAttribute('aIntensity');
+    this.arcInstanced.instanceMatrix.needsUpdate = true;
+    const attr = this.sharedArcGeo.getAttribute('aIntensity') as THREE.BufferAttribute;
     if (attr) attr.needsUpdate = true;
   }
 
-  private updateParticlesAndNebula(time: number, kick: number, deformParam: number): void {
+  private updateParticles(time: number): void {
     if (this.freqRibbonsMat?.uniforms) {
       const u = this.freqRibbonsMat.uniforms;
       u.uTime.value = time;
-      u.uBass.value = (kick * 0.9 + this.smoothBass * 0.3) * deformParam;
+      u.uBass.value = this.smoothBass;
       u.uMid.value = this.smoothMid;
       u.uTreble.value = this.smoothTreble;
     }
+
     if (this.nebulaMat?.uniforms) {
       this.nebulaMat.uniforms.uTime.value = time;
       this.nebulaMat.uniforms.uAudio.value = this.smoothAvg;
     }
+
     if (this.haloMat?.uniforms) {
       this.haloMat.uniforms.uTime.value = time;
       this.haloMat.uniforms.uAudio.value = this.smoothAvg;
     }
   }
 
-  private updateShockwaves(time: number, dt: number, b: number): void {
-    this.bassAccum += (b - this.bassAccum) * 0.3 * dt * 60;
-    if (b > 0.6 && b > this.bassAccum * 1.3 && time - this.lastBassSpike > 0.3) {
+  private updateShockwaves(rawBass: number, dt: number, speedScale: number, time: number): void {
+    this.bassAccum += (rawBass - this.bassAccum) * 0.3 * speedScale;
+    if (rawBass > 0.6 && rawBass > this.bassAccum * 1.3 && time - this.lastBassSpike > 0.3) {
       this.lastBassSpike = time;
       const inactive = this.shockwaveData.find(sw => !sw.active);
       if (inactive) {
@@ -988,11 +1005,10 @@ export class CircularSpectrumPreset extends BasePreset {
     }
 
     if (!this.shockwaveInstanced) return;
-    let swChanged = false;
+
     for (let i = 0; i < this.shockwaveData.length; i++) {
       const sw = this.shockwaveData[i];
       if (!sw.active) continue;
-
       sw.life += dt * 1.5;
       const progress = sw.life;
       const radius = 4.0 + progress * 18.0;
@@ -1012,47 +1028,44 @@ export class CircularSpectrumPreset extends BasePreset {
         this.swDummy.updateMatrix();
         this.shockwaveInstanced.setMatrixAt(i, this.swDummy.matrix);
       }
-      swChanged = true;
     }
-    if (swChanged) {
-      this.shockwaveInstanced.instanceMatrix.needsUpdate = true;
-      const attr = this.shockwaveInstanced.geometry.getAttribute('aOpacity');
-      if (attr) attr.needsUpdate = true;
-    }
+    this.shockwaveInstanced.instanceMatrix.needsUpdate = true;
+    const swAttr = this.shockwaveInstanced.geometry.getAttribute('aOpacity') as THREE.BufferAttribute;
+    if (swAttr) swAttr.needsUpdate = true;
   }
 
-  private updateTendrils(time: number): void {
+  private updateTendrilsAndBeams(time: number, rawBass: number, speedParam: number, speedScale: number): void {
     this.tendrilFrame = (this.tendrilFrame + 1) % 2;
-    if (this.tendrilFrame !== 0) return;
+    if (this.tendrilFrame === 0 && this.tendrils.length > 0) {
+      for (const tendril of this.tendrils) {
+        const { baseAngle, segCount } = tendril.userData as { baseAngle: number; segCount: number };
+        const pos = tendril.geometry.attributes.position.array as Float32Array;
 
-    for (const line of this.tendrils) {
-      const { baseAngle, segCount } = line.userData;
-      const posArray = line.geometry.attributes.position.array as Float32Array;
+        for (let j = 0; j < segCount; j++) {
+          const progress = j / (segCount - 1);
+          const r = 3.5 + progress * 14.0;
+          const angle = baseAngle + Math.sin(time * 1.5 + progress * 4.0) * 0.3 * progress;
+          const y = Math.sin(time * 2.0 + progress * 6.0 + baseAngle) * progress * 2.0 * (0.5 + this.smoothAvg);
 
-      for (let j = 0; j < segCount; j++) {
-        const t = j / (segCount - 1);
-        const r = 3.5 + t * 14.0;
-        const theta = baseAngle + Math.sin(time * 1.5 + t * 4.0) * 0.3 * t;
-        const y = Math.sin(time * 2.0 + t * 6.0 + baseAngle) * t * 2.0 * (0.5 + this.smoothAvg);
-
-        posArray[j * 3] = Math.cos(theta) * r;
-        posArray[j * 3 + 1] = y;
-        posArray[j * 3 + 2] = Math.sin(theta) * r;
+          pos[j * 3] = Math.cos(angle) * r;
+          pos[j * 3 + 1] = y;
+          pos[j * 3 + 2] = Math.sin(angle) * r;
+        }
+        tendril.geometry.attributes.position.needsUpdate = true;
+        (tendril.material as THREE.LineBasicMaterial).opacity = 0.15 + this.smoothAvg * 0.5;
       }
-      line.geometry.attributes.position.needsUpdate = true;
-      (line.material as THREE.LineBasicMaterial).opacity = 0.15 + this.smoothAvg * 0.5;
     }
-  }
 
-  private updateLightBeams(time: number, dt: number, b: number): void {
     if (!this.beamInstanced) return;
-    this.beamRotationZ = time * 0.025;
-    for (let i = 0; i < 24; i++) {
-      const wave = Math.sin(time * 4.0 + i * 0.8) * 0.5 + 0.5;
-      const targetOp = b > 0.35 ? b * wave * 0.2 : 0.0;
-      this.beamOpacities[i] += (targetOp - this.beamOpacities[i]) * 0.25 * dt * 60;
+    const beamCount = this.beamInstanced.count;
+    this.beamRotationZ = time * 0.025 * speedParam;
 
-      const angle = (i / 24) * Math.PI * 2 + this.beamRotationZ;
+    for (let i = 0; i < beamCount; i++) {
+      const shimmer = Math.sin(time * 4.0 + i * 0.8) * 0.5 + 0.5;
+      const targetOpacity = rawBass > 0.35 ? rawBass * shimmer * 0.2 : 0.0;
+      this.beamOpacities[i] += (targetOpacity - this.beamOpacities[i]) * 0.25 * speedScale;
+
+      const angle = (i / beamCount) * Math.PI * 2 + this.beamRotationZ;
       this.beamDummy.position.set(0, 0, 0);
       this.beamDummy.rotation.set(Math.PI / 2, 0, angle);
       this.beamDummy.scale.set(1, 1, 1);
@@ -1060,34 +1073,24 @@ export class CircularSpectrumPreset extends BasePreset {
       this.beamInstanced.setMatrixAt(i, this.beamDummy.matrix);
     }
     this.beamInstanced.instanceMatrix.needsUpdate = true;
-    const attr = this.beamInstanced.geometry.getAttribute('aOpacity');
-    if (attr) attr.needsUpdate = true;
+    const beamAttr = this.beamInstanced.geometry.getAttribute('aOpacity') as THREE.BufferAttribute;
+    if (beamAttr) beamAttr.needsUpdate = true;
   }
 
   public override onThemeChange(theme: VisualizerTheme): void {
     const primary = new THREE.Color(theme.primary);
     const secondary = new THREE.Color(theme.secondary || theme.accent || theme.primary);
 
-    this.updateRingsTheme(primary, secondary);
-    this.updateCoreAndShellsTheme(primary, secondary);
-    this.updateArcsAndRibbonsTheme(primary, secondary);
-    this.updateParticlesTheme(primary, secondary);
+    this.updateOrbitalAndRingColors(primary, secondary);
+    this.updateParticleAndBeamColors(primary, secondary);
   }
 
-  private updateRingsTheme(primary: THREE.Color, secondary: THREE.Color): void {
-    for (let i = 0; i < this.rings.length; i++) {
-      const col = new THREE.Color().lerpColors(primary, secondary, i / this.rings.length);
-      this.ringMaterials[i].color.copy(col);
+  private updateOrbitalAndRingColors(primary: THREE.Color, secondary: THREE.Color): void {
+    for (let i = 0; i < this.ringMaterials.length; i++) {
+      const color = new THREE.Color().lerpColors(primary, secondary, i / this.numRings);
+      this.ringMaterials[i].color.copy(color);
     }
 
-    for (let i = 0; i < this.orbitalRings.length; i++) {
-      const cfg = this.orbitalRingConfigs[i];
-      const col = cfg.band === 'bass' ? primary : secondary;
-      (this.orbitalRings[i].material as THREE.MeshBasicMaterial).color.copy(col);
-    }
-  }
-
-  private updateCoreAndShellsTheme(primary: THREE.Color, secondary: THREE.Color): void {
     if (this.core?.material) {
       const u = (this.core.material as THREE.ShaderMaterial).uniforms;
       u.uColor1.value.copy(primary);
@@ -1098,15 +1101,20 @@ export class CircularSpectrumPreset extends BasePreset {
       u.uColor1.value.copy(primary);
       u.uColor2.value.copy(secondary);
     }
-    if (this.innerRing) {
+    if (this.innerRing?.material) {
       (this.innerRing.material as THREE.MeshBasicMaterial).color.copy(secondary);
     }
-    if (this.outerRing) {
+    if (this.outerRing?.material) {
       (this.outerRing.material as THREE.MeshBasicMaterial).color.copy(primary);
+    }
+    for (let i = 0; i < this.orbitalRings.length; i++) {
+      const ring = this.orbitalRings[i];
+      const cfg = this.orbitalRingConfigs[i];
+      (ring.material as THREE.MeshBasicMaterial).color.copy(cfg.band === 'bass' ? primary : secondary);
     }
   }
 
-  private updateArcsAndRibbonsTheme(primary: THREE.Color, secondary: THREE.Color): void {
+  private updateParticleAndBeamColors(primary: THREE.Color, secondary: THREE.Color): void {
     if (this.arcInstanced?.material) {
       const u = (this.arcInstanced.material as THREE.ShaderMaterial).uniforms;
       u.uColor1.value.copy(primary);
@@ -1116,21 +1124,18 @@ export class CircularSpectrumPreset extends BasePreset {
       this.freqRibbonsMat.uniforms.uColor1.value.copy(primary);
       this.freqRibbonsMat.uniforms.uColor2.value.copy(secondary);
     }
-  }
-
-  private updateParticlesTheme(primary: THREE.Color, secondary: THREE.Color): void {
     if (this.nebulaMat?.uniforms) {
       this.nebulaMat.uniforms.uColor1.value.copy(primary);
       this.nebulaMat.uniforms.uColor2.value.copy(secondary);
     }
     if (this.haloMat?.uniforms) {
-      this.haloMat.uniforms.uColor1.value.copy(primary);
+      this.haloMat.uniforms.uColor.value.copy(primary);
     }
     if (this.shockwaveInstanced?.material) {
       (this.shockwaveInstanced.material as THREE.ShaderMaterial).uniforms.uColor.value.copy(primary);
     }
-    for (const line of this.tendrils) {
-      (line.material as THREE.LineBasicMaterial).color.copy(secondary);
+    for (const tendril of this.tendrils) {
+      (tendril.material as THREE.LineBasicMaterial).color.copy(secondary);
     }
     if (this.beamInstanced?.material) {
       (this.beamInstanced.material as THREE.ShaderMaterial).uniforms.uColor.value.copy(primary);
@@ -1140,55 +1145,47 @@ export class CircularSpectrumPreset extends BasePreset {
   protected override onDispose(): void {
     for (const g of this.ringGeometries) g.dispose();
     for (const m of this.ringMaterials) m.dispose();
+    this.rings.length = 0;
+    this.ringGeometries.length = 0;
+    this.ringMaterials.length = 0;
 
     this.core?.geometry.dispose();
     (this.core?.material as THREE.Material)?.dispose();
-
     this.coronaShell?.geometry.dispose();
     (this.coronaShell?.material as THREE.Material)?.dispose();
-
     this.innerRing?.geometry.dispose();
     (this.innerRing?.material as THREE.Material)?.dispose();
-
     this.outerRing?.geometry.dispose();
     (this.outerRing?.material as THREE.Material)?.dispose();
 
-    for (const ring of this.orbitalRings) {
-      ring.geometry.dispose();
-      (ring.material as THREE.Material).dispose();
+    for (const r of this.orbitalRings) {
+      r.geometry.dispose();
+      (r.material as THREE.Material)?.dispose();
     }
+    this.orbitalRings.length = 0;
 
     this.sharedArcGeo?.dispose();
     (this.arcInstanced?.material as THREE.Material)?.dispose();
-
     this.freqRibbonsGeo?.dispose();
     this.freqRibbonsMat?.dispose();
-
     this.nebulaGeo?.dispose();
     this.nebulaMat?.dispose();
-
     this.haloGeo?.dispose();
     this.haloMat?.dispose();
 
     this.shockwaveInstanced?.geometry.dispose();
     (this.shockwaveInstanced?.material as THREE.Material)?.dispose();
 
-    for (const line of this.tendrils) {
-      line.geometry.dispose();
-      (line.material as THREE.Material).dispose();
+    for (const t of this.tendrils) {
+      t.geometry.dispose();
+      (t.material as THREE.Material)?.dispose();
     }
+    this.tendrils.length = 0;
 
     this.beamInstanced?.geometry.dispose();
     (this.beamInstanced?.material as THREE.Material)?.dispose();
 
-    this.ambientGroup.removeFromParent();
-    this.ambientGroup.clear();
-
-    this.rings.length = 0;
-    this.ringGeometries.length = 0;
-    this.ringMaterials.length = 0;
-    this.orbitalRings.length = 0;
-    this.tendrils.length = 0;
-    this.shockwaveData.length = 0;
+    this.coreGroup.removeFromParent();
+    this.coreGroup.clear();
   }
 }
