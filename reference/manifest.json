@@ -1,0 +1,149 @@
+[
+  {
+    "id": "obsidian",
+    "file": "obsidian.original.js",
+    "originUrl": "https://visuval.io/js/obsidian.3QDBXHLX.js",
+    "bundleSize": 56362,
+    "decodedSize": 56308
+  },
+  {
+    "id": "circular",
+    "file": "circular.original.js",
+    "originUrl": "https://visuval.io/js/circular.XD4ZXTUG.js",
+    "bundleSize": 73471,
+    "decodedSize": 73393
+  },
+  {
+    "id": "starfield",
+    "file": "starfield.original.js",
+    "originUrl": "https://visuval.io/js/starfield.73TCXN4A.js",
+    "bundleSize": 49139,
+    "decodedSize": 49067
+  },
+  {
+    "id": "bars3d",
+    "file": "bars3d.original.js",
+    "originUrl": "https://visuval.io/js/bars3d.OBPEGH22.js",
+    "bundleSize": 25434,
+    "decodedSize": 28205
+  },
+  {
+    "id": "ferrofluid",
+    "file": "ferrofluid.original.js",
+    "originUrl": "https://visuval.io/js/ferrofluid.DNQIBLWF.js",
+    "bundleSize": 32430,
+    "decodedSize": 32401
+  },
+  {
+    "id": "particles",
+    "file": "particles.original.js",
+    "originUrl": "https://visuval.io/js/particles.AXGRXBPT.js",
+    "bundleSize": 47075,
+    "decodedSize": 47030
+  },
+  {
+    "id": "boxtunnel",
+    "file": "boxtunnel.original.js",
+    "originUrl": "https://visuval.io/js/boxtunnel.V5BCSZKL.js",
+    "bundleSize": 28776,
+    "decodedSize": 28724
+  },
+  {
+    "id": "ringtunnel",
+    "file": "ringtunnel.original.js",
+    "originUrl": "https://visuval.io/js/ringtunnel.3LUFMBOJ.js",
+    "bundleSize": 19123,
+    "decodedSize": 19083
+  },
+  {
+    "id": "geiss",
+    "file": "geiss.original.js",
+    "originUrl": "https://visuval.io/js/geiss.EKZZIJ6J.js",
+    "bundleSize": 65200,
+    "decodedSize": 75803
+  },
+  {
+    "id": "milkdrop",
+    "file": "milkdrop.original.js",
+    "originUrl": "https://visuval.io/js/milkdrop.K2H4SRFN.js",
+    "bundleSize": 18529,
+    "decodedSize": 18529
+  },
+  {
+    "id": "waterslide",
+    "file": "waterslide.original.js",
+    "originUrl": "https://visuval.io/js/waterslide.76JXOFKW.js",
+    "bundleSize": 32736,
+    "decodedSize": 32642
+  },
+  {
+    "id": "tunnel",
+    "file": "tunnel.original.js",
+    "originUrl": "https://visuval.io/js/tunnel.3D57GORS.js",
+    "bundleSize": 18850,
+    "decodedSize": 18780
+  },
+  {
+    "id": "spectogram",
+    "file": "spectogram.original.js",
+    "originUrl": "https://visuval.io/js/spectogram.ZR3COXVB.js",
+    "bundleSize": 31925,
+    "decodedSize": 36673
+  },
+  {
+    "id": "biocells",
+    "file": "biocells.original.js",
+    "originUrl": "https://visuval.io/js/biocells.IIAICJ7M.js",
+    "bundleSize": 15731,
+    "decodedSize": 15707
+  },
+  {
+    "id": "matrix",
+    "file": "matrix.original.js",
+    "originUrl": "https://visuval.io/js/matrix.LF7QOVKS.js",
+    "bundleSize": 34592,
+    "decodedSize": 45014
+  },
+  {
+    "id": "liquid",
+    "file": "liquid.original.js",
+    "originUrl": "https://visuval.io/js/liquid.YL37U2WN.js",
+    "bundleSize": 18611,
+    "decodedSize": 18543
+  },
+  {
+    "id": "upcloud",
+    "file": "upcloud.original.js",
+    "originUrl": "https://visuval.io/js/upcloud.IUZCJXPU.js",
+    "bundleSize": 38317,
+    "decodedSize": 38863
+  },
+  {
+    "id": "diodewall",
+    "file": "diodewall.original.js",
+    "originUrl": "https://visuval.io/js/diodewall.EXABZYFA.js",
+    "bundleSize": 43690,
+    "decodedSize": 54881
+  },
+  {
+    "id": "rainroom",
+    "file": "rainroom.original.js",
+    "originUrl": "https://visuval.io/js/rainroom.F7ZFLGTS.js",
+    "bundleSize": 35193,
+    "decodedSize": 41190
+  },
+  {
+    "id": "forest",
+    "file": "forest.original.js",
+    "originUrl": "https://visuval.io/js/forest.J5ODFQOF.js",
+    "bundleSize": 163184,
+    "decodedSize": 185995
+  },
+  {
+    "id": "face",
+    "file": "face.original.js",
+    "originUrl": "https://visuval.io/js/face.BHBO7RHT.js",
+    "bundleSize": 135833,
+    "decodedSize": 138977
+  }
+]
