@@ -1,16 +1,21 @@
 declare module 'butterchurn' {
-  export interface ButterchurnVisualizer {
-    connectAudio: (audioNode: AudioNode) => void;
-    loadPreset: (preset: unknown, blendTime?: number) => void;
-    render: () => void;
-    setRendererSize: (width: number, height: number) => void;
-  }
-
   export interface ButterchurnOptions {
     width?: number;
     height?: number;
     pixelRatio?: number;
     textureRatio?: number;
+    meshWidth?: number;
+    meshHeight?: number;
+    outputFXAA?: boolean;
+  }
+
+  export interface ButterchurnVisualizer {
+    connectAudio: (audioNode: AudioNode) => void;
+    loadPreset: (preset: unknown, blendTime?: number) => void;
+    render: () => void;
+    setRendererSize: (width: number, height: number, opts?: ButterchurnOptions) => void;
+    setInternalMeshSize?: (width: number, height: number) => void;
+    setOutputAA?: (useAA: boolean) => void;
   }
 
   const butterchurn: {

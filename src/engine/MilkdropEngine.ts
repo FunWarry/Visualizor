@@ -23,11 +23,29 @@ export class MilkdropEngine {
     this.audioNode = audioNode;
 
     try {
+      const width = window.innerWidth || 1920;
+      const height = window.innerHeight || 1080;
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+
+      this.canvas.width = Math.round(width * pixelRatio);
+      this.canvas.height = Math.round(height * pixelRatio);
+
       this.visualizer = butterchurn.createVisualizer(audioContext, this.canvas, {
-        width: this.canvas.width || window.innerWidth,
-        height: this.canvas.height || window.innerHeight,
-        pixelRatio: window.devicePixelRatio || 1
+        width,
+        height,
+        pixelRatio,
+        textureRatio: 1,
+        meshWidth: 64,
+        meshHeight: 48,
+        outputFXAA: true
       });
+
+      if (this.visualizer?.setOutputAA) {
+        this.visualizer.setOutputAA(true);
+      }
+      if (this.visualizer?.setInternalMeshSize) {
+        this.visualizer.setInternalMeshSize(64, 48);
+      }
 
       if (this.audioNode && this.visualizer) {
         this.visualizer.connectAudio(this.audioNode);
@@ -76,15 +94,27 @@ export class MilkdropEngine {
   }
 
   public resize(width: number, height: number) {
-    this.canvas.width = width;
-    this.canvas.height = height;
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+    this.canvas.width = Math.round(width * pixelRatio);
+    this.canvas.height = Math.round(height * pixelRatio);
     if (this.visualizer) {
-      this.visualizer.setRendererSize(width, height);
+      this.visualizer.setRendererSize(width, height, {
+        pixelRatio,
+        textureRatio: 1,
+        meshWidth: 64,
+        meshHeight: 48
+      });
+      if (this.visualizer.setOutputAA) {
+        this.visualizer.setOutputAA(true);
+      }
     }
   }
 
   public setActive(active: boolean) {
     this.isActive = active;
     this.canvas.style.display = active ? 'block' : 'none';
+    if (active) {
+      this.resize(window.innerWidth || 1920, window.innerHeight || 1080);
+    }
   }
 }

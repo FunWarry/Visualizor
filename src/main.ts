@@ -168,6 +168,7 @@ function initMilkdropIfNeeded() {
     const ctx = audioEngine.getContext();
     const analyser = audioEngine.getAnalyser();
     milkdropEngine.init(ctx, analyser);
+    milkdropEngine.resize(window.innerWidth, window.innerHeight);
     isMilkdropInitialized = true;
   }
 }
