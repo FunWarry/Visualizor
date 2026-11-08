@@ -88,8 +88,7 @@ function deobfuscate(content) {
 
   // Replace decoder calls with exact alias match first
   const aliasList = Array.from(aliases).join('|');
-  const quoteGroup = String.raw`(['"`])`;
-  const pattern = new RegExp(String.raw`\b(?:${aliasList})\s*\((0x[0-9a-fA-F]+|\d+)(?:\s*,\s*${quoteGroup}(.*?)\2)?\s*\)`, 'g');
+  const pattern = new RegExp('\\b(?:' + aliasList + ')\\s*\\((0x[0-9a-fA-F]+|\\d+)(?:\\s*,\\s*([\'"\\x60])(.*?)\\2)?\\s*\\)', 'g'); // NOSONAR
 
   let result = content.replace(pattern, (fullMatch, arg1, q, arg2) => {
     try {
@@ -105,7 +104,7 @@ function deobfuscate(content) {
   });
 
   // Secondary universal pass for any remaining obfuscated hex/key calls
-  const universalPattern = new RegExp(String.raw`\b[a-zA-Z0-9_$]+\s*\(\s*(0x[0-9a-fA-F]+)\s*,\s*${quoteGroup}(.*?)\2\s*\)`, 'g');
+  const universalPattern = /\b[a-zA-Z0-9_$]+\s*\(\s*(0x[0-9a-fA-F]+)\s*,\s*(['"`])(.*?)\2\s*\)/g;
   result = result.replace(universalPattern, (fullMatch, hex, q, key) => {
     try {
       const num = Number.parseInt(hex, 16);
