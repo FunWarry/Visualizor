@@ -100,15 +100,27 @@ const MasterShader = {
       return uv + cc * (dist * bend);
     }
 
-    vec2 applyKaleido(vec2 uv, float segments) {
+    vec2 applyKaleido(vec2 uv, float segments, vec2 res) {
       if (segments <= 1.0) return uv;
+      float aspect = res.x / max(res.y, 1.0);
       vec2 p = uv - 0.5;
+      p.x *= aspect;
+
       float r = length(p);
       float a = atan(p.y, p.x);
+      if (a < 0.0) a += 6.283185307;
+
       float seg = 6.283185307 / segments;
       a = mod(a, seg);
       if (a > seg * 0.5) a = seg - a;
-      return vec2(cos(a), sin(a)) * r + 0.5;
+
+      vec2 kp = vec2(cos(a), sin(a)) * r;
+      kp.x /= aspect;
+      vec2 kUv = kp + 0.5;
+
+      // Seamless mirror reflection at edges (triangle wave folding between 0.0 and 1.0)
+      // Eliminates black borders and seams completely
+      return 1.0 - abs(fract(kUv * 0.5) * 2.0 - 1.0);
     }
 
     vec2 applyMirror(vec2 uv, float m) {
@@ -138,8 +150,8 @@ const MasterShader = {
       // 1. Mirror Symmetry
       vec2 uv = applyMirror(vUv, uMirror);
 
-      // 2. Kaleidoscope
-      uv = applyKaleido(uv, uKaleidoscope);
+      // 2. Kaleidoscope (aspect-corrected & seamless mirror wrapped)
+      uv = applyKaleido(uv, uKaleidoscope, uResolution);
 
       // 3. Liquid Drip / Wave distortion
       uv = applyDrip(uv, uDrip, uTime, uAudioBass);
@@ -150,9 +162,13 @@ const MasterShader = {
       // 5. Pixelize / Retro Arcade
       uv = applyPixelize(uv, uPixelize, uResolution);
 
-      if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
-        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-        return;
+      if (uCrtBend > 0.001) {
+        if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
+          gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+          return;
+        }
+      } else {
+        uv = clamp(uv, 0.0, 1.0);
       }
 
       // Chromatic Aberration
