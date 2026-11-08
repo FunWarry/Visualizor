@@ -3,6 +3,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { AfterimagePass } from 'three/examples/jsm/postprocessing/AfterimagePass.js';
 import { VisualizerPreset, VisualizerTheme, AudioFeatures, PostProcessingConfig } from '../types';
 import { CameraController } from './CameraController';
 import { TextOverlayEngine } from '../overlay/TextOverlayEngine';
@@ -224,6 +225,7 @@ export class RenderEngine {
   private readonly composer: EffectComposer;
   private readonly renderPass: RenderPass;
   private readonly bloomPass: UnrealBloomPass;
+  private readonly afterimagePass: AfterimagePass;
   private readonly persistencePass: ShaderPass;
   private readonly masterPass: ShaderPass;
 
@@ -336,6 +338,11 @@ export class RenderEngine {
       this.config.bloomThreshold
     );
     this.composer.addPass(this.bloomPass);
+
+    // Afterimage Pass (Motion Trails / Persistence)
+    this.afterimagePass = new AfterimagePass(this.config.persistence);
+    this.afterimagePass.enabled = this.config.persistence > 0.01;
+    this.composer.addPass(this.afterimagePass);
 
     // Persistence Pass
     this.persistencePass = new ShaderPass(PersistenceShader);
@@ -466,6 +473,10 @@ export class RenderEngine {
   public updateConfig(newConfig: Partial<PostProcessingConfig>) {
     Object.assign(this.config, newConfig);
     this.updateBloomConfig(newConfig);
+    if (newConfig.persistence !== undefined) {
+      this.afterimagePass.enabled = newConfig.persistence > 0.01;
+      this.afterimagePass.uniforms['damp'].value = newConfig.persistence;
+    }
     if (newConfig.autoRotate !== undefined) {
       this.cameraController.autoRotate = newConfig.autoRotate;
     }
@@ -523,10 +534,13 @@ export class RenderEngine {
     uniforms.uResolution.value.set(this.renderer.domElement.width, this.renderer.domElement.height);
 
     if (this.config.persistence > 0.01) {
+      this.afterimagePass.enabled = true;
+      this.afterimagePass.uniforms['damp'].value = this.config.persistence;
       this.persistencePass.enabled = true;
       this.persistencePass.uniforms.uPersistence.value = this.config.persistence;
       this.persistencePass.uniforms.tFeedback.value = currentReadTarget.texture;
     } else {
+      this.afterimagePass.enabled = false;
       this.persistencePass.enabled = false;
     }
 
@@ -553,6 +567,7 @@ export class RenderEngine {
 
     this.renderer.setSize(width, height);
     this.composer.setSize(width, height);
+    this.afterimagePass.setSize(width, height);
     this.feedbackTargets[0].setSize(width, height);
     this.feedbackTargets[1].setSize(width, height);
     this.textOverlay.resize(width, height, this.renderer.getPixelRatio());
@@ -560,6 +575,32 @@ export class RenderEngine {
     if (this.activePreset?.resize) {
       this.activePreset.resize(width, height);
     }
+  }
+
+  public setCanvasBackground(mode: 'dark' | 'white' | 'custom', customColor?: string): void {
+    let colorHex = '#000000';
+    if (mode === 'dark') {
+      colorHex = '#000000';
+    } else if (mode === 'white') {
+      colorHex = '#ffffff';
+    } else if (mode === 'custom') {
+      colorHex = customColor ?? this.currentTheme.background ?? '#111116';
+    }
+    const color = new THREE.Color(colorHex);
+    this.scene.background = color;
+    this.renderer.setClearColor(color);
+  }
+
+  public setImageOverlay(img: HTMLImageElement | null): void {
+    this.textOverlay.setImageOverlay(img);
+  }
+
+  public setImageOverlayOpacity(opacity: number): void {
+    this.textOverlay.setImageOverlayOpacity(opacity);
+  }
+
+  public setImageOverlayScale(scale: number): void {
+    this.textOverlay.setImageOverlayScale(scale);
   }
 
   public captureScreenshot(): string {

@@ -64,10 +64,9 @@ export class WaveFormPreset extends BasePreset {
 
     // PlaneGeometry with exactly 64 * 64 vertices (cols=64, rows=64)
     this.geometry = new THREE.PlaneGeometry(size, size, this.cols - 1, this.rows - 1);
-    this.geometry.rotateX(-Math.PI / 2);
     this.positionAttribute = this.geometry.attributes.position as THREE.BufferAttribute;
 
-    // 1. Wireframe overlay grid (MUST be child[0] for tests)
+    // 1. Wireframe overlay grid (MUST be child[0] with MeshStandardMaterial for test compliance)
     this.wireMaterial = new THREE.MeshStandardMaterial({
       color: primaryCol,
       emissive: primaryCol,
@@ -79,6 +78,7 @@ export class WaveFormPreset extends BasePreset {
       metalness: 0.3
     });
     this.wireMesh = new THREE.Mesh(this.geometry, this.wireMaterial);
+    this.wireMesh.rotation.x = -Math.PI / 2;
     this.group.add(this.wireMesh);
 
     // 2. Translucent glowing depth surface underneath (authentic Visuval shader)
@@ -100,48 +100,13 @@ export class WaveFormPreset extends BasePreset {
         uSheetShape: { value: this.sheetShape }
       },
       vertexShader: `
-        uniform float uTime;
-        uniform float uAudioData[64];
-        uniform float uBass;
-        uniform float uMid;
-        uniform float uTreble;
-        uniform float uAudio;
-        uniform float uSensitivity;
-        uniform float uWaveHeight;
-        uniform float uWaveSpeed;
-        uniform float uHalfSize;
         varying vec3 vPos;
         varying float vHeight;
 
         void main() {
           vPos = position;
-          float dist = length(position.xz);
-          float distNorm = clamp(dist / uHalfSize, 0.0, 1.0);
-
-          float audioIdx = clamp(position.x / uHalfSize * 0.5 + 0.5, 0.0, 1.0) * 63.0;
-          int idx0 = int(floor(audioIdx));
-          int idx1 = min(idx0 + 1, 63);
-          float frac = fract(audioIdx);
-          float localBin = mix(uAudioData[idx0], uAudioData[idx1], frac);
-
-          float bandEnergy = mix(uBass, mix(uMid, uTreble, distNorm), distNorm);
-          float audioVal = (localBin * 0.5 + bandEnergy * 0.5) * uSensitivity;
-
-          float speedScale = 0.3 + uWaveSpeed * 1.7;
-          float wave1 = sin(position.x * 0.15 + uTime * 1.5 * speedScale) * cos(position.z * 0.15 + uTime * 0.8 * speedScale);
-          float wave2 = sin(position.x * 0.3 - uTime * 0.7 * speedScale) * sin(position.z * 0.2 + uTime * 1.2 * speedScale);
-          float wave3 = cos(dist * 0.1 - uTime * 2.0 * speedScale) * 2.0;
-
-          float baseAmp = (0.3 + uWaveHeight * 1.7);
-          float baseWaves = (wave1 * 2.0 + wave2 * 1.5 + wave3) * baseAmp;
-          float globalMod = 0.7 + uAudio * 0.8;
-          float ripple = audioVal * 5.0 * sin(dist * 0.12 - uTime * 3.0 * speedScale);
-          float height = baseWaves * globalMod + ripple;
-          vHeight = height;
-
-          vec3 newPos = position;
-          newPos.y = height;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(newPos, 1.0);
+          vHeight = position.z;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `,
       fragmentShader: `
@@ -166,22 +131,24 @@ export class WaveFormPreset extends BasePreset {
           float glow = exp(-abs(vHeight - 3.0) * 0.2) * 0.6;
           color += uColor2 * glow;
 
-          float grid = step(0.94, fract(vPos.x * 0.333)) + step(0.94, fract(vPos.z * 0.333));
+          float grid = step(0.94, fract(vPos.x * 0.333)) + step(0.94, fract(vPos.y * 0.333));
           color += vec3(grid) * uColor2 * 0.4;
 
-          float radialDist = length(vPos.xz);
+          float radialDist = length(vPos.xy);
           float circularAlpha = smoothstep(uHalfSize, uHalfSize - uEdgeFade, radialDist);
-          float edgeDist = min(uHalfSize - abs(vPos.x), uHalfSize - abs(vPos.z));
+          float edgeDist = min(uHalfSize - abs(vPos.x), uHalfSize - abs(vPos.y));
           float squareAlpha = smoothstep(0.0, uEdgeFade, edgeDist);
           float alpha = mix(circularAlpha, squareAlpha, uSheetShape);
-          gl_FragColor = vec4(color, alpha);
+          gl_FragColor = vec4(color, alpha * 0.85);
         }
       `,
       transparent: true,
       wireframe: false,
-      side: THREE.DoubleSide
+      side: THREE.DoubleSide,
+      depthWrite: false
     });
     this.surfaceMesh = new THREE.Mesh(this.geometry, this.terrainMaterial);
+    this.surfaceMesh.rotation.x = -Math.PI / 2;
     this.group.add(this.surfaceMesh);
 
     // 3. 3,000 Floating Stardust Particles (authentic Visuval shader)
@@ -289,28 +256,6 @@ export class WaveFormPreset extends BasePreset {
     this.updateCpuWaveHeight(elapsed, sens, deformParam, speedParam, audio, time);
   }
 
-  private resampleFrequencyData(frequencyData?: Uint8Array): void {
-    const dataLen = frequencyData ? frequencyData.length : 0;
-    for (let i = 0; i < 64; i++) {
-      const idx = dataLen > 0 ? Math.floor((i / 64) * dataLen) : 0;
-      this.audioData64[i] = dataLen > 0 && frequencyData ? (frequencyData[idx] / 255.0) : 0.0;
-    }
-  }
-
-  private updateTerrainUniforms(elapsed: number, sens: number, deformParam: number, speedParam: number, audio: AudioFeatures): void {
-    if (!this.terrainMaterial?.uniforms) return;
-    const u = this.terrainMaterial.uniforms;
-    u.uTime.value = elapsed;
-    u.uSensitivity.value = sens;
-    u.uBass.value = audio.bass * sens;
-    u.uMid.value = audio.mid * sens;
-    u.uTreble.value = audio.treble * sens;
-    u.uAudio.value = audio.rms * sens;
-    u.uWaveHeight.value = this.waveHeight * deformParam;
-    u.uWaveSpeed.value = this.waveSpeed * speedParam;
-    u.uSheetShape.value = this.sheetShape;
-  }
-
   private updateWireEmissive(audio: AudioFeatures): void {
     if (audio.beat) {
       this.wireMaterial.emissiveIntensity = Math.min(2.0, 0.9 + audio.beatEnergy * 1.0);
@@ -361,12 +306,36 @@ export class WaveFormPreset extends BasePreset {
     this.positionAttribute.needsUpdate = true;
   }
 
+  private resampleFrequencyData(frequencyData?: Uint8Array): void {
+    const dataLen = frequencyData ? frequencyData.length : 0;
+    for (let i = 0; i < 64; i++) {
+      const idx = dataLen > 0 ? Math.floor((i / 64) * dataLen) : 0;
+      this.audioData64[i] = dataLen > 0 && frequencyData ? (frequencyData[idx] / 255.0) : 0.0;
+    }
+  }
+
+  private updateTerrainUniforms(elapsed: number, sens: number, deformParam: number, speedParam: number, audio: AudioFeatures): void {
+    if (!this.terrainMaterial?.uniforms) return;
+    const u = this.terrainMaterial.uniforms;
+    u.uTime.value = elapsed;
+    u.uSensitivity.value = sens;
+    u.uBass.value = audio.bass * sens;
+    u.uMid.value = audio.mid * sens;
+    u.uTreble.value = audio.treble * sens;
+    u.uAudio.value = audio.rms * sens;
+    u.uWaveHeight.value = this.waveHeight * deformParam;
+    u.uWaveSpeed.value = this.waveSpeed * speedParam;
+    u.uSheetShape.value = this.sheetShape;
+  }
+
   public override onThemeChange(theme: VisualizerTheme): void {
     const primaryCol = new THREE.Color(theme.primary);
     const secondaryCol = new THREE.Color(theme.secondary || theme.accent || theme.primary);
 
-    this.wireMaterial.color.copy(primaryCol);
-    this.wireMaterial.emissive.copy(primaryCol);
+    if (this.wireMaterial) {
+      this.wireMaterial.color.copy(primaryCol);
+      this.wireMaterial.emissive.copy(primaryCol);
+    }
 
     if (this.terrainMaterial?.uniforms) {
       this.terrainMaterial.uniforms.uColor1.value.copy(primaryCol);

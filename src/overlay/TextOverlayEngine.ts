@@ -38,6 +38,10 @@ export class TextOverlayEngine {
   private scaleMultiplier = 1.0;
   private marqueeOffset = 0;
 
+  private imageOverlay: HTMLImageElement | null = null;
+  private imageOpacity = 0.8;
+  private imageScale = 1.0;
+
   private readonly config: TextOverlayConfig;
   private readonly watermarkConfig: WatermarkConfig;
 
@@ -220,8 +224,30 @@ export class TextOverlayEngine {
     return active;
   }
 
+  public setImageOverlay(img: HTMLImageElement | null): void {
+    this.imageOverlay = img;
+    this.isDirty = true;
+  }
+
+  public setImageOverlayOpacity(opacity: number): void {
+    const val = typeof opacity === 'number' && !Number.isNaN(opacity) ? opacity : 0.8;
+    this.imageOpacity = Math.max(0.0, Math.min(1.0, val));
+    this.isDirty = true;
+  }
+
+  public setImageOverlayScale(scale: number): void {
+    const val = typeof scale === 'number' && !Number.isNaN(scale) ? scale : 1.0;
+    this.imageScale = Math.max(0.1, Math.min(3.0, val));
+    this.isDirty = true;
+  }
+
+  public getImageOverlay(): HTMLImageElement | null {
+    return this.imageOverlay;
+  }
+
   public hasActiveContent(): boolean {
     return (
+      Boolean(this.imageOverlay) ||
       this.config.watermark ||
       this.config.layers.title.length > 0 ||
       this.config.layers.artist.length > 0 ||
@@ -409,6 +435,10 @@ export class TextOverlayEngine {
       });
     }
 
+    if (this.imageOverlay) {
+      this.renderImageOverlay();
+    }
+
     if (activeEntries.length > 0) {
       this.renderTextLines(activeEntries, effectiveOpacity, audio);
     }
@@ -417,6 +447,28 @@ export class TextOverlayEngine {
       this.renderWatermark();
     }
 
+    if (this.ctx.restore) this.ctx.restore();
+  }
+
+  private renderImageOverlay(): void {
+    if (!this.ctx || !this.imageOverlay) return;
+    const img = this.imageOverlay;
+    const naturalW = img.naturalWidth || img.width || 400;
+    const naturalH = img.naturalHeight || img.height || 300;
+    const maxDim = Math.min(this.width, this.height) * 0.45 * this.imageScale;
+    const aspect = naturalW / (naturalH || 1);
+    let drawW = maxDim;
+    let drawH = maxDim / aspect;
+    if (aspect < 1) {
+      drawH = maxDim;
+      drawW = maxDim * aspect;
+    }
+    const x = (this.width - drawW) * 0.5;
+    const y = (this.height - drawH) * 0.5;
+
+    if (this.ctx.save) this.ctx.save();
+    this.ctx.globalAlpha = this.imageOpacity;
+    this.ctx.drawImage(img, x, y, drawW, drawH);
     if (this.ctx.restore) this.ctx.restore();
   }
 

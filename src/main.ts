@@ -1534,6 +1534,71 @@ textIntensitySlider?.addEventListener('input', () => {
   renderEngine.textOverlay?.setAnimationIntensity(val);
 });
 
+// Image Overlays & Layers Drawer Panel Binding
+function setupOverlayPanel(engine: RenderEngine): void {
+  const canvasBgSegments = document.getElementById('canvasBgSegments');
+  if (canvasBgSegments) {
+    const chips = canvasBgSegments.querySelectorAll('.opt-chip');
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        chips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        const mode = (chip.getAttribute('data-value') || 'dark') as 'dark' | 'white' | 'custom';
+        engine.setCanvasBackground(mode);
+      });
+    });
+  }
+
+  const overlayFileInput = document.getElementById('overlayFileInput') as HTMLInputElement | null;
+  if (overlayFileInput) {
+    overlayFileInput.addEventListener('change', () => {
+      const file = overlayFileInput.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const src = e.target?.result as string;
+        if (!src) return;
+        const img = new Image();
+        img.onload = () => {
+          engine.setImageOverlay(img);
+          const label = overlayFileInput.parentElement;
+          if (label) {
+            label.childNodes.forEach(node => {
+              if (node.nodeType === Node.TEXT_NODE && node.textContent?.includes('Add Image')) {
+                node.textContent = `✓ ${file.name.slice(0, 18)} (Click to change)`;
+              }
+            });
+          }
+        };
+        img.src = src;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  const overlayOpacitySlider = document.getElementById('overlayOpacitySlider') as HTMLInputElement | null;
+  const overlayOpacityVal = document.getElementById('overlayOpacityVal');
+  if (overlayOpacitySlider) {
+    overlayOpacitySlider.addEventListener('input', () => {
+      const val = Number.parseFloat(overlayOpacitySlider.value);
+      if (overlayOpacityVal) overlayOpacityVal.textContent = `${Math.round(val * 100)}%`;
+      engine.setImageOverlayOpacity(val);
+    });
+  }
+
+  const overlayScaleSlider = document.getElementById('overlayScaleSlider') as HTMLInputElement | null;
+  const overlayScaleVal = document.getElementById('overlayScaleVal');
+  if (overlayScaleSlider) {
+    overlayScaleSlider.addEventListener('input', () => {
+      const val = Number.parseFloat(overlayScaleSlider.value);
+      if (overlayScaleVal) overlayScaleVal.textContent = `${val.toFixed(1)}x`;
+      engine.setImageOverlayScale(val);
+    });
+  }
+}
+
+setupOverlayPanel(renderEngine);
+
 function handleKeyboardHotkey(key: string, isShift: boolean): boolean {
   switch (key.toLowerCase()) {
     case 'h':
@@ -2152,6 +2217,8 @@ function bindFxSlider(fx: FxControlDef): void {
   const valEl = document.getElementById(fx.valId);
   if (!slider) return;
 
+  const row = document.querySelector(`.fx-control-row[data-fx-id="${fx.id}"]`);
+
   if (fx.chipGroupId) {
     const chips = document.querySelectorAll(`#${fx.chipGroupId} .opt-chip`);
     chips.forEach(chip => {
@@ -2167,12 +2234,15 @@ function bindFxSlider(fx: FxControlDef): void {
   slider.addEventListener('input', () => {
     const numVal = Number.parseFloat(slider.value);
     if (valEl) valEl.textContent = fx.format(numVal);
+    const mainInput = (row ?? document).querySelector(`.fx-main-val-input[data-fx-target="${fx.id}"]`) as HTMLInputElement | null;
+    if (mainInput && document.activeElement !== mainInput) {
+      mainInput.value = numVal.toString();
+    }
     fx.apply(numVal);
     updateChipsForFx(fx, numVal);
     syncFilterCardState(fx.id, numVal > 0);
   });
 
-  const row = document.querySelector(`.fx-control-row[data-fx-id="${fx.id}"]`);
   const lockBtn = row?.querySelector(`.fx-lock-btn[data-fx="${fx.id}"]`) as HTMLElement | null;
   const randBtn = row?.querySelector(`.fx-rand-btn[data-fx="${fx.id}"]`) as HTMLElement | null;
 
