@@ -137,6 +137,8 @@ export class AudioEngine {
 
   public isMicActive = false;
   public isScreenAudioActive = false;
+  public isScreenAudioPassthrough = false;
+  private screenPassthroughGain: GainNode | null = null;
   public onScreenAudioEnded?: () => void;
   public currentTrackName = 'No track loaded';
   public currentArtistName = 'Visuval Audio Engine';
@@ -187,9 +189,15 @@ export class AudioEngine {
 
       this.streamDestination = this.ctx.createMediaStreamDestination();
 
+      // Audio routing:
+      // 1. Local playback (audio files and demo synth) routes through gainNode to speakers:
+      this.gainNode.connect(this.ctx.destination);
+      // 2. Local playback routes through gainNode to analyser for visualization:
       this.gainNode.connect(this.analyser);
-      this.analyser.connect(this.ctx.destination);
+      // 3. Analyser routes to streamDestination for video export recording:
       this.analyser.connect(this.streamDestination);
+      // NOTE: Analyser does NOT connect to ctx.destination!
+      // This decouples analysis from speaker monitoring so screen audio and mic do not loop through speakers.
 
       this.freqData = new Uint8Array(this.analyser.frequencyBinCount);
       this.timeData = new Uint8Array(this.analyser.frequencyBinCount);
@@ -323,6 +331,19 @@ export class AudioEngine {
     if (this.gainNode && this.ctx) {
       this.gainNode.gain.setValueAtTime(this.volume, this.ctx.currentTime);
     }
+    if (this.screenPassthroughGain && this.ctx && this.isScreenAudioPassthrough) {
+      this.screenPassthroughGain.gain.setValueAtTime(this.volume, this.ctx.currentTime);
+    }
+  }
+
+  public setScreenAudioPassthrough(enabled: boolean): void {
+    this.isScreenAudioPassthrough = enabled;
+    if (this.screenPassthroughGain && this.ctx) {
+      this.screenPassthroughGain.gain.setValueAtTime(
+        enabled ? this.volume : 0.0,
+        this.ctx.currentTime
+      );
+    }
   }
 
   public async toggleMic(): Promise<boolean> {
@@ -340,9 +361,9 @@ export class AudioEngine {
 
       try {
         this.micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-        if (this.ctx && this.gainNode) {
+        if (this.ctx && this.analyser) {
           this.micSourceNode = this.ctx.createMediaStreamSource(this.micStream);
-          this.micSourceNode.connect(this.gainNode);
+          this.micSourceNode.connect(this.analyser);
           this.isMicActive = true;
           this.currentTrackName = 'Live Microphone';
           this.currentArtistName = 'Real-time Audio Input';
@@ -391,12 +412,23 @@ export class AudioEngine {
         throw new Error('NO_AUDIO_TRACK');
       }
 
-      if (this.ctx && this.gainNode) {
+      if (this.ctx && this.analyser) {
         this.screenSourceNode = this.ctx.createMediaStreamSource(this.screenStream);
-        this.screenSourceNode.connect(this.gainNode);
+        // Connect directly to analyser for visualization & export (prevents speaker feedback loops)
+        this.screenSourceNode.connect(this.analyser);
+
+        // Optional passthrough gain (strictly muted 0.0 by default to prevent audio feedback loop)
+        this.screenPassthroughGain = this.ctx.createGain();
+        this.screenPassthroughGain.gain.setValueAtTime(
+          this.isScreenAudioPassthrough ? this.volume : 0.0,
+          this.ctx.currentTime
+        );
+        this.screenSourceNode.connect(this.screenPassthroughGain);
+        this.screenPassthroughGain.connect(this.ctx.destination);
+
         this.isScreenAudioActive = true;
         this.currentTrackName = 'System / Screen Audio';
-        this.currentArtistName = 'Live Display Media Cast';
+        this.currentArtistName = 'Live Display Media Cast (Muted Return)';
 
         const onEndedHandler = () => {
           this.disableScreenAudioCapture();
@@ -427,6 +459,8 @@ export class AudioEngine {
     this.screenStream = null;
     this.screenSourceNode?.disconnect();
     this.screenSourceNode = null;
+    this.screenPassthroughGain?.disconnect();
+    this.screenPassthroughGain = null;
     this.isScreenAudioActive = false;
   }
 

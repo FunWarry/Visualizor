@@ -1271,6 +1271,32 @@ const screenAudioBtn = document.getElementById('screenAudioBtn') as HTMLButtonEl
 const captureSystemAudioBtn = document.getElementById('captureSystemAudioBtn') as HTMLButtonElement | null;
 const captureSystemAudioLabel = document.getElementById('captureSystemAudioLabel');
 const audioSourceStatus = document.getElementById('audioSourceStatus');
+const screenPassthroughContainer = document.getElementById('screenPassthroughContainer');
+const screenPassthroughBtn = document.getElementById('screenPassthroughBtn') as HTMLButtonElement | null;
+const screenPassthroughDesc = document.getElementById('screenPassthroughDesc');
+
+function updateScreenPassthroughUI() {
+  if (!screenPassthroughBtn) return;
+  const isEnabled = audioEngine.isScreenAudioPassthrough;
+  screenPassthroughBtn.setAttribute('aria-pressed', String(isEnabled));
+  screenPassthroughBtn.textContent = isEnabled ? 'Active (Risk)' : 'Muted';
+  screenPassthroughBtn.style.color = isEnabled ? 'var(--accent-start)' : 'var(--text-muted)';
+  if (screenPassthroughDesc) {
+    screenPassthroughDesc.textContent = isEnabled
+      ? 'Audio sent to speakers (may cause feedback loop)'
+      : 'Muted to prevent infinite feedback loops';
+  }
+  if (audioSourceStatus) {
+    audioSourceStatus.textContent = isEnabled
+      ? '● Capturing live screen/app audio (Audio Return: Active)'
+      : '● Capturing live screen/app audio (Audio Return: Muted - loop-safe)';
+  }
+}
+
+screenPassthroughBtn?.addEventListener('click', () => {
+  audioEngine.setScreenAudioPassthrough(!audioEngine.isScreenAudioPassthrough);
+  updateScreenPassthroughUI();
+});
 
 function syncScreenAudioUI(active: boolean) {
   screenAudioBtn?.classList.toggle('active', active);
@@ -1282,6 +1308,10 @@ function syncScreenAudioUI(active: boolean) {
   if (audioSourceStatus) {
     audioSourceStatus.style.display = active ? 'block' : 'none';
   }
+  if (screenPassthroughContainer) {
+    screenPassthroughContainer.style.display = active ? 'flex' : 'none';
+  }
+  updateScreenPassthroughUI();
   updatePlayButton();
 }
 

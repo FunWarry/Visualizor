@@ -652,7 +652,14 @@ export function setupTestEnvironment(): void {
     userAgent: 'Node.js Test Agent (Headless)',
     mediaDevices: {
       getUserMedia: async () => ({
-        getTracks: () => [{ stop: () => {} }]
+        getTracks: () => [{ stop: () => {} }],
+        getAudioTracks: () => [{ stop: () => {} }],
+        getVideoTracks: () => [{ stop: () => {} }]
+      }),
+      getDisplayMedia: async () => ({
+        getTracks: () => [{ stop: () => {} }],
+        getAudioTracks: () => [{ stop: () => {} }],
+        getVideoTracks: () => [{ stop: () => {} }]
       })
     },
     requestMIDIAccess: async () => activeMidiAccess

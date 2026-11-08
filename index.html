@@ -545,6 +545,17 @@
           <span id="captureSystemAudioLabel">Capture Screen / App Audio</span>
         </button>
         <p id="audioSourceStatus" style="font-size:11px;color:var(--accent-start);margin-top:6px;display:none;">● Capturing live screen/app audio</p>
+        
+        <!-- Screen Audio Monitoring (Passthrough) Feedback Loop Protection -->
+        <div id="screenPassthroughContainer" style="display:none;margin-top:10px;padding:8px 10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:6px;align-items:center;justify-content:space-between;">
+          <div style="display:flex;flex-direction:column;gap:2px;">
+            <span style="font-size:11px;font-weight:600;color:var(--text-bright);">Speaker Return (Monitoring)</span>
+            <span style="font-size:10px;color:var(--text-muted);" id="screenPassthroughDesc">Muted to prevent infinite feedback loops</span>
+          </div>
+          <button type="button" class="btn-pill" id="screenPassthroughBtn" aria-pressed="false" style="font-size:10px;padding:3px 8px;background:rgba(255,255,255,0.08);color:var(--text-muted);" title="Toggle speaker monitoring for captured screen audio">
+            Muted
+          </button>
+        </div>
       </div>
 
       <p style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-top:12px;">

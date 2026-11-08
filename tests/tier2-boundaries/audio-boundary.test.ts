@@ -87,4 +87,45 @@ describe('Tier 2: Audio DSP Boundary Cases', () => {
     expect(micResult).toBe(false);
     expect(engine.isMicActive).toBe(false);
   });
+
+  test('T2.Audio.7: Screen audio capture mutes local audio feedback return by default to prevent loops', async () => {
+    const engine = new AudioEngine();
+
+    const result = await engine.toggleScreenAudioCapture();
+    expect(result).toBe(true);
+    expect(engine.isScreenAudioActive).toBe(true);
+    // Crucial: Audio passthrough to speakers MUST be false by default to prevent feedback loops
+    expect(engine.isScreenAudioPassthrough).toBe(false);
+
+    // Toggle passthrough on and off
+    engine.setScreenAudioPassthrough(true);
+    expect(engine.isScreenAudioPassthrough).toBe(true);
+
+    engine.setScreenAudioPassthrough(false);
+    expect(engine.isScreenAudioPassthrough).toBe(false);
+
+    engine.disableScreenAudioCapture();
+    expect(engine.isScreenAudioActive).toBe(false);
+  });
+
+  test('T2.Audio.8: Screen audio capture without audio tracks throws NO_AUDIO_TRACK', async () => {
+    const engine = new AudioEngine();
+
+    navigator.mediaDevices.getDisplayMedia = async () => ({
+      getTracks: () => [],
+      getAudioTracks: () => [],
+      getVideoTracks: () => []
+    } as unknown as MediaStream);
+
+    let errorThrown = false;
+    try {
+      await engine.toggleScreenAudioCapture();
+    } catch (err: unknown) {
+      if ((err as Error)?.message === 'NO_AUDIO_TRACK') {
+        errorThrown = true;
+      }
+    }
+    expect(errorThrown).toBe(true);
+    expect(engine.isScreenAudioActive).toBe(false);
+  });
 });
