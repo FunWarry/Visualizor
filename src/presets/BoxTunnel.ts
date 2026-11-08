@@ -7,7 +7,7 @@ export class BoxTunnelPreset extends BasePreset {
   public override readonly id = 'boxtunnel';
   public override readonly name = 'Box Tunnel';
   public override readonly category = 'Tunnels' as const;
-  public override readonly description = '36 square wireframe gate frames rushing forward along z-axis.';
+  public override readonly description = '36 square wireframe gate frames rushing forward along z-axis with chromatic audio glow.';
   public override cameraConfig = {
     position: [0, 0, 4] as [number, number, number],
     target: [0, 0, -50] as [number, number, number],
@@ -18,6 +18,7 @@ export class BoxTunnelPreset extends BasePreset {
   private readonly numFrames = 36;
   private readonly spacing = 2.2;
   private readonly materials: THREE.LineBasicMaterial[] = [];
+  private themeCache: VisualizerTheme | null = null;
 
   constructor() {
     super();
@@ -31,6 +32,8 @@ export class BoxTunnelPreset extends BasePreset {
   protected setup(ctx: PresetContext): void {
     this.frames.length = 0;
     this.materials.length = 0;
+    this.themeCache = ctx.theme;
+
     const size = this.paramStore.getValue('density');
     const half = size / 2;
 
@@ -44,11 +47,7 @@ export class BoxTunnelPreset extends BasePreset {
       ];
       geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
 
-      const color = new THREE.Color().lerpColors(
-        new THREE.Color(ctx.theme.primary),
-        new THREE.Color(ctx.theme.accent),
-        i / this.numFrames
-      );
+      const color = this.computeFrameColor(i, 0, 0, 0, 0);
 
       const mat = new THREE.LineBasicMaterial({
         color,
@@ -67,10 +66,38 @@ export class BoxTunnelPreset extends BasePreset {
     }
   }
 
+  private computeFrameColor(i: number, time: number, bass: number, mid: number, treble: number): THREE.Color {
+    const theme = this.themeCache;
+    if (!theme) return new THREE.Color(0xffffff);
+
+    const c1 = new THREE.Color(theme.primary);
+    const c2 = new THREE.Color(theme.secondary);
+    const accent = new THREE.Color(theme.accent);
+
+    const colorPhase = i * 0.15 + time * 0.1;
+    const mixFactor = 0.5 + 0.5 * Math.sin(colorPhase);
+    const col = new THREE.Color().lerpColors(c1, c2, mixFactor);
+
+    col.r += c1.r * treble * 0.4 + accent.r * mid * 0.25;
+    col.g += c1.g * treble * 0.4 + accent.g * mid * 0.25;
+    col.b += c1.b * treble * 0.4 + accent.b * mid * 0.25;
+
+    // Pseudorandom cell flash
+    const cellRand = Math.abs(Math.sin(i * 12.9898 + 0.1) * 43758.5453) % 1.0;
+    if (cellRand > 0.7) {
+      col.addScalar(bass * 1.5);
+    }
+
+    return col;
+  }
+
   public update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number): void {
     const speed = this.paramStore.getValue('speed');
     const reactivity = this.paramStore.getValue('reactivity');
     const flySpeed = (14.0 + audio.bass * 35.0 * reactivity) * speed;
+
+    const wiggleAmt = audio.bass * 0.12 + audio.mid * 0.06;
+    const wiggleFreq = 3.0 + audio.treble * 5.0;
 
     for (let i = 0; i < this.numFrames; i++) {
       const f = this.frames[i];
@@ -80,19 +107,29 @@ export class BoxTunnelPreset extends BasePreset {
         f.position.z -= this.numFrames * this.spacing;
       }
 
-      f.rotation.z = Math.sin(time * 0.4 * speed + i * 0.12) * 0.4;
-      const scale = 1.0 + (audio.beat ? 0.3 * reactivity : 0) * (1 - Math.abs(f.position.z) / 45);
+      // Authentic wiggle & rotation
+      const wWiggle = Math.sin(f.position.z * 0.2 + time * 2.5) * wiggleAmt * 0.15;
+      f.rotation.z = Math.sin(time * 0.4 * speed + i * 0.12 + wWiggle) * (0.35 + wiggleAmt);
+      f.rotation.x = Math.sin(time * 0.3 + i * wiggleFreq * 0.05) * 0.08 * wiggleAmt;
+
+      // Distance fog & pulse scale
+      const distRatio = Math.max(0, 1 - Math.abs(f.position.z) / 45);
+      const scale = (1.0 + (audio.beat ? 0.35 * reactivity : 0) * distRatio) * (1.0 + Math.sin(time * 3.0 + i) * 0.04 * audio.bass);
       f.scale.set(scale, scale, 1);
+
+      // Color animation per frame
+      const frameColor = this.computeFrameColor(i, time, audio.bass * reactivity, audio.mid * reactivity, audio.treble * reactivity);
+      this.materials[i].color.copy(frameColor);
+      this.materials[i].opacity = 0.2 + distRatio * 0.75;
     }
+
+    this.group.rotation.z = Math.sin(time * 0.2) * 0.03 + (audio.bass * reactivity * 0.04) * Math.sin(time * 1.2);
   }
 
   public override onThemeChange(theme: VisualizerTheme): void {
+    this.themeCache = theme;
     for (let i = 0; i < this.numFrames; i++) {
-      const color = new THREE.Color().lerpColors(
-        new THREE.Color(theme.primary),
-        new THREE.Color(theme.accent),
-        i / this.numFrames
-      );
+      const color = this.computeFrameColor(i, 0, 0, 0, 0);
       this.materials[i].color.copy(color);
     }
   }
@@ -101,10 +138,10 @@ export class BoxTunnelPreset extends BasePreset {
     for (const f of this.frames) {
       f.geometry.dispose();
     }
+    this.frames.length = 0;
     for (const m of this.materials) {
       m.dispose();
     }
-    this.frames.length = 0;
     this.materials.length = 0;
   }
 }

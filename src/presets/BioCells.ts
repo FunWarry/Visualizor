@@ -3,105 +3,163 @@ import { PresetContext, AudioFeatures, VisualizerTheme } from '../types';
 import { ParameterStore } from '../tuning/ParameterStore';
 import { BasePreset } from './BasePreset';
 
+const VERTEX_SHADER = `
+  void main() {
+    gl_Position = vec4(position.xy, 0.0, 1.0);
+  }
+`;
+
+const FRAGMENT_SHADER = `
+  precision highp float;
+
+  uniform vec2 uResolution;
+  uniform float uTime;
+  uniform float uSpeed;
+  uniform vec3 uColor1;
+  uniform vec3 uColor2;
+  uniform float uSize;
+  uniform float uBass;
+  uniform int uWorleyRadius;
+
+  float length2(vec2 p) { return dot(p, p); }
+
+  float hash21(vec2 p) {
+    return fract(sin(fract(sin(p.x) * 43.13311) + p.y) * 31.0011);
+  }
+
+  float worley(vec2 p) {
+    float d = 1e30;
+    int r = uWorleyRadius;
+    for (int xo = -1; xo <= 1; ++xo) {
+      if (abs(xo) > r) continue;
+      for (int yo = -1; yo <= 1; ++yo) {
+        if (abs(yo) > r) continue;
+        vec2 tp = floor(p) + vec2(float(xo), float(yo));
+        d = min(d, length2(p - tp - vec2(hash21(tp))));
+      }
+    }
+    vec2 uv = gl_FragCoord.xy / uResolution.xy;
+    float timeOffset = 0.15 * sin(uTime * uSpeed * 2.0 + 10.0 * (uv.x - uv.y) + uBass * 0.2);
+    return 3.0 * exp(-4.0 * abs(2.0 * d - 1.0 + timeOffset));
+  }
+
+  float fworley(vec2 p) {
+    float t = uTime * uSpeed;
+    return sqrt(sqrt(sqrt(
+      1.1 *
+      worley(p * 5.0 + 0.3 + t * 0.0525) *
+      sqrt(worley(p * 50.0 / uSize + 0.3 + t * -0.15)) *
+      sqrt(sqrt(worley(p * -10.0 + 9.3)))
+    )));
+  }
+
+  void main() {
+    vec2 uv = gl_FragCoord.xy / uResolution.xy;
+    float t = fworley(uv * uResolution.xy / 1500.0);
+    t *= exp(-length2(abs(0.7 * uv - 1.0)));
+
+    float tExp = pow(t, 0.5 - t);
+    vec3 c1 = uColor1 * (1.0 - t);
+    vec3 c2 = uColor2 * tExp;
+
+    gl_FragColor = vec4(pow(t, 1.0 - t) * (c1 + c2), 1.0);
+  }
+`;
+
+function getLuminanceAdjustedThemeColors(theme: VisualizerTheme): { color1: THREE.Color; color2: THREE.Color } {
+  const c1 = new THREE.Color(theme.primary);
+  const c2 = new THREE.Color(theme.secondary);
+  const lum = 0.299 * c1.r + 0.587 * c1.g + 0.114 * c1.b;
+  const factor = lum > 0.5 ? 0.38 : (lum > 0.28 ? 0.52 : 0.68);
+  return {
+    color1: new THREE.Color(c1.r * factor + 0.018, c1.g * factor + 0.02, c1.b * factor + 0.028),
+    color2: c2
+  };
+}
+
 export class BioCellsPreset extends BasePreset {
   public override readonly id = 'biocells';
   public override readonly name = 'Bio Cells';
   public override readonly category = 'Organic & Nature' as const;
-  public override readonly description = 'Microscopic biological cell clusters undergoing mitosis.';
+  public override readonly description = 'Multi-scale Worley noise biological cell membranes with organic mitosis.';
   public override cameraConfig = {
-    position: [0, 0, 10] as [number, number, number],
+    position: [0, 0, 1] as [number, number, number],
     target: [0, 0, 0] as [number, number, number],
     autoRotate: false
   };
 
-  private readonly cells: THREE.Mesh[] = [];
-  private readonly numCells = 12;
-  private cellMaterial!: THREE.MeshPhysicalMaterial;
-  private readonly cellBasePositions: THREE.Vector3[] = [];
+  private mesh: THREE.Mesh | null = null;
+  private material: THREE.ShaderMaterial | null = null;
+  private audioSmoothBass = 0;
 
   constructor() {
     super();
     this.paramStore = new ParameterStore([
-      { id: 'speed', name: 'Mitosis Cycle', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
-      { id: 'reactivity', name: 'Membrane Wobble', min: 0.1, max: 2.5, step: 0.05, defaultValue: 1.0 },
-      { id: 'density', name: 'Cell Count', min: 4, max: 12, step: 1, defaultValue: 12 }
+      { id: 'speed', name: 'Mitosis Speed', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
+      { id: 'reactivity', name: 'Membrane Reactivity', min: 0.1, max: 2.5, step: 0.05, defaultValue: 1.0 },
+      { id: 'density', name: 'Cell Scale', min: 0.5, max: 2.5, step: 0.1, defaultValue: 1.35 }
     ]);
   }
 
   protected setup(ctx: PresetContext): void {
-    this.cells.length = 0;
-    this.cellBasePositions.length = 0;
+    const { color1, color2 } = getLuminanceAdjustedThemeColors(ctx.theme);
+    const geom = new THREE.PlaneGeometry(2, 2);
 
-    const cellGeom = new THREE.IcosahedronGeometry(1.2, 3);
-    this.cellMaterial = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color(ctx.theme.primary),
-      emissive: new THREE.Color(ctx.theme.accent),
-      emissiveIntensity: 0.35,
-      roughness: 0.2,
-      transmission: 0.65,
-      thickness: 0.5,
-      transparent: true,
-      opacity: 0.85
+    this.material = new THREE.ShaderMaterial({
+      uniforms: {
+        uResolution: { value: new THREE.Vector2(window.innerWidth || 1920, window.innerHeight || 1080) },
+        uTime: { value: 0 },
+        uSpeed: { value: 0.95 },
+        uColor1: { value: color1 },
+        uColor2: { value: color2 },
+        uSize: { value: 1.35 },
+        uBass: { value: 0 },
+        uWorleyRadius: { value: 1 }
+      },
+      vertexShader: VERTEX_SHADER,
+      fragmentShader: FRAGMENT_SHADER,
+      depthWrite: false,
+      depthTest: false
     });
 
-    for (let i = 0; i < this.numCells; i++) {
-      const angle = (i / this.numCells) * Math.PI * 2;
-      const r = 2.5 + (i % 2) * 1.5;
-      const pos = new THREE.Vector3(
-        Math.cos(angle) * r,
-        (Math.sin(i * 1.7) * 2.0),
-        Math.sin(angle) * r
-      );
-      this.cellBasePositions.push(pos);
-
-      const cell = new THREE.Mesh(cellGeom, this.cellMaterial);
-      cell.position.copy(pos);
-      this.cells.push(cell);
-      this.group.add(cell);
-    }
+    this.mesh = new THREE.Mesh(geom, this.material);
+    this.mesh.frustumCulled = false;
+    this.group.add(this.mesh);
   }
 
-  public update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number): void {
+  public update(_ctx: PresetContext, audio: AudioFeatures, time: number, _delta: number): void {
+    if (!this.material) return;
+
     const speed = this.paramStore.getValue('speed');
     const reactivity = this.paramStore.getValue('reactivity');
+    const cellSize = this.paramStore.getValue('density');
 
-    this.group.rotation.y += delta * 0.2 * speed;
-    this.group.rotation.z += delta * 0.1 * speed;
+    const targetBass = audio.bass * reactivity;
+    this.audioSmoothBass += 0.045 * (targetBass - this.audioSmoothBass);
 
-    const wobble = Math.sin(time * 3.0 * speed) * 0.2 * reactivity;
-
-    for (let i = 0; i < this.cells.length; i++) {
-      const cell = this.cells[i];
-      const basePos = this.cellBasePositions[i];
-
-      // Mitosis split displacement on beat
-      const split = audio.beat ? 1.4 * reactivity : 1.0;
-      cell.position.set(
-        basePos.x * split + Math.sin(time * 2.0 + i) * 0.3,
-        basePos.y * split + Math.cos(time * 2.5 + i) * 0.3,
-        basePos.z * split
-      );
-
-      // Cytoplasmic membrane elongation
-      const scaleX = 1.0 + audio.bass * 0.5 * reactivity + wobble;
-      const scaleY = 1.0 + audio.mid * 0.4 * reactivity - wobble;
-      cell.scale.set(scaleX, scaleY, 1.0);
-    }
-
-    this.cellMaterial.emissiveIntensity = 0.25 + (audio.bass * 0.6 + (audio.beat ? 0.4 : 0)) * reactivity;
+    const uniforms = this.material.uniforms;
+    uniforms.uTime.value = time;
+    uniforms.uSpeed.value = 0.475 * 2.0 * speed;
+    uniforms.uSize.value = cellSize * (1.0 + this.audioSmoothBass * 0.08);
+    uniforms.uBass.value = this.audioSmoothBass;
   }
 
   public override onThemeChange(theme: VisualizerTheme): void {
-    this.cellMaterial.color.set(theme.primary);
-    this.cellMaterial.emissive.set(theme.accent);
+    if (!this.material) return;
+    const { color1, color2 } = getLuminanceAdjustedThemeColors(theme);
+    this.material.uniforms.uColor1.value.copy(color1);
+    this.material.uniforms.uColor2.value.copy(color2);
   }
 
   protected override onDispose(): void {
-    for (const c of this.cells) {
-      c.geometry.dispose();
+    if (this.mesh) {
+      this.mesh.geometry.dispose();
+      this.mesh = null;
     }
-    this.cells.length = 0;
-    this.cellBasePositions.length = 0;
-    this.cellMaterial?.dispose();
+    if (this.material) {
+      this.material.dispose();
+      this.material = null;
+    }
+    this.audioSmoothBass = 0;
   }
 }
