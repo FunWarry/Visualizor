@@ -94,7 +94,7 @@ export function renderTuningPanel(
     slider.type = 'range';
     slider.className = 'ui-slider tuning-slider';
     slider.id = `tuning_${p.id}_slider`;
-    slider.setAttribute('data-param-id', p.id);
+    slider.dataset.paramId = p.id;
     slider.min = p.min.toString();
     slider.max = p.max.toString();
     slider.step = p.step.toString();

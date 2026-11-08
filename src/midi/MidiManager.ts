@@ -333,7 +333,7 @@ export class MidiManager {
 
   private syncDisconnectedPort(event?: unknown): void {
     const ev = event as { port?: { id?: string; state?: string } } | undefined;
-    if (ev?.port?.state === 'disconnected' && ev.port.id) {
+    if (ev?.port?.state === 'disconnected' && ev.port?.id) {
       this.inputs.delete(ev.port.id);
     }
   }

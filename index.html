@@ -348,6 +348,7 @@
           <button class="custom-picker-btn" id="eyeDropperBtn" title="Pick color with eyedropper">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2 2 0 0 1 0-2.8l.4-.4"/></svg>
           </button>
+          <label for="hiddenNativeColorPicker" style="display:none;">Native Color Picker</label>
           <input type="color" id="hiddenNativeColorPicker" value="#2E196B" aria-label="Native Color Picker" style="opacity:0;position:absolute;pointer-events:none;width:0;height:0;">
         </div>
       </div>
@@ -641,7 +642,7 @@
           <span class="sidebar-value" id="textAnchorLabel" style="font-size:11px;color:var(--text-muted);">Center</span>
         </div>
         <div class="anchor-matrix-container">
-          <div class="anchor-matrix" id="textAnchorMatrix" role="group" aria-label="9-point anchor matrix">
+          <div class="anchor-matrix" id="textAnchorMatrix" aria-label="9-point anchor matrix">
             <button type="button" class="anchor-cell" data-anchor="top-left" title="Top Left" aria-label="Top Left">↖</button>
             <button type="button" class="anchor-cell" data-anchor="top-center" title="Top Center" aria-label="Top Center">↑</button>
             <button type="button" class="anchor-cell" data-anchor="top-right" title="Top Right" aria-label="Top Right">↗</button>
@@ -838,24 +839,24 @@
           <span class="control-section-title">Engine Space</span>
           <span class="sidebar-value" id="studioActiveFamilyLabel" style="font-size:11px;color:var(--accent-start);font-weight:600;">The Force</span>
         </div>
-        <div class="studio-family-grid" id="studioFamilyGrid" role="radiogroup" aria-label="Engine Families">
-          <button type="button" class="studio-family-card" data-family="chroma" role="radio" aria-checked="false">
+        <div class="studio-family-grid" id="studioFamilyGrid" aria-label="Engine Families">
+          <button type="button" class="studio-family-card" data-family="chroma" aria-pressed="false">
             <span class="studio-family-card-name">Chroma</span>
             <span class="studio-family-card-vibe">Vintage fringe</span>
           </button>
-          <button type="button" class="studio-family-card" data-family="liquid" role="radio" aria-checked="false">
+          <button type="button" class="studio-family-card" data-family="liquid" aria-pressed="false">
             <span class="studio-family-card-name">Liquid</span>
             <span class="studio-family-card-vibe">Soft fluid</span>
           </button>
-          <button type="button" class="studio-family-card" data-family="tunnel" role="radio" aria-checked="false">
+          <button type="button" class="studio-family-card" data-family="tunnel" aria-pressed="false">
             <span class="studio-family-card-name">Tunnel</span>
             <span class="studio-family-card-vibe">Deep corridor</span>
           </button>
-          <button type="button" class="studio-family-card" data-family="volume" role="radio" aria-checked="false">
+          <button type="button" class="studio-family-card" data-family="volume" aria-pressed="false">
             <span class="studio-family-card-name">Volume</span>
             <span class="studio-family-card-vibe">Carved mass</span>
           </button>
-          <button type="button" class="studio-family-card active" data-family="force" role="radio" aria-checked="true">
+          <button type="button" class="studio-family-card active" data-family="force" aria-pressed="true">
             <span class="studio-family-card-name">The Force</span>
             <span class="studio-family-card-vibe">Orbital pull</span>
           </button>
@@ -1279,7 +1280,7 @@
   </div>
 
   <!-- Keyboard Shortcuts Modal -->
-  <div class="modal-overlay" id="shortcutsModal" role="dialog" aria-modal="true" aria-labelledby="shortcutsTitle">
+  <div class="modal-overlay" id="shortcutsModal" aria-modal="true" aria-labelledby="shortcutsTitle">
     <div class="modal-content glass-panel">
       <div class="panel-header" style="padding:0 0 12px 0;border-bottom:1px solid var(--border);margin-bottom:16px;">
         <span id="shortcutsTitle" style="font-size:16px;font-weight:700;color:#fff;">Keyboard Shortcuts</span>

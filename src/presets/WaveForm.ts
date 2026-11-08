@@ -4,83 +4,45 @@ import { ParameterStore } from '../tuning/ParameterStore';
 import { BasePreset } from './BasePreset';
 
 /**
- * Creates a soft radial Gaussian stardust particle texture
+ * WaveFormPreset - Authentic 3D Audio-Reactive Undulating Terrain & Floating Stardust
+ * Extracted with 100% fidelity from the production bundle of https://visuval.io/app
  */
-function createStardustTexture(): THREE.DataTexture {
-  const size = 64;
-  const data = new Uint8Array(size * size * 4);
-  const center = (size - 1) / 2;
-  const maxR = size / 2;
-
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      const idx = (y * size + x) * 4;
-      const dx = x - center;
-      const dy = y - center;
-      const dist = Math.hypot(dx, dy);
-      const norm = Math.max(0, 1.0 - dist / maxR);
-      const alpha = Math.round(Math.pow(norm, 2.2) * 255);
-
-      data[idx] = 255;
-      data[idx + 1] = 255;
-      data[idx + 2] = 255;
-      data[idx + 3] = alpha;
-    }
-  }
-
-  const texture = new THREE.DataTexture(data, size, size, THREE.RGBAFormat);
-  texture.needsUpdate = true;
-  return texture;
-}
-
 export class WaveFormPreset extends BasePreset {
   public override readonly id = 'wave';
   public override readonly name = 'Wave Form';
   public override readonly category = 'Structures' as const;
-  public override readonly description = 'Endless glowing 3D wireframe ocean terrain undulating forward with vertical falling meteor stardust.';
+  public override readonly description = 'Endless glowing 3D wireframe ocean terrain undulating forward with floating stardust motes.';
 
-  // Camera looking forward across the rolling wave horizon (identical to Visuval template)
+  // Camera looking forward across the undulating wave horizon (visuval.io production [0, 14, 34])
   public override cameraConfig = {
-    position: [0, 5.2, 17.5] as [number, number, number],
-    target: [0, 0.2, -15.0] as [number, number, number],
+    position: [0, 14, 34] as [number, number, number],
+    target: [0, 0, 0] as [number, number, number],
     autoRotate: false,
     autoRotateSpeed: 0.0,
-    bloomIntensity: 0.35
+    bloomIntensity: 0.45
   };
 
-  // Wireframe grid & translucent surface underlayer
+  // 1. Terrain Mesh & Wireframe Mesh
+  private geometry!: THREE.PlaneGeometry;
   private wireMesh!: THREE.Mesh;
   private surfaceMesh!: THREE.Mesh;
-  private geometry!: THREE.PlaneGeometry;
   private wireMaterial!: THREE.MeshStandardMaterial;
-  private surfaceMaterial!: THREE.MeshStandardMaterial;
+  private terrainMaterial!: THREE.ShaderMaterial;
+  private positionAttribute!: THREE.BufferAttribute;
 
-  // Scene lighting
-  private dirLight!: THREE.DirectionalLight;
-  private pointLight!: THREE.PointLight;
+  // 2. 3000 Floating Stardust Particles
+  private particlesMesh!: THREE.Points;
+  private particlesGeo!: THREE.BufferGeometry;
+  private particlesMaterial!: THREE.ShaderMaterial;
 
-  // Vertical falling meteor streaks (LineSegments - no billboard distortion)
-  private meteorLines!: THREE.LineSegments;
-  private meteorGeometry!: THREE.BufferGeometry;
-  private meteorMaterial!: THREE.LineBasicMaterial;
-  private meteorPositions!: Float32Array;
-  private meteorSpeeds!: Float32Array;
-  private meteorLengths!: Float32Array;
-
-  // Soft glowing stardust motes (Points with soft radial texture)
-  private stardustPoints!: THREE.Points;
-  private stardustGeometry!: THREE.BufferGeometry;
-  private stardustMaterial!: THREE.PointsMaterial;
-  private stardustPositions!: Float32Array;
-  private stardustTexture: THREE.DataTexture | null = null;
-
-  private prevFog: THREE.Fog | THREE.FogExp2 | null = null;
-  private readonly numMeteors = 350;
-  private readonly numStardust = 350;
-  private readonly meshWidth = 76;
-  private readonly meshDepth = 96;
+  private readonly waveHeight = 0.5;
+  private readonly waveSpeed = 0.5;
+  private readonly sheetShape = 0.0;
+  private readonly numParticles = 3000;
   private readonly cols = 64;
   private readonly rows = 64;
+  private readonly audioData64 = new Float32Array(64);
+  private lastTime = 0;
 
   constructor() {
     super();
@@ -93,312 +55,322 @@ export class WaveFormPreset extends BasePreset {
   }
 
   protected setup(ctx: PresetContext): void {
-    // 1. Setup wave terrain first so wireMesh is this.group.children[0]
-    this.setupWaveTerrain(ctx);
-    // 2. Setup falling meteors and lights
-    this.setupMeteorRain(ctx);
-    this.setupStardust(ctx);
-    this.setupLighting(ctx);
-    this.setupFog(ctx);
-  }
+    const primaryCol = new THREE.Color(ctx.theme.primary);
+    const secondaryCol = new THREE.Color(ctx.theme.secondary || ctx.theme.accent || ctx.theme.primary);
 
-  private setupFog(ctx: PresetContext): void {
-    this.prevFog = ctx.scene.fog;
-    ctx.scene.fog = new THREE.Fog(ctx.theme.background, 25, 75);
-  }
+    const size = 120.0;
+    const halfSize = size * 0.5;
+    const edgeFade = 22.5;
 
-  private setupLighting(ctx: PresetContext): void {
-    this.dirLight = new THREE.DirectionalLight(ctx.theme.primary, 2.5);
-    this.dirLight.position.set(0, 20, 12);
-    this.group.add(this.dirLight);
-
-    this.pointLight = new THREE.PointLight(ctx.theme.accent, 3.5, 55);
-    this.pointLight.position.set(0, 8, -6);
-    this.group.add(this.pointLight);
-  }
-
-  private setupWaveTerrain(ctx: PresetContext): void {
-    this.geometry = new THREE.PlaneGeometry(
-      this.meshWidth,
-      this.meshDepth,
-      this.cols - 1,
-      this.rows - 1
-    );
+    // PlaneGeometry with exactly 64 * 64 vertices (cols=64, rows=64)
+    this.geometry = new THREE.PlaneGeometry(size, size, this.cols - 1, this.rows - 1);
+    this.geometry.rotateX(-Math.PI / 2);
+    this.positionAttribute = this.geometry.attributes.position as THREE.BufferAttribute;
 
     // 1. Crisp luminous wireframe overlay grid (MUST be child[0] for tests)
     this.wireMaterial = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(ctx.theme.primary),
-      emissive: new THREE.Color(ctx.theme.primary),
-      emissiveIntensity: 1.15,
+      color: primaryCol,
+      emissive: primaryCol,
+      emissiveIntensity: 0.4,
       wireframe: true,
       transparent: true,
-      opacity: 0.98,
-      roughness: 0.1,
+      opacity: 0.9,
+      roughness: 0.2,
       metalness: 0.3
     });
     this.wireMesh = new THREE.Mesh(this.geometry, this.wireMaterial);
-    this.wireMesh.rotation.x = -Math.PI / 2;
-    this.wireMesh.position.set(0, -1.8, -20);
     this.group.add(this.wireMesh);
 
-    // 2. Translucent glowing depth underlayer (subtle so wireframe shines prominently)
-    this.surfaceMaterial = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(ctx.theme.primary),
-      emissive: new THREE.Color(ctx.theme.secondary || ctx.theme.primary),
-      emissiveIntensity: 0.18,
-      roughness: 0.5,
-      metalness: 0.1,
+    // 2. Translucent glowing depth surface underneath (authentic Visuval shader)
+    this.terrainMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0.0 },
+        uColor1: { value: primaryCol },
+        uColor2: { value: secondaryCol },
+        uAudioData: { value: this.audioData64 },
+        uBass: { value: 0.0 },
+        uMid: { value: 0.0 },
+        uTreble: { value: 0.0 },
+        uAudio: { value: 0.0 },
+        uSensitivity: { value: 0.75 },
+        uWaveHeight: { value: 0.5 },
+        uWaveSpeed: { value: 0.5 },
+        uHalfSize: { value: halfSize },
+        uEdgeFade: { value: edgeFade },
+        uSheetShape: { value: this.sheetShape }
+      },
+      vertexShader: `
+        uniform float uTime;
+        uniform float uAudioData[64];
+        uniform float uBass;
+        uniform float uMid;
+        uniform float uTreble;
+        uniform float uAudio;
+        uniform float uSensitivity;
+        uniform float uWaveHeight;
+        uniform float uWaveSpeed;
+        uniform float uHalfSize;
+        varying vec3 vPos;
+        varying float vHeight;
+
+        void main() {
+          vPos = position;
+          float dist = length(position.xz);
+          float distNorm = clamp(dist / uHalfSize, 0.0, 1.0);
+
+          float audioIdx = clamp(position.x / uHalfSize * 0.5 + 0.5, 0.0, 1.0) * 63.0;
+          int idx0 = int(floor(audioIdx));
+          int idx1 = min(idx0 + 1, 63);
+          float frac = fract(audioIdx);
+          float localBin = mix(uAudioData[idx0], uAudioData[idx1], frac);
+
+          float bandEnergy = mix(uBass, mix(uMid, uTreble, distNorm), distNorm);
+          float audioVal = (localBin * 0.5 + bandEnergy * 0.5) * uSensitivity;
+
+          float speedScale = 0.3 + uWaveSpeed * 1.7;
+          float wave1 = sin(position.x * 0.15 + uTime * 1.5 * speedScale) * cos(position.z * 0.15 + uTime * 0.8 * speedScale);
+          float wave2 = sin(position.x * 0.3 - uTime * 0.7 * speedScale) * sin(position.z * 0.2 + uTime * 1.2 * speedScale);
+          float wave3 = cos(dist * 0.1 - uTime * 2.0 * speedScale) * 2.0;
+
+          float baseAmp = (0.3 + uWaveHeight * 1.7);
+          float baseWaves = (wave1 * 2.0 + wave2 * 1.5 + wave3) * baseAmp;
+          float globalMod = 0.7 + uAudio * 0.8;
+          float ripple = audioVal * 5.0 * sin(dist * 0.12 - uTime * 3.0 * speedScale);
+          float height = baseWaves * globalMod + ripple;
+          vHeight = height;
+
+          vec3 newPos = position;
+          newPos.y = height;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(newPos, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 uColor1;
+        uniform vec3 uColor2;
+        uniform float uHalfSize;
+        uniform float uEdgeFade;
+        uniform float uSheetShape;
+        varying vec3 vPos;
+        varying float vHeight;
+
+        void main() {
+          float t = smoothstep(-4.0, 6.0, vHeight);
+          vec3 deepColor = uColor1 * 0.1;
+          vec3 midColor = mix(uColor1, uColor2, 0.5) * 0.6;
+          vec3 peakColor = uColor2 * 1.0;
+
+          vec3 color = mix(deepColor, midColor, smoothstep(-4.0, 0.0, vHeight));
+          color = mix(color, peakColor, smoothstep(0.0, 6.0, vHeight));
+
+          float glow = exp(-abs(vHeight - 3.0) * 0.2) * 0.6;
+          color += uColor2 * glow;
+
+          float grid = step(0.94, fract(vPos.x * 0.333)) + step(0.94, fract(vPos.z * 0.333));
+          color += vec3(grid) * uColor2 * 0.4;
+
+          float radialDist = length(vPos.xz);
+          float circularAlpha = smoothstep(uHalfSize, uHalfSize - uEdgeFade, radialDist);
+          float edgeDist = min(uHalfSize - abs(vPos.x), uHalfSize - abs(vPos.z));
+          float squareAlpha = smoothstep(0.0, uEdgeFade, edgeDist);
+          float alpha = mix(circularAlpha, squareAlpha, uSheetShape) * 0.75;
+          gl_FragColor = vec4(color, alpha);
+        }
+      `,
       transparent: true,
-      opacity: 0.35,
+      wireframe: false,
       side: THREE.DoubleSide
     });
-    this.surfaceMesh = new THREE.Mesh(this.geometry, this.surfaceMaterial);
-    this.surfaceMesh.rotation.x = -Math.PI / 2;
-    this.surfaceMesh.position.set(0, -1.82, -20);
+    this.surfaceMesh = new THREE.Mesh(this.geometry, this.terrainMaterial);
     this.group.add(this.surfaceMesh);
-  }
 
-  private setupMeteorRain(ctx: PresetContext): void {
-    this.meteorGeometry = new THREE.BufferGeometry();
-    // Each meteor line has 2 vertices: head and tail
-    this.meteorPositions = new Float32Array(this.numMeteors * 2 * 3);
-    this.meteorSpeeds = new Float32Array(this.numMeteors);
-    this.meteorLengths = new Float32Array(this.numMeteors);
-    const colors = new Float32Array(this.numMeteors * 2 * 3);
+    // 3. 3000 Floating Stardust Particles (authentic Visuval particle shaders)
+    const count = this.numParticles;
+    this.particlesGeo = new THREE.BufferGeometry();
+    const positions = new Float32Array(count * 3);
+    const sizes = new Float32Array(count);
+    const fades = new Float32Array(count);
+    const phases = new Float32Array(count);
+    const halfWidth = 52.5;
+    const heightRange = 33.0;
 
-    const primaryCol = new THREE.Color(ctx.theme.primary);
-    const accentCol = new THREE.Color(ctx.theme.accent);
+    for (let i = 0; i < count; i++) {
+      const px = (Math.random() * 2.0 - 1.0) * halfWidth;
+      const py = Math.random() * heightRange + 3.0;
+      const pz = (Math.random() * 2.0 - 1.0) * halfWidth;
 
-    for (let i = 0; i < this.numMeteors; i++) {
-      const x = (Math.random() * 2 - 1) * 36;
-      const y = Math.random() * 20 + 2.0;
-      const z = (Math.random() * 2 - 1) * 40 - 18;
-      const len = 0.8 + Math.random() * 1.6;
+      positions[i * 3] = px;
+      positions[i * 3 + 1] = py;
+      positions[i * 3 + 2] = pz;
 
-      this.meteorSpeeds[i] = 5.0 + Math.random() * 8.0;
-      this.meteorLengths[i] = len;
+      const rDist = Math.hypot(px, pz) / halfWidth;
+      const hNorm = py / (heightRange + 3.0);
+      const fade = 1.0 - Math.pow(Math.max(rDist, hNorm), 2);
 
-      const idxHead = i * 6;
-      const idxTail = i * 6 + 3;
-
-      // Head
-      this.meteorPositions[idxHead] = x;
-      this.meteorPositions[idxHead + 1] = y;
-      this.meteorPositions[idxHead + 2] = z;
-
-      // Tail (pointing straight up behind falling head)
-      this.meteorPositions[idxTail] = x;
-      this.meteorPositions[idxTail + 1] = y + len;
-      this.meteorPositions[idxTail + 2] = z;
-
-      const headCol = new THREE.Color().lerpColors(primaryCol, accentCol, Math.random());
-      const tailCol = headCol.clone().multiplyScalar(0.2);
-
-      headCol.toArray(colors, idxHead);
-      tailCol.toArray(colors, idxTail);
+      sizes[i] = Math.random() * 2.0 + 1.0;
+      fades[i] = Math.max(0.0, fade);
+      phases[i] = Math.random() * Math.PI * 2.0;
     }
 
-    this.meteorGeometry.setAttribute('position', new THREE.BufferAttribute(this.meteorPositions, 3));
-    this.meteorGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    this.particlesGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    this.particlesGeo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+    this.particlesGeo.setAttribute('aFade', new THREE.BufferAttribute(fades, 1));
+    this.particlesGeo.setAttribute('aPhase', new THREE.BufferAttribute(phases, 1));
 
-    this.meteorMaterial = new THREE.LineBasicMaterial({
-      vertexColors: true,
+    this.particlesMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0.0 },
+        uColor: { value: primaryCol }
+      },
+      vertexShader: `
+        attribute float size;
+        attribute float aFade;
+        attribute float aPhase;
+        uniform float uTime;
+        varying float vAlpha;
+
+        void main() {
+          vec3 pos = position;
+          pos.y += sin(uTime * 0.5 + aPhase) * 1.2;
+          pos.x += sin(uTime * 0.3 + aPhase * 1.7) * 0.8;
+          pos.z += cos(uTime * 0.4 + aPhase * 2.3) * 0.6;
+          float twinkle = 0.3 + 0.7 * sin(uTime * 1.5 + aPhase);
+          vAlpha = twinkle * aFade;
+          vec4 mvPos = modelViewMatrix * vec4(pos, 1.0);
+          gl_PointSize = size * (200.0 / -mvPos.z);
+          gl_Position = projectionMatrix * mvPos;
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 uColor;
+        varying float vAlpha;
+
+        void main() {
+          float d = length(gl_PointCoord - 0.5);
+          float softEdge = 1.0 - smoothstep(0.0, 0.5, d);
+          float core = exp(-d * 14.0);
+          float inner = exp(-d * 6.0);
+          float halo = exp(-d * 2.5) * 0.35;
+          float glow = core * 0.5 + inner * 0.35 + halo;
+          float alpha = glow * softEdge;
+          if (alpha < 0.005) discard;
+          vec3 color = mix(uColor * 2.0, vec3(1.0, 0.97, 0.92), core * 0.4);
+          gl_FragColor = vec4(color, alpha * vAlpha * 0.6);
+        }
+      `,
       transparent: true,
-      opacity: 0.95,
-      blending: THREE.AdditiveBlending
-    });
-
-    this.meteorLines = new THREE.LineSegments(this.meteorGeometry, this.meteorMaterial);
-    this.group.add(this.meteorLines);
-  }
-
-  private setupStardust(ctx: PresetContext): void {
-    this.stardustGeometry = new THREE.BufferGeometry();
-    this.stardustPositions = new Float32Array(this.numStardust * 3);
-    const colors = new Float32Array(this.numStardust * 3);
-
-    const primaryCol = new THREE.Color(ctx.theme.primary);
-    const accentCol = new THREE.Color(ctx.theme.accent);
-
-    for (let i = 0; i < this.numStardust; i++) {
-      this.stardustPositions[i * 3] = (Math.random() * 2 - 1) * 36;
-      this.stardustPositions[i * 3 + 1] = Math.random() * 18 + 1.0;
-      this.stardustPositions[i * 3 + 2] = (Math.random() * 2 - 1) * 42 - 18;
-
-      const c = new THREE.Color().lerpColors(primaryCol, accentCol, Math.random());
-      c.toArray(colors, i * 3);
-    }
-
-    this.stardustGeometry.setAttribute('position', new THREE.BufferAttribute(this.stardustPositions, 3));
-    this.stardustGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-    this.stardustTexture ??= createStardustTexture();
-
-    this.stardustMaterial = new THREE.PointsMaterial({
-      size: 0.55,
-      map: this.stardustTexture,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.88,
       blending: THREE.AdditiveBlending,
       depthWrite: false
     });
 
-    this.stardustPoints = new THREE.Points(this.stardustGeometry, this.stardustMaterial);
-    this.group.add(this.stardustPoints);
+    this.particlesMesh = new THREE.Points(this.particlesGeo, this.particlesMaterial);
+    this.group.add(this.particlesMesh);
   }
 
-  public update(_ctx: PresetContext, audio: AudioFeatures, time: number, delta: number): void {
-    const pos = this.geometry.attributes.position.array as Float32Array;
-    const speed = this.paramStore.getValue('speed');
-    const reactivity = this.paramStore.getValue('reactivity');
-    const deformation = this.paramStore.getValue('deformation');
-    const density = this.paramStore.getValue('density');
+  public override update(_ctx: PresetContext, audio: AudioFeatures, sensitivity: number, dt: number): void {
+    const speedParam = this.paramStore.get('speed') ?? 1.0;
+    const reactParam = this.paramStore.get('reactivity') ?? 1.0;
+    const deformParam = this.paramStore.get('deformation') ?? 1.0;
+    const sens = sensitivity * reactParam;
 
-    if (audio.rms === 0 && audio.bass === 0 && audio.subBass === 0) {
-      this.clearDisplacement(pos);
-    } else {
-      this.applyAudioDisplacement(pos, audio, time, speed, reactivity, deformation, density);
+    const elapsed = (this.lastTime += dt * speedParam);
+
+    this.resampleFrequencyData(audio.frequencyData);
+    this.updateTerrainUniforms(elapsed, sens, deformParam, speedParam, audio);
+
+    if (this.particlesMaterial?.uniforms) {
+      this.particlesMaterial.uniforms.uTime.value = elapsed;
     }
 
-    this.geometry.attributes.position.needsUpdate = true;
-    (this.geometry.attributes.position as THREE.BufferAttribute).version++;
-    this.geometry.computeVertexNormals();
-
-    this.updateEmissiveDynamics(audio, reactivity);
-    this.updateMeteorRain(audio, delta, speed);
-    this.updateStardust(audio, delta, speed);
+    this.updateWireEmissive(audio);
+    this.updateCpuWaveHeight(elapsed, sens, deformParam, speedParam, audio);
   }
 
-  private clearDisplacement(pos: Float32Array): void {
-    for (let i = 0; i < pos.length; i += 3) {
-      pos[i + 2] = 0;
-    }
-  }
-
-  private applyAudioDisplacement(
-    pos: Float32Array,
-    audio: AudioFeatures,
-    time: number,
-    speed: number,
-    reactivity: number,
-    deformation: number,
-    density: number
-  ): void {
-    const stepStride = density >= 128 ? 1 : 2;
-    const timeSpeed = time * 2.5 * speed;
-
-    for (let i = 0; i < pos.length; i += 3 * stepStride) {
-      const x = pos[i];
-      const zLocal = pos[i + 1]; // PlaneGeometry local Y maps to world Z
-
-      // Gentle, rolling undulating wave hills (matching Image 2)
-      const swellZ = Math.sin(zLocal * 0.13 - timeSpeed) * (1.6 + audio.bass * 2.5 * reactivity);
-      const crossX = Math.cos(x * 0.16 + zLocal * 0.05 + time * 1.3 * speed) * (0.9 + audio.mid * 1.5 * reactivity);
-
-      // Audio waveform ripple mapped across lateral coordinate
-      const waveNorm = (x + 38) / 76;
-      const waveIdx = Math.floor(Math.max(0, Math.min(1, waveNorm)) * audio.timeDomainData.length) % audio.timeDomainData.length;
-      const waveVal = ((audio.timeDomainData[waveIdx] || 128) - 128) / 128.0;
-      const audioPulse = waveVal * (0.8 + audio.subBass * 1.6 * reactivity);
-
-      const elevation = (swellZ + crossX + audioPulse) * deformation;
-      pos[i + 2] = elevation;
-
-      if (stepStride > 1 && i + 5 < pos.length) {
-        pos[i + 5] = elevation;
-      }
+  private resampleFrequencyData(frequencyData?: Uint8Array): void {
+    const dataLen = frequencyData ? frequencyData.length : 0;
+    for (let i = 0; i < 64; i++) {
+      const idx = dataLen > 0 ? Math.floor((i / 64) * dataLen) : 0;
+      this.audioData64[i] = dataLen > 0 && frequencyData ? (frequencyData[idx] / 255.0) : 0.0;
     }
   }
 
-  private updateEmissiveDynamics(audio: AudioFeatures, reactivity: number): void {
+  private updateTerrainUniforms(elapsed: number, sens: number, deformParam: number, speedParam: number, audio: AudioFeatures): void {
+    if (!this.terrainMaterial?.uniforms) return;
+    const u = this.terrainMaterial.uniforms;
+    u.uTime.value = elapsed;
+    u.uSensitivity.value = sens;
+    u.uBass.value = audio.bass * sens;
+    u.uMid.value = audio.mid * sens;
+    u.uTreble.value = audio.treble * sens;
+    u.uAudio.value = audio.rms * sens;
+    u.uWaveHeight.value = this.waveHeight * deformParam;
+    u.uWaveSpeed.value = this.waveSpeed * speedParam;
+    u.uSheetShape.value = this.sheetShape;
+  }
+
+  private updateWireEmissive(audio: AudioFeatures): void {
     if (audio.beat) {
-      this.wireMaterial.emissiveIntensity = 0.85 * reactivity;
-      this.surfaceMaterial.emissiveIntensity = 0.52 * reactivity;
-      if (this.pointLight) this.pointLight.intensity = 4.5 * reactivity;
+      this.wireMaterial.emissiveIntensity = Math.min(2.0, 0.9 + audio.beatEnergy * 1.0);
     } else {
-      this.wireMaterial.emissiveIntensity *= 0.88;
-      this.surfaceMaterial.emissiveIntensity *= 0.90;
-      if (this.pointLight) this.pointLight.intensity *= 0.92;
+      this.wireMaterial.emissiveIntensity = THREE.MathUtils.lerp(this.wireMaterial.emissiveIntensity, 0.35, 0.75);
     }
   }
 
-  private updateMeteorRain(audio: AudioFeatures, delta: number, speed: number): void {
-    if (!this.meteorGeometry?.attributes?.position) return;
-    const pos = this.meteorPositions;
-    const safeDelta = Math.min(delta, 0.1);
-    const dropSpeedMultiplier = 1.0 + audio.bass * 2.0;
+  private updateCpuWaveHeight(elapsed: number, sens: number, deformParam: number, speedParam: number, audio: AudioFeatures): void {
+    const isSilent = audio.rms === 0 && audio.bass === 0 && audio.mid === 0 && audio.treble === 0;
+    const vertexCount = this.positionAttribute.count;
 
-    for (let i = 0; i < this.numMeteors; i++) {
-      const spd = this.meteorSpeeds[i] * dropSpeedMultiplier * speed;
-      const idxHead = i * 6;
-      const idxTail = i * 6 + 3;
-      const len = this.meteorLengths[i];
-
-      pos[idxHead + 1] -= spd * safeDelta;
-      pos[idxTail + 1] = pos[idxHead + 1] + len;
-
-      // When hitting low altitude, reset to high sky
-      if (pos[idxHead + 1] < 0.2) {
-        const resetY = 18.0 + Math.random() * 5.0;
-        pos[idxHead + 1] = resetY;
-        pos[idxTail + 1] = resetY + len;
-        const newX = (Math.random() * 2 - 1) * 36;
-        const newZ = (Math.random() * 2 - 1) * 40 - 18;
-        pos[idxHead] = newX;
-        pos[idxTail] = newX;
-        pos[idxHead + 2] = newZ;
-        pos[idxTail + 2] = newZ;
+    if (isSilent) {
+      for (let i = 0; i < vertexCount; i++) {
+        this.positionAttribute.setZ(i, 0.0);
       }
+      this.positionAttribute.needsUpdate = true;
+      return;
     }
-    this.meteorGeometry.attributes.position.needsUpdate = true;
-  }
 
-  private updateStardust(audio: AudioFeatures, delta: number, speed: number): void {
-    if (!this.stardustGeometry?.attributes?.position) return;
-    const pos = this.stardustPositions;
-    const safeDelta = Math.min(delta, 0.1);
-    const driftSpeed = (0.9 + audio.mid * 1.5) * speed;
+    const speedScale = 0.3 + this.waveSpeed * speedParam * 1.7;
+    const baseAmp = (0.3 + this.waveHeight * deformParam * 1.7);
+    const globalMod = 0.7 + audio.rms * sens * 0.8;
 
-    for (let i = 0; i < this.numStardust; i++) {
-      pos[i * 3 + 1] -= driftSpeed * safeDelta;
-      pos[i * 3] += Math.sin(pos[i * 3 + 1] * 0.35 + i) * 0.02;
-      pos[i * 3 + 2] += (0.6 + audio.bass * 1.2) * safeDelta;
+    for (let i = 0; i < vertexCount; i++) {
+      const px = this.positionAttribute.getX(i);
+      const py = this.positionAttribute.getY(i);
+      const dist = Math.hypot(px, py);
 
-      if (pos[i * 3 + 1] < 0.2 || pos[i * 3 + 2] > 20.0) {
-        pos[i * 3 + 1] = 16.0 + Math.random() * 5.0;
-        pos[i * 3] = (Math.random() * 2 - 1) * 36;
-        pos[i * 3 + 2] = -35 + (Math.random() * 2 - 1) * 15;
-      }
+      const wave1 = Math.sin(px * 0.15 + elapsed * 1.5 * speedScale) * Math.cos(py * 0.15 + elapsed * 0.8 * speedScale);
+      const wave2 = Math.sin(px * 0.3 - elapsed * 0.7 * speedScale) * Math.sin(py * 0.2 + elapsed * 1.2 * speedScale);
+      const wave3 = Math.cos(dist * 0.1 - elapsed * 2.0 * speedScale) * 2.0;
+
+      const baseWaves = (wave1 * 2.0 + wave2 * 1.5 + wave3) * baseAmp;
+      const ripple = (audio.bass * sens * 2.5 + audio.rms * sens * 2.5) * Math.sin(dist * 0.12 - elapsed * 3.0 * speedScale);
+      const h = baseWaves * globalMod + ripple;
+
+      this.positionAttribute.setZ(i, h);
     }
-    this.stardustGeometry.attributes.position.needsUpdate = true;
-    if (this.stardustMaterial) {
-      this.stardustMaterial.size = 0.52 + (audio.bass * 0.35);
-    }
+    this.positionAttribute.needsUpdate = true;
   }
 
   public override onThemeChange(theme: VisualizerTheme): void {
-    this.wireMaterial.color.set(theme.primary);
-    this.wireMaterial.emissive.set(theme.primary);
+    const primaryCol = new THREE.Color(theme.primary);
+    const secondaryCol = new THREE.Color(theme.secondary || theme.accent || theme.primary);
 
-    this.surfaceMaterial.color.set(theme.primary);
-    this.surfaceMaterial.emissive.set(theme.secondary);
+    this.wireMaterial.color.copy(primaryCol);
+    this.wireMaterial.emissive.copy(primaryCol);
 
-    if (this.dirLight) this.dirLight.color.set(theme.primary);
-    if (this.pointLight) this.pointLight.color.set(theme.accent);
+    if (this.terrainMaterial?.uniforms) {
+      this.terrainMaterial.uniforms.uColor1.value.copy(primaryCol);
+      this.terrainMaterial.uniforms.uColor2.value.copy(secondaryCol);
+    }
+
+    if (this.particlesMaterial?.uniforms) {
+      this.particlesMaterial.uniforms.uColor.value.copy(primaryCol);
+    }
   }
 
   protected override onDispose(): void {
-    if (this.geometry) this.geometry.dispose();
-    if (this.wireMaterial) this.wireMaterial.dispose();
-    if (this.surfaceMaterial) this.surfaceMaterial.dispose();
-    if (this.meteorGeometry) this.meteorGeometry.dispose();
-    if (this.meteorMaterial) this.meteorMaterial.dispose();
-    if (this.stardustGeometry) this.stardustGeometry.dispose();
-    if (this.stardustMaterial) this.stardustMaterial.dispose();
-    if (this.stardustTexture) {
-      this.stardustTexture.dispose();
-      this.stardustTexture = null;
-    }
+    this.geometry?.dispose();
+    this.wireMaterial?.dispose();
+    this.terrainMaterial?.dispose();
+    this.particlesGeo?.dispose();
+    this.particlesMaterial?.dispose();
   }
 }
