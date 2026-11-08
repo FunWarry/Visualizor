@@ -1,5 +1,5 @@
-const fs = require('fs');
-const vm = require('vm');
+const fs = require('node:fs');
+const vm = require('node:vm');
 
 function extractFunction(text, fnName) {
   const start = text.indexOf(`function ${fnName}(`);
@@ -50,7 +50,7 @@ function fullDeobfuscate(content) {
   
   return content.replace(pattern, (fullMatch, fnIdentifier, arg1, arg2) => {
     try {
-      const num = arg1.startsWith('0x') ? parseInt(arg1, 16) : parseInt(arg1, 10);
+      const num = arg1.startsWith('0x') ? Number.parseInt(arg1, 16) : Number.parseInt(arg1, 10);
       const val = decoder(num, arg2);
       if (typeof val === 'string') {
         return JSON.stringify(val);

@@ -16,8 +16,7 @@ function createArcGeometry(innerR: number, outerR: number, halfWidth: number, se
     const width = halfWidth * (1.0 - progress * 0.5);
     const elevation = progress * progress * 2.5;
 
-    vertices.push(radius, elevation, -width);
-    vertices.push(radius, elevation, width);
+    vertices.push(radius, elevation, -width, radius, elevation, width);
   }
 
   for (let i = 0; i < segments; i++) {
@@ -25,8 +24,7 @@ function createArcGeometry(innerR: number, outerR: number, halfWidth: number, se
     const b = a + 1;
     const c = a + 2;
     const d = a + 3;
-    indices.push(a, c, b);
-    indices.push(b, c, d);
+    indices.push(a, c, b, b, c, d);
   }
 
   const geo = new THREE.BufferGeometry();
@@ -492,7 +490,12 @@ export class CircularSpectrumPreset extends BasePreset {
     ];
 
     for (let i = 0; i < count; i++) {
-      const bIdx = i < count * 0.4 ? 0 : i < count * 0.75 ? 1 : 2;
+      let bIdx = 2;
+      if (i < count * 0.4) {
+        bIdx = 0;
+      } else if (i < count * 0.75) {
+        bIdx = 1;
+      }
       const b = bands[bIdx];
       const theta = Math.random() * Math.PI * 2;
       const r = b.rMin + Math.random() * (b.rMax - b.rMin);
@@ -955,7 +958,12 @@ export class CircularSpectrumPreset extends BasePreset {
       if (!isVisible) continue;
 
       const radius = 5.0 + i * 1.1;
-      const bandEnergy = i < 5 ? this.smoothBass : (i < 10 ? this.smoothMid : this.smoothTreble);
+      let bandEnergy = this.smoothTreble;
+      if (i < 5) {
+        bandEnergy = this.smoothBass;
+      } else if (i < 10) {
+        bandEnergy = this.smoothMid;
+      }
 
       // Differential orbital rotation with alternating directions
       this.ringRotations[i] += this.ringSpeeds[i] * 0.012 * speedParam * (1.0 + bandEnergy * 0.8);
@@ -983,7 +991,12 @@ export class CircularSpectrumPreset extends BasePreset {
     for (let i = 0; i < this.orbitalRings.length; i++) {
       const ring = this.orbitalRings[i];
       const cfg = this.orbitalRingConfigs[i];
-      const bandEnergy = cfg.band === 'bass' ? this.smoothBass : cfg.band === 'mid' ? this.smoothMid : this.smoothTreble;
+      let bandEnergy = this.smoothTreble;
+      if (cfg.band === 'bass') {
+        bandEnergy = this.smoothBass;
+      } else if (cfg.band === 'mid') {
+        bandEnergy = this.smoothMid;
+      }
 
       this.orbitalRingRotationsY[i] += cfg.speed * 0.005 * speedScale;
       const scale = 1.0 + bandEnergy * 0.25 * deformParam;

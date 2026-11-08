@@ -18,6 +18,7 @@ import {
 } from './PresetTuningManager';
 
 const BOUND_SLIDER_CLASS = 'ui-slider tuning-bound-slider';
+const ARIA_LABEL = 'aria-label';
 
 export function formatParamValue(val: number, step: number): string {
   if (Number.isInteger(step)) return Math.round(val).toString();
@@ -46,7 +47,7 @@ export function updateTuningButtonState(
     tuningBtn.classList.remove('is-collapsed');
   } else {
     tuningBtn.classList.add('is-collapsed');
-    if (panel && panel.classList.contains('open')) {
+    if (panel?.classList.contains('open')) {
       panel.classList.remove('open');
       tuningBtn.classList.remove('active');
       if (onClose) {
@@ -105,17 +106,20 @@ function createParamMarginDrawer(preset: VisualizerPreset, p: ParameterDefinitio
   const header = document.createElement('div');
   header.className = 'fx-margin-header';
 
-  const label = document.createElement('span');
+  const label = document.createElement('label');
   label.className = 'fx-margin-label';
   label.textContent = 'Margin:';
+  label.htmlFor = `tuning_${p.id}_margin_min`;
 
   const minInput = document.createElement('input');
   minInput.type = 'number';
+  minInput.id = `tuning_${p.id}_margin_min`;
   minInput.className = 'ui-val-input tuning-bound-input-min';
   minInput.min = p.min.toString();
   minInput.max = p.max.toString();
   minInput.step = p.step.toString();
   minInput.value = minVal.toString();
+  minInput.setAttribute(ARIA_LABEL, `Min margin for ${p.name}`);
   minInput.title = `Min margin for ${p.name}`;
 
   const dash = document.createElement('span');
@@ -124,11 +128,13 @@ function createParamMarginDrawer(preset: VisualizerPreset, p: ParameterDefinitio
 
   const maxInput = document.createElement('input');
   maxInput.type = 'number';
+  maxInput.id = `tuning_${p.id}_margin_max`;
   maxInput.className = 'ui-val-input tuning-bound-input-max';
   maxInput.min = p.min.toString();
   maxInput.max = p.max.toString();
   maxInput.step = p.step.toString();
   maxInput.value = maxVal.toString();
+  maxInput.setAttribute(ARIA_LABEL, `Max margin for ${p.name}`);
   maxInput.title = `Max margin for ${p.name}`;
 
   const readout = document.createElement('span');
@@ -147,20 +153,24 @@ function createParamMarginDrawer(preset: VisualizerPreset, p: ParameterDefinitio
 
   const minSlider = document.createElement('input');
   minSlider.type = 'range';
+  minSlider.id = `tuning_${p.id}_bound_min`;
   minSlider.className = BOUND_SLIDER_CLASS;
   minSlider.min = p.min.toString();
   minSlider.max = p.max.toString();
   minSlider.step = p.step.toString();
   minSlider.value = minVal.toString();
+  minSlider.setAttribute(ARIA_LABEL, `Min margin slider for ${p.name}`);
   minSlider.title = 'Min Margin';
 
   const maxSlider = document.createElement('input');
   maxSlider.type = 'range';
+  maxSlider.id = `tuning_${p.id}_bound_max`;
   maxSlider.className = BOUND_SLIDER_CLASS;
   maxSlider.min = p.min.toString();
   maxSlider.max = p.max.toString();
   maxSlider.step = p.step.toString();
   maxSlider.value = maxVal.toString();
+  maxSlider.setAttribute(ARIA_LABEL, `Max margin slider for ${p.name}`);
   maxSlider.title = 'Max Margin';
 
   const syncBounds = (newMin: number, newMax: number) => {
@@ -184,8 +194,8 @@ function createParamMarginDrawer(preset: VisualizerPreset, p: ParameterDefinitio
   const onInputsChange = () => {
     let vMin = Number(minInput.value);
     let vMax = Number(maxInput.value);
-    if (isNaN(vMin)) vMin = p.min;
-    if (isNaN(vMax)) vMax = p.max;
+    if (Number.isNaN(vMin)) vMin = p.min;
+    if (Number.isNaN(vMax)) vMax = p.max;
     vMin = Math.max(p.min, Math.min(p.max, vMin));
     vMax = Math.max(p.min, Math.min(p.max, vMax));
     syncBounds(vMin, vMax);
@@ -309,7 +319,7 @@ function renderParameterRow(
   slider.setAttribute('max', p.max.toString());
   slider.setAttribute('step', p.step.toString());
   slider.value = currentVal.toString();
-  slider.setAttribute('aria-label', p.name);
+  slider.setAttribute(ARIA_LABEL, p.name);
 
   slider.addEventListener('input', (e) => {
     const target = (e.target ?? slider) as HTMLInputElement;
@@ -328,7 +338,7 @@ function renderParameterRow(
 
   valInput.addEventListener('input', () => {
     let numVal = Number(valInput.value);
-    if (isNaN(numVal)) return;
+    if (Number.isNaN(numVal)) return;
     numVal = Math.max(p.min, Math.min(p.max, numVal));
     if (typeof preset.setCustomParameter === 'function') {
       preset.setCustomParameter(p.id, numVal);
@@ -412,20 +422,24 @@ function renderRandomizeCard(
 
   const minSlider = document.createElement('input');
   minSlider.type = 'range';
+  minSlider.id = 'tuning_global_bound_min';
   minSlider.className = BOUND_SLIDER_CLASS;
   minSlider.min = '0';
   minSlider.max = '100';
   minSlider.step = '5';
   minSlider.value = minP.toString();
+  minSlider.setAttribute(ARIA_LABEL, 'Minimum Randomization Margin Slider');
   minSlider.title = 'Minimum Randomization Margin (%)';
 
   const maxSlider = document.createElement('input');
   maxSlider.type = 'range';
+  maxSlider.id = 'tuning_global_bound_max';
   maxSlider.className = BOUND_SLIDER_CLASS;
   maxSlider.min = '0';
   maxSlider.max = '100';
   maxSlider.step = '5';
   maxSlider.value = maxP.toString();
+  maxSlider.setAttribute(ARIA_LABEL, 'Maximum Randomization Margin Slider');
   maxSlider.title = 'Maximum Randomization Margin (%)';
 
   const onBoundsChange = () => {
@@ -445,8 +459,11 @@ function renderRandomizeCard(
   // Auto-Randomize in Auto Mode Checkbox
   const autoRow = document.createElement('label');
   autoRow.className = 'tuning-auto-toggle-row';
+  autoRow.htmlFor = 'tuning_auto_randomize_checkbox';
   const autoCheckbox = document.createElement('input');
   autoCheckbox.type = 'checkbox';
+  autoCheckbox.id = 'tuning_auto_randomize_checkbox';
+  autoCheckbox.setAttribute(ARIA_LABEL, 'Mutate within margin in Auto Mode');
   autoCheckbox.checked = isAutoRandomizeEnabled();
   autoCheckbox.style.cssText = 'accent-color:var(--primary);cursor:pointer;';
   autoCheckbox.addEventListener('change', () => {

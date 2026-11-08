@@ -1,7 +1,7 @@
-const https = require('https');
-const fs = require('fs');
-const path = require('path');
-const vm = require('vm');
+const https = require('node:https');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
 
 function fetchUrl(url) {
   return new Promise((resolve, reject) => {
@@ -92,7 +92,7 @@ function deobfuscate(content) {
 
   let result = content.replace(pattern, (fullMatch, arg1, q, arg2) => {
     try {
-      const num = arg1.startsWith('0x') ? parseInt(arg1, 16) : parseInt(arg1, 10);
+      const num = arg1.startsWith('0x') ? Number.parseInt(arg1, 16) : Number.parseInt(arg1, 10);
       const val = arg2 !== undefined ? decoder(num, arg2) : decoder(num);
       if (typeof val === 'string') {
         return JSON.stringify(val);
@@ -107,7 +107,7 @@ function deobfuscate(content) {
   const universalPattern = /\b[a-zA-Z0-9_$]+\s*\(\s*(0x[0-9a-fA-F]+)\s*,\s*(['"`])(.*?)\2\s*\)/g;
   result = result.replace(universalPattern, (fullMatch, hex, q, key) => {
     try {
-      const num = parseInt(hex, 16);
+      const num = Number.parseInt(hex, 16);
       const val = decoder(num, key);
       if (typeof val === 'string') {
         return JSON.stringify(val);

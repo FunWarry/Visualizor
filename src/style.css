@@ -1628,6 +1628,10 @@ body, html {
 }
 
 .opt-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   padding: 6px 12px;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.08);
@@ -2696,10 +2700,6 @@ body.ui-hidden .sidebar-pill,
   opacity: 1;
   transform: scale(1.15);
 }
-.fx-lock-btn.locked {
-  opacity: 1;
-  color: #ff7722;
-}
 .fx-gear-btn.active {
   opacity: 1;
   color: var(--primary);
@@ -2749,11 +2749,13 @@ body.ui-hidden .sidebar-pill,
   padding: 1px 4px;
   text-align: right;
   -moz-appearance: textfield;
+  appearance: textfield;
   transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
 }
 .ui-val-input::-webkit-outer-spin-button,
 .ui-val-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
+  appearance: none;
   margin: 0;
 }
 .ui-val-input:focus {
@@ -2831,12 +2833,18 @@ body.ui-hidden .sidebar-pill,
   font-weight: 600;
 }
 
-.opt-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
+.u-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
+
 .opt-chip .chip-icon {
   display: inline-flex;
   align-items: center;

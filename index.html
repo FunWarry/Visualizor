@@ -210,6 +210,7 @@
 
     <!-- Search Input -->
     <div class="drawer-search-wrap">
+      <label for="presetSearchInput" class="u-sr-only">Search presets</label>
       <input type="text" class="drawer-search" id="presetSearchInput" placeholder="🔍 Search presets..." aria-label="Search presets">
     </div>
 
@@ -294,10 +295,10 @@
 
       <!-- Section 4: Saturation -->
       <div class="color-saturation-wrap">
-        <div class="control-label">
+        <label for="themeSaturationSlider" class="control-label">
           <span>Saturation <span class="help-tooltip-icon" title="Color saturation level">?</span></span>
           <span id="themeSaturationVal">50%</span>
-        </div>
+        </label>
         <input class="ui-slider theme-sat-slider" type="range" id="themeSaturationSlider" min="0" max="100" step="1" value="50" aria-label="Theme Saturation">
       </div>
 
@@ -313,6 +314,7 @@
         </div>
         <div class="custom-color-row" id="customColorRow1">
           <div class="custom-swatch-preview" id="customColorBox" style="background-color: #2E196B;" title="Click to pick primary color"></div>
+          <label for="customHexInput" class="u-sr-only">Custom Hex Color</label>
           <input type="text" class="custom-hex-input" id="customHexInput" value="#2E196B" maxlength="7" aria-label="Custom Hex Color">
           <button class="custom-picker-btn" id="eyeDropperBtn" title="Pick color with eyedropper">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2 2 0 0 1 0-2.8l.4-.4"/></svg>
@@ -322,6 +324,7 @@
         </div>
         <div class="custom-color-row" id="customColorRow2" style="display:none;margin-top:8px;">
           <div class="custom-swatch-preview" id="customColorBox2" style="background-color: #00D2FF;" title="Click to pick secondary color"></div>
+          <label for="customHexInput2" class="u-sr-only">Secondary Custom Hex Color</label>
           <input type="text" class="custom-hex-input" id="customHexInput2" value="#00D2FF" maxlength="7" aria-label="Secondary Custom Hex Color">
           <button class="custom-picker-btn" id="eyeDropperBtn2" title="Pick secondary color with eyedropper">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2 2 0 0 1 0-2.8l.4-.4"/></svg>
@@ -359,7 +362,7 @@
     <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
       <span>Effects</span>
       <div style="display:flex;align-items:center;gap:6px;">
-        <button type="button" class="btn-pill" id="randomizeAllFxBtn" style="font-size:10px;padding:3px 8px;background:rgba(255,92,0,0.18);border-color:rgba(255,92,0,0.5);color:#ffaa66;border-radius:12px;cursor:pointer;" title="Randomize unlocked effects">🎲 FX</button>
+        <button type="button" class="btn-pill" id="randomizeAllFxBtn" style="font-size:10px;padding:3px 8px;background:rgba(255,92,0,0.35);border-color:rgba(255,92,0,0.6);color:#ffffff;border-radius:12px;cursor:pointer;" title="Randomize unlocked effects">🎲 FX</button>
         <button type="button" class="btn-pill" id="resetFxBtn" style="font-size:10px;padding:3px 8px;border-radius:12px;cursor:pointer;" title="Reset effects to defaults">↺ Reset</button>
         <button class="btn-icon closeFxBtn close-drawer-btn" style="width:28px;height:28px;" aria-label="Close effects panel">✕</button>
       </div>
@@ -375,7 +378,8 @@
             <span>Bloom</span>
           </div>
           <div style="display:flex;align-items:center;gap:6px;">
-            <input type="number" class="ui-val-input fx-main-val-input" data-fx-target="bloom" min="0" max="3" step="0.1" value="1.2" title="Direct Bloom value">
+            <label for="bloomValInput" class="u-sr-only">Bloom Numeric Value</label>
+            <input id="bloomValInput" type="number" class="ui-val-input fx-main-val-input" data-fx-target="bloom" min="0" max="3" step="0.1" value="1.2" aria-label="Bloom Numeric Value" title="Direct Bloom value">
             <span id="bloomVal" style="display:none;">1.2</span>
           </div>
         </label>
@@ -399,15 +403,18 @@
         </div>
         <div class="fx-margin-drawer" id="bloom_margin_drawer">
           <div class="fx-margin-header">
-            <span class="fx-margin-label">Margin:</span>
-            <input type="number" class="ui-val-input fx-bound-input-min" min="0" max="3" step="0.1" value="0.0" title="Min margin">
+            <label for="bloom_margin_min" class="fx-margin-label">Margin:</label>
+            <input id="bloom_margin_min" type="number" class="ui-val-input fx-bound-input-min" min="0" max="3" step="0.1" value="0.0" aria-label="Bloom Minimum Margin" title="Min margin">
             <span class="fx-margin-dash">—</span>
-            <input type="number" class="ui-val-input fx-bound-input-max" min="0" max="3" step="0.1" value="3.0" title="Max margin">
+            <label for="bloom_margin_max" class="u-sr-only">Bloom Maximum Margin</label>
+            <input id="bloom_margin_max" type="number" class="ui-val-input fx-bound-input-max" min="0" max="3" step="0.1" value="3.0" aria-label="Bloom Maximum Margin" title="Max margin">
             <span class="fx-margin-readout" style="display:none;">Margin: 0.0 — 3.0</span>
           </div>
           <div class="fx-margin-sliders">
-            <input type="range" class="fx-bound-min" min="0" max="3" step="0.1" value="0" title="Min">
-            <input type="range" class="fx-bound-max" min="0" max="3" step="0.1" value="3" title="Max">
+            <label for="bloom_bound_min" class="u-sr-only">Bloom Minimum Margin Slider</label>
+            <input id="bloom_bound_min" type="range" class="fx-bound-min" min="0" max="3" step="0.1" value="0" aria-label="Bloom Minimum Margin Slider" title="Min">
+            <label for="bloom_bound_max" class="u-sr-only">Bloom Maximum Margin Slider</label>
+            <input id="bloom_bound_max" type="range" class="fx-bound-max" min="0" max="3" step="0.1" value="3" aria-label="Bloom Maximum Margin Slider" title="Max">
           </div>
         </div>
         <input class="ui-slider" type="range" id="bloomSlider" min="0" max="3" step="0.1" value="1.2" aria-label="Bloom Glow">
@@ -423,21 +430,25 @@
             <span>Brightness</span>
           </div>
           <div style="display:flex;align-items:center;gap:6px;">
-            <input type="number" class="ui-val-input fx-main-val-input" data-fx-target="bright" min="-0.4" max="0.4" step="0.05" value="0.00" title="Direct Brightness value">
+            <label for="brightValInput" class="u-sr-only">Brightness Numeric Value</label>
+            <input id="brightValInput" type="number" class="ui-val-input fx-main-val-input" data-fx-target="bright" min="-0.4" max="0.4" step="0.05" value="0.00" aria-label="Brightness Numeric Value" title="Direct Brightness value">
             <span id="brightVal" style="display:none;">0.00</span>
           </div>
         </label>
         <div class="fx-margin-drawer" id="bright_margin_drawer">
           <div class="fx-margin-header">
-            <span class="fx-margin-label">Margin:</span>
-            <input type="number" class="ui-val-input fx-bound-input-min" min="-0.4" max="0.4" step="0.05" value="-0.40" title="Min margin">
+            <label for="bright_margin_min" class="fx-margin-label">Margin:</label>
+            <input id="bright_margin_min" type="number" class="ui-val-input fx-bound-input-min" min="-0.4" max="0.4" step="0.05" value="-0.40" aria-label="Brightness Minimum Margin" title="Min margin">
             <span class="fx-margin-dash">—</span>
-            <input type="number" class="ui-val-input fx-bound-input-max" min="-0.4" max="0.4" step="0.05" value="0.40" title="Max margin">
+            <label for="bright_margin_max" class="u-sr-only">Brightness Maximum Margin</label>
+            <input id="bright_margin_max" type="number" class="ui-val-input fx-bound-input-max" min="-0.4" max="0.4" step="0.05" value="0.40" aria-label="Brightness Maximum Margin" title="Max margin">
             <span class="fx-margin-readout" style="display:none;">Margin: -0.40 — 0.40</span>
           </div>
           <div class="fx-margin-sliders">
-            <input type="range" class="fx-bound-min" min="-0.4" max="0.4" step="0.05" value="-0.4" title="Min">
-            <input type="range" class="fx-bound-max" min="-0.4" max="0.4" step="0.05" value="0.4" title="Max">
+            <label for="bright_bound_min" class="u-sr-only">Brightness Minimum Margin Slider</label>
+            <input id="bright_bound_min" type="range" class="fx-bound-min" min="-0.4" max="0.4" step="0.05" value="-0.4" aria-label="Brightness Minimum Margin Slider" title="Min">
+            <label for="bright_bound_max" class="u-sr-only">Brightness Maximum Margin Slider</label>
+            <input id="bright_bound_max" type="range" class="fx-bound-max" min="-0.4" max="0.4" step="0.05" value="0.4" aria-label="Brightness Maximum Margin Slider" title="Max">
           </div>
         </div>
         <input class="ui-slider" type="range" id="brightSlider" min="-0.4" max="0.4" step="0.05" value="0.0" aria-label="Overall Brightness">
@@ -453,7 +464,8 @@
             <span>Particles</span>
           </div>
           <div style="display:flex;align-items:center;gap:6px;">
-            <input type="number" class="ui-val-input fx-main-val-input" data-fx-target="particleDensity" min="0" max="2" step="0.1" value="1.0" title="Direct Particle Density value">
+            <label for="particleDensityValInput" class="u-sr-only">Particle Density Numeric Value</label>
+            <input id="particleDensityValInput" type="number" class="ui-val-input fx-main-val-input" data-fx-target="particleDensity" min="0" max="2" step="0.1" value="1.0" aria-label="Particle Density Numeric Value" title="Direct Particle Density value">
             <span id="particleDensityVal" style="display:none;">Normal</span>
           </div>
         </label>
@@ -466,15 +478,18 @@
         </div>
         <div class="fx-margin-drawer" id="particleDensity_margin_drawer">
           <div class="fx-margin-header">
-            <span class="fx-margin-label">Margin:</span>
-            <input type="number" class="ui-val-input fx-bound-input-min" min="0" max="2" step="0.1" value="0.0" title="Min margin">
+            <label for="particleDensity_margin_min" class="fx-margin-label">Margin:</label>
+            <input id="particleDensity_margin_min" type="number" class="ui-val-input fx-bound-input-min" min="0" max="2" step="0.1" value="0.0" aria-label="Particle Density Minimum Margin" title="Min margin">
             <span class="fx-margin-dash">—</span>
-            <input type="number" class="ui-val-input fx-bound-input-max" min="0" max="2" step="0.1" value="2.0" title="Max margin">
+            <label for="particleDensity_margin_max" class="u-sr-only">Particle Density Maximum Margin</label>
+            <input id="particleDensity_margin_max" type="number" class="ui-val-input fx-bound-input-max" min="0" max="2" step="0.1" value="2.0" aria-label="Particle Density Maximum Margin" title="Max margin">
             <span class="fx-margin-readout" style="display:none;">Margin: 0.0 — 2.0</span>
           </div>
           <div class="fx-margin-sliders">
-            <input type="range" class="fx-bound-min" min="0" max="2" step="0.1" value="0" title="Min">
-            <input type="range" class="fx-bound-max" min="0" max="2" step="0.1" value="2" title="Max">
+            <label for="particleDensity_bound_min" class="u-sr-only">Particle Density Minimum Margin Slider</label>
+            <input id="particleDensity_bound_min" type="range" class="fx-bound-min" min="0" max="2" step="0.1" value="0" aria-label="Particle Density Minimum Margin Slider" title="Min">
+            <label for="particleDensity_bound_max" class="u-sr-only">Particle Density Maximum Margin Slider</label>
+            <input id="particleDensity_bound_max" type="range" class="fx-bound-max" min="0" max="2" step="0.1" value="2" aria-label="Particle Density Maximum Margin Slider" title="Max">
           </div>
         </div>
         <input class="ui-slider" type="range" id="particleDensitySlider" min="0" max="2" step="0.1" value="1.0" aria-label="Particle Density">
@@ -490,21 +505,25 @@
             <span>Particle Spread</span>
           </div>
           <div style="display:flex;align-items:center;gap:6px;">
-            <input type="number" class="ui-val-input fx-main-val-input" data-fx-target="particleSpread" min="0" max="2" step="0.05" value="1.00" title="Direct Particle Spread value">
+            <label for="particleSpreadValInput" class="u-sr-only">Particle Spread Numeric Value</label>
+            <input id="particleSpreadValInput" type="number" class="ui-val-input fx-main-val-input" data-fx-target="particleSpread" min="0" max="2" step="0.05" value="1.00" aria-label="Particle Spread Numeric Value" title="Direct Particle Spread value">
             <span id="particleSpreadVal" style="display:none;">1.00</span>
           </div>
         </label>
         <div class="fx-margin-drawer" id="particleSpread_margin_drawer">
           <div class="fx-margin-header">
-            <span class="fx-margin-label">Margin:</span>
-            <input type="number" class="ui-val-input fx-bound-input-min" min="0" max="2" step="0.05" value="0.0" title="Min margin">
+            <label for="particleSpread_margin_min" class="fx-margin-label">Margin:</label>
+            <input id="particleSpread_margin_min" type="number" class="ui-val-input fx-bound-input-min" min="0" max="2" step="0.05" value="0.0" aria-label="Particle Spread Minimum Margin" title="Min margin">
             <span class="fx-margin-dash">—</span>
-            <input type="number" class="ui-val-input fx-bound-input-max" min="0" max="2" step="0.05" value="2.0" title="Max margin">
+            <label for="particleSpread_margin_max" class="u-sr-only">Particle Spread Maximum Margin</label>
+            <input id="particleSpread_margin_max" type="number" class="ui-val-input fx-bound-input-max" min="0" max="2" step="0.05" value="2.0" aria-label="Particle Spread Maximum Margin" title="Max margin">
             <span class="fx-margin-readout" style="display:none;">Margin: 0.0 — 2.0</span>
           </div>
           <div class="fx-margin-sliders">
-            <input type="range" class="fx-bound-min" min="0" max="2" step="0.05" value="0" title="Min">
-            <input type="range" class="fx-bound-max" min="0" max="2" step="0.05" value="2" title="Max">
+            <label for="particleSpread_bound_min" class="u-sr-only">Particle Spread Minimum Margin Slider</label>
+            <input id="particleSpread_bound_min" type="range" class="fx-bound-min" min="0" max="2" step="0.05" value="0" aria-label="Particle Spread Minimum Margin Slider" title="Min">
+            <label for="particleSpread_bound_max" class="u-sr-only">Particle Spread Maximum Margin Slider</label>
+            <input id="particleSpread_bound_max" type="range" class="fx-bound-max" min="0" max="2" step="0.05" value="2" aria-label="Particle Spread Maximum Margin Slider" title="Max">
           </div>
         </div>
         <input class="ui-slider" type="range" id="particleSpreadSlider" min="0" max="2" step="0.05" value="1.0" aria-label="Particle Spread">
@@ -520,7 +539,8 @@
             <span>Motion Trails</span>
           </div>
           <div style="display:flex;align-items:center;gap:6px;">
-            <input type="number" class="ui-val-input fx-main-val-input" data-fx-target="persist" min="0" max="0.95" step="0.05" value="0.00" title="Direct Persistence value">
+            <label for="persistValInput" class="u-sr-only">Motion Trails Numeric Value</label>
+            <input id="persistValInput" type="number" class="ui-val-input fx-main-val-input" data-fx-target="persist" min="0" max="0.95" step="0.05" value="0.00" aria-label="Motion Trails Numeric Value" title="Direct Persistence value">
             <span id="persistVal" style="display:none;">0.00</span>
           </div>
         </label>
@@ -532,15 +552,18 @@
         </div>
         <div class="fx-margin-drawer" id="persist_margin_drawer">
           <div class="fx-margin-header">
-            <span class="fx-margin-label">Margin:</span>
-            <input type="number" class="ui-val-input fx-bound-input-min" min="0" max="0.95" step="0.05" value="0.00" title="Min margin">
+            <label for="persist_margin_min" class="fx-margin-label">Margin:</label>
+            <input id="persist_margin_min" type="number" class="ui-val-input fx-bound-input-min" min="0" max="0.95" step="0.05" value="0.00" aria-label="Motion Trails Minimum Margin" title="Min margin">
             <span class="fx-margin-dash">—</span>
-            <input type="number" class="ui-val-input fx-bound-input-max" min="0" max="0.95" step="0.05" value="0.95" title="Max margin">
+            <label for="persist_margin_max" class="u-sr-only">Motion Trails Maximum Margin</label>
+            <input id="persist_margin_max" type="number" class="ui-val-input fx-bound-input-max" min="0" max="0.95" step="0.05" value="0.95" aria-label="Motion Trails Maximum Margin" title="Max margin">
             <span class="fx-margin-readout" style="display:none;">Margin: 0.00 — 0.95</span>
           </div>
           <div class="fx-margin-sliders">
-            <input type="range" class="fx-bound-min" min="0" max="0.95" step="0.05" value="0" title="Min">
-            <input type="range" class="fx-bound-max" min="0" max="0.95" step="0.05" value="0.95" title="Max">
+            <label for="persist_bound_min" class="u-sr-only">Motion Trails Minimum Margin Slider</label>
+            <input id="persist_bound_min" type="range" class="fx-bound-min" min="0" max="0.95" step="0.05" value="0" aria-label="Motion Trails Minimum Margin Slider" title="Min">
+            <label for="persist_bound_max" class="u-sr-only">Motion Trails Maximum Margin Slider</label>
+            <input id="persist_bound_max" type="range" class="fx-bound-max" min="0" max="0.95" step="0.05" value="0.95" aria-label="Motion Trails Maximum Margin Slider" title="Max">
           </div>
         </div>
         <input class="ui-slider" type="range" id="persistSlider" min="0" max="0.95" step="0.05" value="0.0" aria-label="Motion Trails Persistence">
@@ -574,7 +597,7 @@
     <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
       <span>Camera</span>
       <div style="display:flex;align-items:center;gap:6px;">
-        <button type="button" class="btn-pill" id="randomizeAllCamBtn" style="font-size:10px;padding:3px 8px;background:rgba(255,92,0,0.18);border-color:rgba(255,92,0,0.5);color:#ffaa66;border-radius:12px;cursor:pointer;" title="Randomize camera optics">🎲 Cam</button>
+        <button type="button" class="btn-pill" id="randomizeAllCamBtn" style="font-size:10px;padding:3px 8px;background:rgba(255,92,0,0.35);border-color:rgba(255,92,0,0.6);color:#ffffff;border-radius:12px;cursor:pointer;" title="Randomize camera optics">🎲 Cam</button>
         <button type="button" class="btn-pill" id="resetCamBtn" style="font-size:10px;padding:3px 8px;border-radius:12px;cursor:pointer;" title="Reset camera optics">↺ Reset</button>
         <button class="btn-icon close-drawer-btn closeCameraBtn" style="width:28px;height:28px;" aria-label="Close camera panel">✕</button>
       </div>
@@ -607,7 +630,7 @@
 
           <!-- 2. Zoom Controls -->
           <div class="camera-zoom" id="zoomControl" aria-label="Zoom">
-            <span class="camera-zoom__readout" style="font-size:11px;">Zoom <span class="sidebar-value" id="zoomValue">50%</span></span>
+            <label for="zoomSlider" class="camera-zoom__readout" style="font-size:11px;">Zoom <span class="sidebar-value" id="zoomValue">50%</span></label>
             <button type="button" class="camera-icon-btn" id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button>
             <input class="ui-slider" type="range" id="zoomSlider" data-alias="camZoomSlider" min="0" max="1" step="0.05" value="0.5" aria-label="Zoom Slider">
             <button type="button" class="camera-icon-btn" id="zoomOut" aria-label="Zoom out" title="Zoom out">−</button>
@@ -720,21 +743,25 @@
                 <span>CRT Scanlines</span>
               </div>
               <div style="display:flex;align-items:center;gap:6px;">
-                <input type="number" class="ui-val-input fx-main-val-input" data-fx-target="scan" min="0" max="1" step="0.05" value="0.0" title="Direct CRT Scanlines value">
+                <label for="scanValInput" class="u-sr-only">CRT Scanlines Numeric Value</label>
+                <input id="scanValInput" type="number" class="ui-val-input fx-main-val-input" data-fx-target="scan" min="0" max="1" step="0.05" value="0.0" aria-label="CRT Scanlines Numeric Value" title="Direct CRT Scanlines value">
                 <span id="scanVal" style="display:none;">0.0</span>
               </div>
             </label>
             <div class="fx-margin-drawer" id="scan_margin_drawer">
               <div class="fx-margin-header">
-                <span class="fx-margin-label">Margin:</span>
-                <input type="number" class="ui-val-input fx-bound-input-min" min="0" max="1" step="0.05" value="0.0" title="Min margin">
+                <label for="scan_margin_min" class="fx-margin-label">Margin:</label>
+                <input id="scan_margin_min" type="number" class="ui-val-input fx-bound-input-min" min="0" max="1" step="0.05" value="0.0" aria-label="CRT Scanlines Minimum Margin" title="Min margin">
                 <span class="fx-margin-dash">—</span>
-                <input type="number" class="ui-val-input fx-bound-input-max" min="0" max="1" step="0.05" value="1.0" title="Max margin">
+                <label for="scan_margin_max" class="u-sr-only">CRT Scanlines Maximum Margin</label>
+                <input id="scan_margin_max" type="number" class="ui-val-input fx-bound-input-max" min="0" max="1" step="0.05" value="1.0" aria-label="CRT Scanlines Maximum Margin" title="Max margin">
                 <span class="fx-margin-readout" style="display:none;">Margin: 0.0 — 1.0</span>
               </div>
               <div class="fx-margin-sliders">
-                <input type="range" class="fx-bound-min" min="0" max="1" step="0.05" value="0" title="Min">
-                <input type="range" class="fx-bound-max" min="0" max="1" step="0.05" value="1" title="Max">
+                <label for="scan_bound_min" class="u-sr-only">CRT Scanlines Minimum Margin Slider</label>
+                <input id="scan_bound_min" type="range" class="fx-bound-min" min="0" max="1" step="0.05" value="0" aria-label="CRT Scanlines Minimum Margin Slider" title="Min">
+                <label for="scan_bound_max" class="u-sr-only">CRT Scanlines Maximum Margin Slider</label>
+                <input id="scan_bound_max" type="range" class="fx-bound-max" min="0" max="1" step="0.05" value="1" aria-label="CRT Scanlines Maximum Margin Slider" title="Max">
               </div>
             </div>
             <input class="ui-slider" type="range" id="scanSlider" min="0" max="1" step="0.05" value="0.0" aria-label="CRT Scanlines">
@@ -749,21 +776,25 @@
                 <span>CRT Phosphor</span>
               </div>
               <div style="display:flex;align-items:center;gap:6px;">
-                <input type="number" class="ui-val-input fx-main-val-input" data-fx-target="phosphor" min="0" max="1" step="0.05" value="0.00" title="Direct Phosphor value">
+                <label for="phosphorValInput" class="u-sr-only">CRT Phosphor Numeric Value</label>
+                <input id="phosphorValInput" type="number" class="ui-val-input fx-main-val-input" data-fx-target="phosphor" min="0" max="1" step="0.05" value="0.00" aria-label="CRT Phosphor Numeric Value" title="Direct Phosphor value">
                 <span id="phosphorVal" style="display:none;">0.00</span>
               </div>
             </label>
             <div class="fx-margin-drawer" id="phosphor_margin_drawer">
               <div class="fx-margin-header">
-                <span class="fx-margin-label">Margin:</span>
-                <input type="number" class="ui-val-input fx-bound-input-min" min="0" max="1" step="0.05" value="0.00" title="Min margin">
+                <label for="phosphor_margin_min" class="fx-margin-label">Margin:</label>
+                <input id="phosphor_margin_min" type="number" class="ui-val-input fx-bound-input-min" min="0" max="1" step="0.05" value="0.00" aria-label="CRT Phosphor Minimum Margin" title="Min margin">
                 <span class="fx-margin-dash">—</span>
-                <input type="number" class="ui-val-input fx-bound-input-max" min="0" max="1" step="0.05" value="1.00" title="Max margin">
+                <label for="phosphor_margin_max" class="u-sr-only">CRT Phosphor Maximum Margin</label>
+                <input id="phosphor_margin_max" type="number" class="ui-val-input fx-bound-input-max" min="0" max="1" step="0.05" value="1.00" aria-label="CRT Phosphor Maximum Margin" title="Max margin">
                 <span class="fx-margin-readout" style="display:none;">Margin: 0.00 — 1.00</span>
               </div>
               <div class="fx-margin-sliders">
-                <input type="range" class="fx-bound-min" min="0" max="1" step="0.05" value="0" title="Min">
-                <input type="range" class="fx-bound-max" min="0" max="1" step="0.05" value="1" title="Max">
+                <label for="phosphor_bound_min" class="u-sr-only">CRT Phosphor Minimum Margin Slider</label>
+                <input id="phosphor_bound_min" type="range" class="fx-bound-min" min="0" max="1" step="0.05" value="0" aria-label="CRT Phosphor Minimum Margin Slider" title="Min">
+                <label for="phosphor_bound_max" class="u-sr-only">CRT Phosphor Maximum Margin Slider</label>
+                <input id="phosphor_bound_max" type="range" class="fx-bound-max" min="0" max="1" step="0.05" value="1" aria-label="CRT Phosphor Maximum Margin Slider" title="Max">
               </div>
             </div>
             <input class="ui-slider" type="range" id="phosphorSlider" min="0" max="1" step="0.05" value="0.0" aria-label="CRT Phosphor Stripes">
@@ -778,21 +809,25 @@
                 <span>Screen Bend</span>
               </div>
               <div style="display:flex;align-items:center;gap:6px;">
-                <input type="number" class="ui-val-input fx-main-val-input" data-fx-target="bend" min="0" max="0.3" step="0.02" value="0.00" title="Direct Screen Bend value">
+                <label for="bendValInput" class="u-sr-only">CRT Screen Bend Numeric Value</label>
+                <input id="bendValInput" type="number" class="ui-val-input fx-main-val-input" data-fx-target="bend" min="0" max="0.3" step="0.02" value="0.00" aria-label="CRT Screen Bend Numeric Value" title="Direct Screen Bend value">
                 <span id="bendVal" style="display:none;">0.0</span>
               </div>
             </label>
             <div class="fx-margin-drawer" id="bend_margin_drawer">
               <div class="fx-margin-header">
-                <span class="fx-margin-label">Margin:</span>
-                <input type="number" class="ui-val-input fx-bound-input-min" min="0" max="0.3" step="0.02" value="0.00" title="Min margin">
+                <label for="bend_margin_min" class="fx-margin-label">Margin:</label>
+                <input id="bend_margin_min" type="number" class="ui-val-input fx-bound-input-min" min="0" max="0.3" step="0.02" value="0.00" aria-label="CRT Screen Bend Minimum Margin" title="Min margin">
                 <span class="fx-margin-dash">—</span>
-                <input type="number" class="ui-val-input fx-bound-input-max" min="0" max="0.3" step="0.02" value="0.30" title="Max margin">
+                <label for="bend_margin_max" class="u-sr-only">CRT Screen Bend Maximum Margin</label>
+                <input id="bend_margin_max" type="number" class="ui-val-input fx-bound-input-max" min="0" max="0.3" step="0.02" value="0.30" title="Max margin">
                 <span class="fx-margin-readout" style="display:none;">Margin: 0.00 — 0.30</span>
               </div>
               <div class="fx-margin-sliders">
-                <input type="range" class="fx-bound-min" min="0" max="0.3" step="0.02" value="0" title="Min">
-                <input type="range" class="fx-bound-max" min="0" max="0.3" step="0.02" value="0.3" title="Max">
+                <label for="bend_bound_min" class="u-sr-only">CRT Screen Bend Minimum Margin Slider</label>
+                <input id="bend_bound_min" type="range" class="fx-bound-min" min="0" max="0.3" step="0.02" value="0" aria-label="CRT Screen Bend Minimum Margin Slider" title="Min">
+                <label for="bend_bound_max" class="u-sr-only">CRT Screen Bend Maximum Margin Slider</label>
+                <input id="bend_bound_max" type="range" class="fx-bound-max" min="0" max="0.3" step="0.02" value="0.3" aria-label="CRT Screen Bend Maximum Margin Slider" title="Max">
               </div>
             </div>
             <input class="ui-slider" type="range" id="bendSlider" min="0" max="0.3" step="0.02" value="0.0" aria-label="CRT Screen Bend">
@@ -807,21 +842,25 @@
                 <span>Film Grain</span>
               </div>
               <div style="display:flex;align-items:center;gap:6px;">
-                <input type="number" class="ui-val-input fx-main-val-input" data-fx-target="grain" min="0" max="0.5" step="0.02" value="0.00" title="Direct Film Grain value">
+                <label for="grainValInput" class="u-sr-only">Film Grain Numeric Value</label>
+                <input id="grainValInput" type="number" class="ui-val-input fx-main-val-input" data-fx-target="grain" min="0" max="0.5" step="0.02" value="0.00" aria-label="Film Grain Numeric Value" title="Direct Film Grain value">
                 <span id="grainVal" style="display:none;">0.00</span>
               </div>
             </label>
             <div class="fx-margin-drawer" id="grain_margin_drawer">
               <div class="fx-margin-header">
-                <span class="fx-margin-label">Margin:</span>
-                <input type="number" class="ui-val-input fx-bound-input-min" min="0" max="0.5" step="0.02" value="0.00" title="Min margin">
+                <label for="grain_margin_min" class="fx-margin-label">Margin:</label>
+                <input id="grain_margin_min" type="number" class="ui-val-input fx-bound-input-min" min="0" max="0.5" step="0.02" value="0.00" aria-label="Film Grain Minimum Margin" title="Min margin">
                 <span class="fx-margin-dash">—</span>
-                <input type="number" class="ui-val-input fx-bound-input-max" min="0" max="0.5" step="0.02" value="0.50" title="Max margin">
+                <label for="grain_margin_max" class="u-sr-only">Film Grain Maximum Margin</label>
+                <input id="grain_margin_max" type="number" class="ui-val-input fx-bound-input-max" min="0" max="0.5" step="0.02" value="0.50" aria-label="Film Grain Maximum Margin" title="Max margin">
                 <span class="fx-margin-readout" style="display:none;">Margin: 0.00 — 0.50</span>
               </div>
               <div class="fx-margin-sliders">
-                <input type="range" class="fx-bound-min" min="0" max="0.5" step="0.02" value="0" title="Min">
-                <input type="range" class="fx-bound-max" min="0" max="0.5" step="0.02" value="0.5" title="Max">
+                <label for="grain_bound_min" class="u-sr-only">Film Grain Minimum Margin Slider</label>
+                <input id="grain_bound_min" type="range" class="fx-bound-min" min="0" max="0.5" step="0.02" value="0" aria-label="Film Grain Minimum Margin Slider" title="Min">
+                <label for="grain_bound_max" class="u-sr-only">Film Grain Maximum Margin Slider</label>
+                <input id="grain_bound_max" type="range" class="fx-bound-max" min="0" max="0.5" step="0.02" value="0.5" aria-label="Film Grain Maximum Margin Slider" title="Max">
               </div>
             </div>
             <input class="ui-slider" type="range" id="grainSlider" min="0" max="0.5" step="0.02" value="0.0" aria-label="Film Grain">
@@ -836,21 +875,25 @@
                 <span>Vignette</span>
               </div>
               <div style="display:flex;align-items:center;gap:6px;">
-                <input type="number" class="ui-val-input fx-main-val-input" data-fx-target="vig" min="0" max="1" step="0.05" value="0.00" title="Direct Vignette value">
+                <label for="vigValInput" class="u-sr-only">Vignette Numeric Value</label>
+                <input id="vigValInput" type="number" class="ui-val-input fx-main-val-input" data-fx-target="vig" min="0" max="1" step="0.05" value="0.00" aria-label="Vignette Numeric Value" title="Direct Vignette value">
                 <span id="vigVal" style="display:none;">0.00</span>
               </div>
             </label>
             <div class="fx-margin-drawer" id="vig_margin_drawer">
               <div class="fx-margin-header">
-                <span class="fx-margin-label">Margin:</span>
-                <input type="number" class="ui-val-input fx-bound-input-min" min="0" max="1" step="0.05" value="0.00" title="Min margin">
+                <label for="vig_margin_min" class="fx-margin-label">Margin:</label>
+                <input id="vig_margin_min" type="number" class="ui-val-input fx-bound-input-min" min="0" max="1" step="0.05" value="0.00" aria-label="Vignette Minimum Margin" title="Min margin">
                 <span class="fx-margin-dash">—</span>
-                <input type="number" class="ui-val-input fx-bound-input-max" min="0" max="1" step="0.05" value="1.00" title="Max margin">
+                <label for="vig_margin_max" class="u-sr-only">Vignette Maximum Margin</label>
+                <input id="vig_margin_max" type="number" class="ui-val-input fx-bound-input-max" min="0" max="1" step="0.05" value="1.00" aria-label="Vignette Maximum Margin" title="Max margin">
                 <span class="fx-margin-readout" style="display:none;">Margin: 0.00 — 1.00</span>
               </div>
               <div class="fx-margin-sliders">
-                <input type="range" class="fx-bound-min" min="0" max="1" step="0.05" value="0" title="Min">
-                <input type="range" class="fx-bound-max" min="0" max="1" step="0.05" value="1" title="Max">
+                <label for="vig_bound_min" class="u-sr-only">Vignette Minimum Margin Slider</label>
+                <input id="vig_bound_min" type="range" class="fx-bound-min" min="0" max="1" step="0.05" value="0" aria-label="Vignette Minimum Margin Slider" title="Min">
+                <label for="vig_bound_max" class="u-sr-only">Vignette Maximum Margin Slider</label>
+                <input id="vig_bound_max" type="range" class="fx-bound-max" min="0" max="1" step="0.05" value="1" aria-label="Vignette Maximum Margin Slider" title="Max">
               </div>
             </div>
             <input class="ui-slider" type="range" id="vigSlider" min="0" max="1" step="0.05" value="0.0" aria-label="Vignette">
@@ -865,21 +908,25 @@
                 <span>Chromatic Aberration</span>
               </div>
               <div style="display:flex;align-items:center;gap:6px;">
-                <input type="number" class="ui-val-input fx-main-val-input" data-fx-target="chroma" min="0" max="1" step="0.05" value="0.00" title="Direct Chromatic Aberration value">
+                <label for="chromaValInput" class="u-sr-only">Chromatic Aberration Numeric Value</label>
+                <input id="chromaValInput" type="number" class="ui-val-input fx-main-val-input" data-fx-target="chroma" min="0" max="1" step="0.05" value="0.00" aria-label="Chromatic Aberration Numeric Value" title="Direct Chromatic Aberration value">
                 <span id="chromaVal" style="display:none;">0.00</span>
               </div>
             </label>
             <div class="fx-margin-drawer" id="chroma_margin_drawer">
               <div class="fx-margin-header">
-                <span class="fx-margin-label">Margin:</span>
-                <input type="number" class="ui-val-input fx-bound-input-min" min="0" max="1" step="0.05" value="0.00" title="Min margin">
+                <label for="chroma_margin_min" class="fx-margin-label">Margin:</label>
+                <input id="chroma_margin_min" type="number" class="ui-val-input fx-bound-input-min" min="0" max="1" step="0.05" value="0.00" aria-label="Chromatic Aberration Minimum Margin" title="Min margin">
                 <span class="fx-margin-dash">—</span>
-                <input type="number" class="ui-val-input fx-bound-input-max" min="0" max="1" step="0.05" value="1.00" title="Max margin">
+                <label for="chroma_margin_max" class="u-sr-only">Chromatic Aberration Maximum Margin</label>
+                <input id="chroma_margin_max" type="number" class="ui-val-input fx-bound-input-max" min="0" max="1" step="0.05" value="1.00" aria-label="Chromatic Aberration Maximum Margin" title="Max margin">
                 <span class="fx-margin-readout" style="display:none;">Margin: 0.00 — 1.00</span>
               </div>
               <div class="fx-margin-sliders">
-                <input type="range" class="fx-bound-min" min="0" max="1" step="0.05" value="0" title="Min">
-                <input type="range" class="fx-bound-max" min="0" max="1" step="0.05" value="1" title="Max">
+                <label for="chroma_bound_min" class="u-sr-only">Chromatic Aberration Minimum Margin Slider</label>
+                <input id="chroma_bound_min" type="range" class="fx-bound-min" min="0" max="1" step="0.05" value="0" aria-label="Chromatic Aberration Minimum Margin Slider" title="Min">
+                <label for="chroma_bound_max" class="u-sr-only">Chromatic Aberration Maximum Margin Slider</label>
+                <input id="chroma_bound_max" type="range" class="fx-bound-max" min="0" max="1" step="0.05" value="1" aria-label="Chromatic Aberration Maximum Margin Slider" title="Max">
               </div>
             </div>
             <input class="ui-slider" type="range" id="chromaSlider" min="0" max="1" step="0.05" value="0.0" aria-label="Chromatic Aberration">
@@ -894,21 +941,25 @@
                 <span>Liquid Drip</span>
               </div>
               <div style="display:flex;align-items:center;gap:6px;">
-                <input type="number" class="ui-val-input fx-main-val-input" data-fx-target="drip" min="0" max="1" step="0.05" value="0.00" title="Direct Liquid Drip value">
+                <label for="dripValInput" class="u-sr-only">Liquid Drip Numeric Value</label>
+                <input id="dripValInput" type="number" class="ui-val-input fx-main-val-input" data-fx-target="drip" min="0" max="1" step="0.05" value="0.00" aria-label="Liquid Drip Numeric Value" title="Direct Liquid Drip value">
                 <span id="dripVal" style="display:none;">0.00</span>
               </div>
             </label>
             <div class="fx-margin-drawer" id="drip_margin_drawer">
               <div class="fx-margin-header">
-                <span class="fx-margin-label">Margin:</span>
-                <input type="number" class="ui-val-input fx-bound-input-min" min="0" max="1" step="0.05" value="0.00" title="Min margin">
+                <label for="drip_margin_min" class="fx-margin-label">Margin:</label>
+                <input id="drip_margin_min" type="number" class="ui-val-input fx-bound-input-min" min="0" max="1" step="0.05" value="0.00" aria-label="Liquid Drip Minimum Margin" title="Min margin">
                 <span class="fx-margin-dash">—</span>
-                <input type="number" class="ui-val-input fx-bound-input-max" min="0" max="1" step="0.05" value="1.00" title="Max margin">
+                <label for="drip_margin_max" class="u-sr-only">Liquid Drip Maximum Margin</label>
+                <input id="drip_margin_max" type="number" class="ui-val-input fx-bound-input-max" min="0" max="1" step="0.05" value="1.00" aria-label="Liquid Drip Maximum Margin" title="Max margin">
                 <span class="fx-margin-readout" style="display:none;">Margin: 0.00 — 1.00</span>
               </div>
               <div class="fx-margin-sliders">
-                <input type="range" class="fx-bound-min" min="0" max="1" step="0.05" value="0" title="Min">
-                <input type="range" class="fx-bound-max" min="0" max="1" step="0.05" value="1" title="Max">
+                <label for="drip_bound_min" class="u-sr-only">Liquid Drip Minimum Margin Slider</label>
+                <input id="drip_bound_min" type="range" class="fx-bound-min" min="0" max="1" step="0.05" value="0" aria-label="Liquid Drip Minimum Margin Slider" title="Min">
+                <label for="drip_bound_max" class="u-sr-only">Liquid Drip Maximum Margin Slider</label>
+                <input id="drip_bound_max" type="range" class="fx-bound-max" min="0" max="1" step="0.05" value="1" aria-label="Liquid Drip Maximum Margin Slider" title="Max">
               </div>
             </div>
             <input class="ui-slider" type="range" id="dripSlider" min="0" max="1" step="0.05" value="0.0" aria-label="Liquid Drip Distortion">
@@ -923,21 +974,25 @@
                 <span>Neon Edge Trace</span>
               </div>
               <div style="display:flex;align-items:center;gap:6px;">
-                <input type="number" class="ui-val-input fx-main-val-input" data-fx-target="edge" min="0" max="1" step="0.05" value="0.00" title="Direct Neon Edge Trace value">
+                <label for="edgeValInput" class="u-sr-only">Neon Edge Trace Numeric Value</label>
+                <input id="edgeValInput" type="number" class="ui-val-input fx-main-val-input" data-fx-target="edge" min="0" max="1" step="0.05" value="0.00" aria-label="Neon Edge Trace Numeric Value" title="Direct Neon Edge Trace value">
                 <span id="edgeVal" style="display:none;">0.00</span>
               </div>
             </label>
             <div class="fx-margin-drawer" id="edge_margin_drawer">
               <div class="fx-margin-header">
-                <span class="fx-margin-label">Margin:</span>
-                <input type="number" class="ui-val-input fx-bound-input-min" min="0" max="1" step="0.05" value="0.00" title="Min margin">
+                <label for="edge_margin_min" class="fx-margin-label">Margin:</label>
+                <input id="edge_margin_min" type="number" class="ui-val-input fx-bound-input-min" min="0" max="1" step="0.05" value="0.00" aria-label="Neon Edge Trace Minimum Margin" title="Min margin">
                 <span class="fx-margin-dash">—</span>
-                <input type="number" class="ui-val-input fx-bound-input-max" min="0" max="1" step="0.05" value="1.00" title="Max margin">
+                <label for="edge_margin_max" class="u-sr-only">Neon Edge Trace Maximum Margin</label>
+                <input id="edge_margin_max" type="number" class="ui-val-input fx-bound-input-max" min="0" max="1" step="0.05" value="1.00" aria-label="Neon Edge Trace Maximum Margin" title="Max margin">
                 <span class="fx-margin-readout" style="display:none;">Margin: 0.00 — 1.00</span>
               </div>
               <div class="fx-margin-sliders">
-                <input type="range" class="fx-bound-min" min="0" max="1" step="0.05" value="0" title="Min">
-                <input type="range" class="fx-bound-max" min="0" max="1" step="0.05" value="1" title="Max">
+                <label for="edge_bound_min" class="u-sr-only">Neon Edge Trace Minimum Margin Slider</label>
+                <input id="edge_bound_min" type="range" class="fx-bound-min" min="0" max="1" step="0.05" value="0" aria-label="Neon Edge Trace Minimum Margin Slider" title="Min">
+                <label for="edge_bound_max" class="u-sr-only">Neon Edge Trace Maximum Margin Slider</label>
+                <input id="edge_bound_max" type="range" class="fx-bound-max" min="0" max="1" step="0.05" value="1" aria-label="Neon Edge Trace Maximum Margin Slider" title="Max">
               </div>
             </div>
             <input class="ui-slider" type="range" id="edgeSlider" min="0" max="1" step="0.05" value="0.0" aria-label="Neon Outline Edge Detect">
@@ -955,7 +1010,8 @@
             <span>Kaleidoscope</span>
           </div>
           <div style="display:flex;align-items:center;gap:6px;">
-            <input type="number" class="ui-val-input fx-main-val-input" data-fx-target="kaleido" min="0" max="12" step="3" value="0" title="Direct Kaleidoscope value">
+            <label for="kaleidoValInput" class="u-sr-only">Kaleidoscope Numeric Value</label>
+            <input id="kaleidoValInput" type="number" class="ui-val-input fx-main-val-input" data-fx-target="kaleido" min="0" max="12" step="3" value="0" aria-label="Kaleidoscope Numeric Value" title="Direct Kaleidoscope value">
             <span id="kaleidoVal" style="display:none;">Off</span>
           </div>
         </label>
@@ -967,15 +1023,18 @@
         </div>
         <div class="fx-margin-drawer" id="kaleido_margin_drawer">
           <div class="fx-margin-header">
-            <span class="fx-margin-label">Margin:</span>
-            <input type="number" class="ui-val-input fx-bound-input-min" min="0" max="12" step="3" value="0" title="Min margin">
+            <label for="kaleido_margin_min" class="fx-margin-label">Margin:</label>
+            <input id="kaleido_margin_min" type="number" class="ui-val-input fx-bound-input-min" min="0" max="12" step="3" value="0" aria-label="Kaleidoscope Minimum Margin" title="Min margin">
             <span class="fx-margin-dash">—</span>
-            <input type="number" class="ui-val-input fx-bound-input-max" min="0" max="12" step="3" value="12" title="Max margin">
+            <label for="kaleido_margin_max" class="u-sr-only">Kaleidoscope Maximum Margin</label>
+            <input id="kaleido_margin_max" type="number" class="ui-val-input fx-bound-input-max" min="0" max="12" step="3" value="12" aria-label="Kaleidoscope Maximum Margin" title="Max margin">
             <span class="fx-margin-readout" style="display:none;">Margin: 0 — 12</span>
           </div>
           <div class="fx-margin-sliders">
-            <input type="range" class="fx-bound-min" min="0" max="12" step="3" value="0" title="Min">
-            <input type="range" class="fx-bound-max" min="0" max="12" step="3" value="12" title="Max">
+            <label for="kaleido_bound_min" class="u-sr-only">Kaleidoscope Minimum Margin Slider</label>
+            <input id="kaleido_bound_min" type="range" class="fx-bound-min" min="0" max="12" step="3" value="0" aria-label="Kaleidoscope Minimum Margin Slider" title="Min">
+            <label for="kaleido_bound_max" class="u-sr-only">Kaleidoscope Maximum Margin Slider</label>
+            <input id="kaleido_bound_max" type="range" class="fx-bound-max" min="0" max="12" step="3" value="12" aria-label="Kaleidoscope Maximum Margin Slider" title="Max">
           </div>
         </div>
         <input class="ui-slider" type="range" id="kaleidoSlider" min="0" max="12" step="3" value="0" aria-label="Kaleidoscope Segments">
@@ -991,7 +1050,8 @@
             <span>Mirror</span>
           </div>
           <div style="display:flex;align-items:center;gap:6px;">
-            <input type="number" class="ui-val-input fx-main-val-input" data-fx-target="mirror" min="0" max="3" step="1" value="0" title="Direct Mirror value">
+            <label for="mirrorValInput" class="u-sr-only">Mirror Numeric Value</label>
+            <input id="mirrorValInput" type="number" class="ui-val-input fx-main-val-input" data-fx-target="mirror" min="0" max="3" step="1" value="0" aria-label="Mirror Numeric Value" title="Direct Mirror value">
             <span id="mirrorVal" style="display:none;">Off</span>
           </div>
         </label>
@@ -1003,15 +1063,18 @@
         </div>
         <div class="fx-margin-drawer" id="mirror_margin_drawer">
           <div class="fx-margin-header">
-            <span class="fx-margin-label">Margin:</span>
-            <input type="number" class="ui-val-input fx-bound-input-min" min="0" max="3" step="1" value="0" title="Min margin">
+            <label for="mirror_margin_min" class="fx-margin-label">Margin:</label>
+            <input id="mirror_margin_min" type="number" class="ui-val-input fx-bound-input-min" min="0" max="3" step="1" value="0" aria-label="Mirror Minimum Margin" title="Min margin">
             <span class="fx-margin-dash">—</span>
-            <input type="number" class="ui-val-input fx-bound-input-max" min="0" max="3" step="1" value="3" title="Max margin">
+            <label for="mirror_margin_max" class="u-sr-only">Mirror Maximum Margin</label>
+            <input id="mirror_margin_max" type="number" class="ui-val-input fx-bound-input-max" min="0" max="3" step="1" value="3" aria-label="Mirror Maximum Margin" title="Max margin">
             <span class="fx-margin-readout" style="display:none;">Margin: 0 — 3</span>
           </div>
           <div class="fx-margin-sliders">
-            <input type="range" class="fx-bound-min" min="0" max="3" step="1" value="0" title="Min">
-            <input type="range" class="fx-bound-max" min="0" max="3" step="1" value="3" title="Max">
+            <label for="mirror_bound_min" class="u-sr-only">Mirror Minimum Margin Slider</label>
+            <input id="mirror_bound_min" type="range" class="fx-bound-min" min="0" max="3" step="1" value="0" aria-label="Mirror Minimum Margin Slider" title="Min">
+            <label for="mirror_bound_max" class="u-sr-only">Mirror Maximum Margin Slider</label>
+            <input id="mirror_bound_max" type="range" class="fx-bound-max" min="0" max="3" step="1" value="3" aria-label="Mirror Maximum Margin Slider" title="Max">
           </div>
         </div>
         <input class="ui-slider" type="range" id="mirrorSlider" min="0" max="3" step="1" value="0" aria-label="Mirror Symmetry Mode">
@@ -1027,7 +1090,8 @@
             <span>Pixelize</span>
           </div>
           <div style="display:flex;align-items:center;gap:6px;">
-            <input type="number" class="ui-val-input fx-main-val-input" data-fx-target="pixel" min="0" max="64" step="16" value="0" title="Direct Pixelize value">
+            <label for="pixelValInput" class="u-sr-only">Pixelize Numeric Value</label>
+            <input id="pixelValInput" type="number" class="ui-val-input fx-main-val-input" data-fx-target="pixel" min="0" max="64" step="16" value="0" aria-label="Pixelize Numeric Value" title="Direct Pixelize value">
             <span id="pixelVal" style="display:none;">Off</span>
           </div>
         </label>
@@ -1039,15 +1103,18 @@
         </div>
         <div class="fx-margin-drawer" id="pixel_margin_drawer">
           <div class="fx-margin-header">
-            <span class="fx-margin-label">Margin:</span>
-            <input type="number" class="ui-val-input fx-bound-input-min" min="0" max="64" step="16" value="0" title="Min margin">
+            <label for="pixel_margin_min" class="fx-margin-label">Margin:</label>
+            <input id="pixel_margin_min" type="number" class="ui-val-input fx-bound-input-min" min="0" max="64" step="16" value="0" aria-label="Pixelize Minimum Margin" title="Min margin">
             <span class="fx-margin-dash">—</span>
-            <input type="number" class="ui-val-input fx-bound-input-max" min="0" max="64" step="16" value="64" title="Max margin">
+            <label for="pixel_margin_max" class="u-sr-only">Pixelize Maximum Margin</label>
+            <input id="pixel_margin_max" type="number" class="ui-val-input fx-bound-input-max" min="0" max="64" step="16" value="64" aria-label="Pixelize Maximum Margin" title="Max margin">
             <span class="fx-margin-readout" style="display:none;">Margin: 0 — 64</span>
           </div>
           <div class="fx-margin-sliders">
-            <input type="range" class="fx-bound-min" min="0" max="64" step="16" value="0" title="Min">
-            <input type="range" class="fx-bound-max" min="0" max="64" step="16" value="64" title="Max">
+            <label for="pixel_bound_min" class="u-sr-only">Pixelize Minimum Margin Slider</label>
+            <input id="pixel_bound_min" type="range" class="fx-bound-min" min="0" max="64" step="16" value="0" aria-label="Pixelize Minimum Margin Slider" title="Min">
+            <label for="pixel_bound_max" class="u-sr-only">Pixelize Maximum Margin Slider</label>
+            <input id="pixel_bound_max" type="range" class="fx-bound-max" min="0" max="64" step="16" value="64" aria-label="Pixelize Maximum Margin Slider" title="Max">
           </div>
         </div>
         <input class="ui-slider" type="range" id="pixelSlider" min="0" max="64" step="16" value="0" aria-label="Pixelation Factor">
@@ -1085,22 +1152,26 @@
         </div>
         <div class="fx-margin-drawer" id="camShake_margin_drawer">
           <div class="fx-margin-header">
-            <span class="fx-margin-label">Margin:</span>
-            <input type="number" class="ui-val-input fx-bound-input-min" min="0" max="1" step="0.05" value="0.00" title="Min margin">
+            <label for="camShake_margin_min" class="fx-margin-label">Margin:</label>
+            <input id="camShake_margin_min" type="number" class="ui-val-input fx-bound-input-min" min="0" max="1" step="0.05" value="0.00" aria-label="Camera Shake Minimum Margin" title="Min margin">
             <span class="fx-margin-dash">—</span>
-            <input type="number" class="ui-val-input fx-bound-input-max" min="0" max="1" step="0.05" value="1.00" title="Max margin">
+            <label for="camShake_margin_max" class="u-sr-only">Camera Shake Maximum Margin</label>
+            <input id="camShake_margin_max" type="number" class="ui-val-input fx-bound-input-max" min="0" max="1" step="0.05" value="1.00" aria-label="Camera Shake Maximum Margin" title="Max margin">
             <span class="fx-margin-readout" style="display:none;">Margin: 0.00 — 1.00</span>
           </div>
           <div class="fx-margin-sliders">
-            <input type="range" class="fx-bound-min" min="0" max="1" step="0.05" value="0" title="Min">
-            <input type="range" class="fx-bound-max" min="0" max="1" step="0.05" value="1" title="Max">
+            <label for="camShake_bound_min" class="u-sr-only">Camera Shake Minimum Margin Slider</label>
+            <input id="camShake_bound_min" type="range" class="fx-bound-min" min="0" max="1" step="0.05" value="0" aria-label="Camera Shake Minimum Margin Slider" title="Min">
+            <label for="camShake_bound_max" class="u-sr-only">Camera Shake Maximum Margin Slider</label>
+            <input id="camShake_bound_max" type="range" class="fx-bound-max" min="0" max="1" step="0.05" value="1" aria-label="Camera Shake Maximum Margin Slider" title="Max">
           </div>
         </div>
         <div class="control-row" style="margin-top:8px;">
           <label for="camShakeIntensitySlider" class="control-label">
             <span>Shake Intensity</span>
             <div style="display:flex;align-items:center;gap:6px;">
-              <input type="number" class="ui-val-input fx-main-val-input" data-fx-target="camShake" min="0" max="1" step="0.05" value="0.60" title="Direct Shake Intensity value">
+              <label for="camShakeIntensityValInput" class="u-sr-only">Camera Shake Intensity Numeric Value</label>
+              <input id="camShakeIntensityValInput" type="number" class="ui-val-input fx-main-val-input" data-fx-target="camShake" min="0" max="1" step="0.05" value="0.60" aria-label="Camera Shake Intensity Numeric Value" title="Direct Shake Intensity value">
               <span id="camShakeIntensityVal" style="display:none;">60%</span>
             </div>
           </label>
@@ -1300,6 +1371,7 @@
           <label for="textColorPicker" class="control-label"><span>Text Color</span><span id="textColorHexVal">#FFFFFF</span></label>
           <div class="color-picker-row" style="display:flex;align-items:center;gap:10px;">
             <input type="color" id="textColorPicker" value="#ffffff" class="text-color-input" aria-label="Text Color Picker">
+            <label for="textColorInput" class="u-sr-only">Text Color Hex Code</label>
             <input type="text" id="textColorInput" class="drawer-search text-color-hex" value="#ffffff" maxlength="7" style="flex:1;" aria-label="Text Color Hex Code">
           </div>
         </div>

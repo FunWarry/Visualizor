@@ -531,11 +531,17 @@ function renderExtraGradientStops(): void {
     swatch.title = `Color Stop ${stopIdx + 1}`;
 
     const input = document.createElement('input');
+    input.id = `customGradientStopInput_${stopIdx}`;
     input.type = 'text';
     input.className = 'custom-hex-input';
     input.value = hex.toUpperCase();
     input.maxLength = 7;
     input.setAttribute('aria-label', `Color Stop ${stopIdx + 1} Hex`);
+
+    const inputLabel = document.createElement('label');
+    inputLabel.htmlFor = input.id;
+    inputLabel.className = 'u-sr-only';
+    inputLabel.textContent = `Color Stop ${stopIdx + 1} Hex`;
 
     const dropperBtn = document.createElement('button');
     dropperBtn.type = 'button';
@@ -550,9 +556,16 @@ function renderExtraGradientStops(): void {
     removeBtn.textContent = '✕';
 
     const nativePicker = document.createElement('input');
+    nativePicker.id = `customGradientNativePicker_${stopIdx}`;
     nativePicker.type = 'color';
     nativePicker.value = hex;
+    nativePicker.setAttribute('aria-label', `Color Stop ${stopIdx + 1} Native Picker`);
     nativePicker.style.cssText = 'opacity:0;position:absolute;pointer-events:none;width:0;height:0;';
+
+    const nativePickerLabel = document.createElement('label');
+    nativePickerLabel.htmlFor = nativePicker.id;
+    nativePickerLabel.className = 'u-sr-only';
+    nativePickerLabel.textContent = `Color Stop ${stopIdx + 1} Native Picker`;
 
     swatch.addEventListener('click', () => nativePicker.click());
     nativePicker.addEventListener('input', () => {
@@ -590,9 +603,11 @@ function renderExtraGradientStops(): void {
     });
 
     row.appendChild(swatch);
+    row.appendChild(inputLabel);
     row.appendChild(input);
     row.appendChild(dropperBtn);
     row.appendChild(removeBtn);
+    row.appendChild(nativePickerLabel);
     row.appendChild(nativePicker);
     customGradientExtraStops.appendChild(row);
   }
@@ -2095,8 +2110,8 @@ function bindFxSliderMargins(fx: FxControlDef, row: Element | null): void {
   const onInputChange = () => {
     let vMin = Number(minInput?.value ?? fx.min);
     let vMax = Number(maxInput?.value ?? fx.max);
-    if (isNaN(vMin)) vMin = fx.min;
-    if (isNaN(vMax)) vMax = fx.max;
+    if (Number.isNaN(vMin)) vMin = fx.min;
+    if (Number.isNaN(vMax)) vMax = fx.max;
     vMin = Math.max(fx.min, Math.min(fx.max, vMin));
     vMax = Math.max(fx.min, Math.min(fx.max, vMax));
     syncAndSave(vMin, vMax);
@@ -2126,7 +2141,7 @@ function bindFxMainInput(
   mainInput.value = slider.value;
   mainInput.addEventListener('input', () => {
     let numVal = Number.parseFloat(mainInput.value);
-    if (isNaN(numVal)) return;
+    if (Number.isNaN(numVal)) return;
     numVal = Math.max(fx.min, Math.min(fx.max, numVal));
     applyFxValue(fx, slider, valEl, numVal);
   });
@@ -2194,7 +2209,10 @@ function setupFilterCards(): void {
       const valEl = document.getElementById(fx.valId);
       if (!slider) return;
       const current = Number.parseFloat(slider.value);
-      const nextVal = current > 0 ? 0 : (fx.defaultVal > 0 ? fx.defaultVal : fx.min + (fx.max - fx.min) * 0.4);
+      let nextVal = 0;
+      if (current <= 0) {
+        nextVal = fx.defaultVal > 0 ? fx.defaultVal : fx.min + (fx.max - fx.min) * 0.4;
+      }
       applyFxValue(fx, slider, valEl, nextVal);
     });
   });
