@@ -46,9 +46,9 @@ const MasterShader = {
     tFeedback: { value: null as THREE.Texture | null },
     uPersistence: { value: 0.0 },
     uTime: { value: 0 },
-    uVignette: { value: 0.5 },
-    uFilmGrain: { value: 0.15 },
-    uChromaticAberration: { value: 0.4 },
+    uVignette: { value: 0.0 },
+    uFilmGrain: { value: 0.0 },
+    uChromaticAberration: { value: 0.0 },
     uScanlines: { value: 0.0 },
     uCrtBend: { value: 0.0 },
     uAudioBass: { value: 0.0 },
@@ -211,11 +211,16 @@ const MasterShader = {
         color *= mix(vec3(1.0), mask, uPhosphor * 0.55);
       }
 
-      // Vignette
+      // Vignette (smooth corner-weighted cinematic falloff, never clipping to solid black bands)
       if (uVignette > 0.01) {
-        float dist = distance(uv, vec2(0.5));
-        float vig = smoothstep(0.85, 0.2, dist * (1.0 + uVignette * 0.8));
-        color *= vig;
+        vec2 p = uv - 0.5;
+        float aspect = uResolution.x / max(uResolution.y, 1.0);
+        p.x *= aspect;
+        float dist = length(p);
+        float maxCornerDist = length(vec2(0.5 * aspect, 0.5));
+        float normDist = dist / max(maxCornerDist, 0.001);
+        float vig = 1.0 - smoothstep(0.35, 1.1, normDist) * uVignette * 0.8;
+        color *= clamp(vig, 0.0, 1.0);
       }
 
       // Film Grain
