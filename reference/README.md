@@ -1,6 +1,27 @@
 # Visuval Production Reference & Extracted Presets
 
-Ce dossier contient l'ensemble des sources, shaders, géométries et configurations d'effets extraits et désobfusqués directement depuis les bundles de production de [visuval.io/app](https://visuval.io/app).
+Ce dossier contient l'ensemble des sources, shaders, géométries, paramètres de caméra et de post-processing extraits et désobfusqués depuis [visuval.io/app](https://visuval.io/app).
+
+---
+
+## 📊 État des 71 Presets
+
+Sur [visuval.io/app](https://visuval.io/app), les 71 presets sont architecturés en 2 groupes :
+
+1. **Les 22 Presets Publics / Gratuits (`oe`)** :
+   * Leurs bundles JavaScript complets sont distribués publiquement sur le CDN de visuval.io.
+   * **100 % de ces 22 presets sont téléchargés, désobfusqués et archivés** dans [`reference/presets/`](./presets/) :
+     * `wave.original.js`, `circular.original.js`, `bars3d.original.js`, `obsidian.original.js`, `ferrofluid.original.js`, `starfield.original.js`, `particles.original.js`, `milkdrop.original.js`, `geiss.original.js`, `tunnel.original.js`, `boxtunnel.original.js`, `ringtunnel.original.js`, `waterslide.original.js`, `biocells.original.js`, `matrix.original.js`, `liquid.original.js`, `upcloud.original.js`, `diodewall.original.js`, `spectogram.original.js`, `rainroom.original.js`, `face.original.js`, `forest.original.js`.
+
+2. **Les 49 Presets Premium ("48 premium presets Unlock all" - `ae`)** :
+   * Sur visuval.io, ces presets (`dna`, `cymatic`, `sun`, `blackhole`, `tesseract`, etc.) sont protégés côté serveur via authentification Firebase (`/preset/:id` avec Bearer token) et vérification d'intégrité SHA-256. Leurs endpoints CDN directs renvoient une erreur HTTP 404 sans compte payant.
+   * **Cependant, leurs spécifications complètes ont été extraites** depuis le chunk de catalogue [`catalog_chunk.fully_decoded.js`](./catalog_chunk.fully_decoded.js) :
+     * Nom de classe Three.js de chaque preset.
+     * Configuration par défaut de caméra (`autoRotate`, `bloomIntensity`, `brightness`, `aaEnabled`).
+     * Répartition dans les 7 catégories.
+   * **Dans notre application locale Visualizor (`src/presets/`)**, **les 71 presets sont 100 % débloqués et disponibles sans aucune restriction**.
+
+Voir [`full_71_presets_catalog.json`](./full_71_presets_catalog.json) pour la table de correspondance exhaustive des 71 presets.
 
 ---
 
@@ -8,7 +29,7 @@ Ce dossier contient l'ensemble des sources, shaders, géométries et configurati
 
 ```
 reference/
-├── presets/                               # Sources désobfusquées originales des presets
+├── presets/                               # Sources désobfusquées originales des 22 presets
 │   ├── wave.original.js                  # Terrain 3D GPU ondulant + 3000 particules stardust
 │   ├── circular.original.js              # Cœur stellaire noise3 + Corona + 5 anneaux orbitaux
 │   ├── bars3d.original.js                # Barres 3D spectrales instanciées
@@ -34,46 +55,11 @@ reference/
 │
 ├── scripts/                              # Outils d'extraction et de désobfuscation
 │   ├── deobfuscator.cjs                  # Moteur universel de décodage des chaînes obfusquées
-│   └── download_all_presets.cjs          # Téléchargement et synchronisation depuis visuval.io
+│   ├── download_all_presets.cjs          # Téléchargement et synchronisation depuis visuval.io
+│   └── generate_full_manifest.cjs        # Génération du catalogue des 71 presets
 │
-├── catalog_chunk.fully_decoded.js        # Décodage complet du chunk principal de catalogue (chunk.MIT4IWEV)
-├── main.decoded.js                       # Bundle principal de l'application visuval.io désobfusqué
-├── manifest.json                         # Métadonnées et signatures des bundles extraits
+├── catalog_chunk.fully_decoded.js        # Décodage complet du catalogue et des 71 presets de visuval.io
+├── full_71_presets_catalog.json          # Inventaire complet des 71 presets (catégorie, fichiers ts et js)
+├── manifest.json                         # Métadonnées des bundles extraits
 └── README.md                             # Documentation technique
 ```
-
----
-
-## 🛠️ Utilisation des scripts
-
-### 1. Télécharger et mettre à jour les presets depuis visuval.io
-```bash
-node reference/scripts/download_all_presets.cjs
-```
-Ce script :
-1. Télécharge les scripts JavaScript originaux depuis `https://visuval.io/js/`.
-2. Détecte la fonction de décodage hexadécimal et l'algorithme de déchiffrement (`javascript-obfuscator`).
-3. Évalue les tables de chaînes dans un bac à sable isolé (`node:vm`).
-4. Remplace tous les identifiants obfusqués par leurs valeurs réelles (`THREE.ShaderMaterial`, noms de variables d'uniforms, shaders GLSL, positions de caméras).
-5. Enregistre les fichiers propres dans `reference/presets/*.original.js`.
-
----
-
-## 🎯 Configurations clés extraites
-
-### Preset `Wave Form` (`reference/presets/wave.original.js`)
-* **Géométrie** : `THREE.PlaneGeometry(120, 120, 63, 63)` orientée à l'horizontale (`rotation.x = -Math.PI / 2`).
-* **Particules** : 3 000 motes de poussière d'étoiles avec scintillement (`twinkle`) et dérive continue.
-* **Caméra** : Position `[0, 14, 34]`, cible `[0, 0, 0]`.
-* **Shaders** : 3 couches de vagues sinusoïdales multi-octaves continues (`wave1`, `wave2`, `wave3`) réactives aux basses et à l'énergie RMS.
-
-### Preset `Circular` (`reference/presets/circular.original.js`)
-* **Cœur stellaire** : `THREE.IcosahedronGeometry(3.0, 6)` avec déplacement de sommets par bruit tridimensionnel (`noise3`) et effet de Fresnel incandescent.
-* **Coque Corona** : `THREE.IcosahedronGeometry(4.2, 4)` en rendu double-face additif.
-* **Anneaux orbitaux** : 5 tores inclinés à des angles et vitesses différentes selon les bandes fréquentielles (Bass, Mid, Treble).
-* **Particules & Nébuleuse** : 4 000 particules nébuleuses diffuses, 6 000 stardust en halo, 10 000 particules de ruban fréquentiel sur 3 anneaux.
-* **Caméra** : Position `[0, 18, 30]`, cible `[0, 0, 0]`.
-
----
-
-Ce dossier sert de référence absolue pour toute future modification, ajout de preset ou ajustement de shaders dans Visualizor.
