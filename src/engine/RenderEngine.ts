@@ -4,7 +4,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { AfterimagePass } from 'three/examples/jsm/postprocessing/AfterimagePass.js';
-import { VisualizerPreset, VisualizerTheme, AudioFeatures, PostProcessingConfig } from '../types';
+import { VisualizerPreset, VisualizerTheme, AudioFeatures, PostProcessingConfig, PresetCameraConfig } from '../types';
 import { CameraController } from './CameraController';
 import { TextOverlayEngine } from '../overlay/TextOverlayEngine';
 
@@ -409,6 +409,46 @@ export class RenderEngine {
     window.addEventListener('resize', () => this.resize(window.innerWidth, window.innerHeight));
   }
 
+  private restoreSavedPresetCamera(presetId: string): boolean {
+    if (typeof localStorage === 'undefined') return false;
+    try {
+      const savedCamJson = localStorage.getItem(`visualizor_camera_${presetId}`);
+      if (!savedCamJson) return false;
+      const savedCam = JSON.parse(savedCamJson);
+      this.cameraController.importState(savedCam, true);
+      this.config.autoRotate = this.cameraController.autoRotate;
+      this.config.autoRotateSpeed = this.cameraController.autoRotateSpeed;
+      return true;
+    } catch (err) {
+      console.warn('Failed to parse saved camera state for preset', presetId, err);
+      return false;
+    }
+  }
+
+  private applyDefaultPresetCamera(cfg?: PresetCameraConfig): void {
+    if (cfg?.position) {
+      const targetVec = cfg.target ? new THREE.Vector3(...cfg.target) : new THREE.Vector3(0, 0, 0);
+      this.cameraController.setCameraPosition(cfg.position[0], cfg.position[1], cfg.position[2], targetVec);
+      const autoRotate = cfg.autoRotate ?? true;
+      const autoRotateSpeed = (cfg.autoRotateSpeed && cfg.autoRotateSpeed > 0) ? cfg.autoRotateSpeed : (autoRotate ? 0.35 : 0);
+      this.cameraController.autoRotate = autoRotate;
+      this.config.autoRotate = autoRotate;
+      this.cameraController.autoRotateSpeed = autoRotateSpeed;
+      this.config.autoRotateSpeed = autoRotateSpeed;
+    } else {
+      this.cameraController.setCameraPosition(0, 4.5, 12, new THREE.Vector3(0, 0, 0));
+      this.cameraController.autoRotate = true;
+      this.cameraController.autoRotateSpeed = 0.35;
+      this.config.autoRotate = true;
+      this.config.autoRotateSpeed = 0.35;
+    }
+  }
+
+  private initPresetCamera(preset: VisualizerPreset): void {
+    if (this.restoreSavedPresetCamera(preset.id)) return;
+    this.applyDefaultPresetCamera(preset.cameraConfig);
+  }
+
   public setPreset(preset: VisualizerPreset) {
     if (this.activePreset) {
       this.activePreset.dispose();
@@ -424,49 +464,7 @@ export class RenderEngine {
     this.activePreset = preset;
 
     // Apply preset-specific camera configuration or restored saved camera
-    let restoredSaved = false;
-    if (typeof localStorage !== 'undefined') {
-      try {
-        const savedCamJson = localStorage.getItem(`visualizor_camera_${preset.id}`);
-        if (savedCamJson) {
-          const savedCam = JSON.parse(savedCamJson);
-          this.cameraController.importState(savedCam, true);
-          this.config.autoRotate = this.cameraController.autoRotate;
-          this.config.autoRotateSpeed = this.cameraController.autoRotateSpeed;
-          restoredSaved = true;
-        }
-      } catch (err) {
-        console.warn('Failed to parse saved camera state for preset', preset.id, err);
-      }
-    }
-
-    if (!restoredSaved) {
-      const cfg = preset.cameraConfig;
-      if (cfg?.position) {
-        const targetVec = cfg.target ? new THREE.Vector3(...cfg.target) : new THREE.Vector3(0, 0, 0);
-        this.cameraController.setCameraPosition(cfg.position[0], cfg.position[1], cfg.position[2], targetVec);
-        if (cfg.autoRotate !== undefined) {
-          this.cameraController.autoRotate = cfg.autoRotate;
-          this.config.autoRotate = cfg.autoRotate;
-        } else {
-          this.cameraController.autoRotate = true;
-          this.config.autoRotate = true;
-        }
-        if (cfg.autoRotateSpeed !== undefined && cfg.autoRotateSpeed > 0) {
-          this.cameraController.autoRotateSpeed = cfg.autoRotateSpeed;
-          this.config.autoRotateSpeed = cfg.autoRotateSpeed;
-        } else if (this.cameraController.autoRotate) {
-          this.cameraController.autoRotateSpeed = 0.35;
-          this.config.autoRotateSpeed = 0.35;
-        }
-      } else {
-        this.cameraController.setCameraPosition(0, 4.5, 12, new THREE.Vector3(0, 0, 0));
-        this.cameraController.autoRotate = true;
-        this.cameraController.autoRotateSpeed = 0.35;
-        this.config.autoRotate = true;
-        this.config.autoRotateSpeed = 0.35;
-      }
-    }
+    this.initPresetCamera(preset);
 
     // Apply preset-specific bloom intensity if defined
     const intensity = preset.cameraConfig?.bloomIntensity ?? 0.5;
@@ -514,7 +512,7 @@ export class RenderEngine {
       this.scene.traverse((obj) => {
         if (obj instanceof THREE.Points) {
           const geom = obj.geometry;
-          if (geom && geom.attributes && geom.attributes.position) {
+          if (geom?.attributes?.position) {
             const totalCount = geom.attributes.position.count;
             if (density <= 0) {
               obj.visible = false;
@@ -660,12 +658,12 @@ export class RenderEngine {
   }
 
   public setCanvasBackground(mode: 'dark' | 'white' | 'custom', customColor?: string): void {
-    let colorHex = '#000000';
+    let colorHex: string;
     if (mode === 'dark') {
       colorHex = '#000000';
     } else if (mode === 'white') {
       colorHex = '#ffffff';
-    } else if (mode === 'custom') {
+    } else {
       colorHex = customColor ?? this.currentTheme.background ?? '#111116';
     }
     const color = new THREE.Color(colorHex);
@@ -713,7 +711,7 @@ export class RenderEngine {
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem(`visualizor_camera_${presetId}`);
     }
-    if (this.activePreset && this.activePreset.id === presetId) {
+    if (this.activePreset?.id === presetId) {
       const cfg = this.activePreset.cameraConfig;
       if (cfg?.position) {
         const targetVec = cfg.target ? new THREE.Vector3(...cfg.target) : new THREE.Vector3(0, 0, 0);

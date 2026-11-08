@@ -382,7 +382,7 @@ export function sampleGradient(stops: string[], t: number): string {
   const scaled = clampedT * (stops.length - 1);
   const idx = Math.floor(scaled);
   const rem = scaled - idx;
-  if (idx >= stops.length - 1) return stops[stops.length - 1];
+  if (idx >= stops.length - 1) return stops.at(-1) ?? stops[0];
 
   const c1 = stops[idx];
   const c2 = stops[idx + 1];

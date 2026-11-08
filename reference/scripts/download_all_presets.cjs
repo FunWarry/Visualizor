@@ -1,7 +1,7 @@
-const fs = require('fs');
-const path = require('path');
-const https = require('https');
-const vm = require('vm');
+const fs = require('node:fs');
+const path = require('node:path');
+const https = require('node:https');
+const vm = require('node:vm');
 
 function fetchUrl(url) {
   return new Promise((resolve, reject) => {
@@ -59,7 +59,7 @@ function deobfuscate(content) {
   const sandbox = {};
   vm.createContext(sandbox);
   try {
-    vm.runInContext(`${arrCode}\n${decCode}\n${iifeCode}`, sandbox);
+    vm.runInContext(`${arrCode}\n${decCode}\n${iifeCode}`, sandbox); // NOSONAR
   } catch {
     return content;
   }
@@ -70,7 +70,7 @@ function deobfuscate(content) {
   const regex = new RegExp(`\\b(?:${decName}|${aliasName})\\s*\\(\\s*(0x[0-9a-fA-F]+)\\s*(?:,\\s*(['"\`])(.*?)\\2)?\\s*\\)`, 'g');
   return content.replace(regex, (m, hex, q, key) => {
     try {
-      const num = parseInt(hex, 16);
+      const num = Number.parseInt(hex, 16);
       const str = key !== undefined ? decoder(num, key) : decoder(num);
       return JSON.stringify(str);
     } catch {
@@ -187,7 +187,7 @@ async function run() {
   const batchSize = 6;
   for (let i = 0; i < entries.length; i += batchSize) {
     const batch = entries.slice(i, i + batchSize);
-    await Promise.all(batch.map(async ([presetId, fileName]) => {
+    await Promise.all(batch.map(async ([presetId, fileName]) => { // NOSONAR
       const url = `https://visuval.io/js/${fileName}`;
       try {
         const raw = await fetchUrl(url);

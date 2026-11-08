@@ -22,7 +22,6 @@ import {
   applySavedTuning,
   isPresetLocked,
   setPresetLocked,
-  isAutoRandomizeEnabled,
   randomizePreset,
   hasSavedTuning,
   isFxParamLocked,
@@ -1084,66 +1083,65 @@ function randomizeAllCameraOptics(): void {
   syncCameraUI();
 }
 
-function executeAutoCycleStep(): void {
-  // If active 3D preset is locked, do not switch away to another preset!
-  if (!milkdropEngine.isActive && activePresetId && isPresetLocked(activePresetId)) {
-    if (autoCycleConfig.parameters === 'shuffle') {
-      const activePreset = PRESETS.find(p => p.id === activePresetId);
-      if (activePreset) {
-        randomizePreset(activePreset);
-        renderTuningPanel(activePreset);
-      }
-    }
-    if (autoCycleConfig.themes === 'shuffle') {
-      const allThemeKeys = Object.keys(THEMES);
-      if (allThemeKeys.length > 0) {
-        const nextThemeKey = allThemeKeys[Math.floor(Math.random() * allThemeKeys.length)];
-        renderEngine.setTheme(getTheme(nextThemeKey));
-      }
-    }
-    if (autoCycleConfig.effects === 'shuffle') {
-      randomizeAllFxShaders();
-    }
-    if (autoCycleConfig.camera === 'shuffle') {
-      randomizeAllCameraOptics();
-    }
-    return;
+function shuffleThemesIfEnabled(): void {
+  if (autoCycleConfig.themes !== 'shuffle') return;
+  const allThemeKeys = Object.keys(THEMES);
+  if (allThemeKeys.length > 0) {
+    const nextThemeKey = allThemeKeys[Math.floor(Math.random() * allThemeKeys.length)];
+    renderEngine.setTheme(getTheme(nextThemeKey));
   }
+}
 
-  // Determine pool of candidate presets
+function mutatePresetParamsIfEnabled(preset: VisualizerPreset): void {
+  if (autoCycleConfig.parameters !== 'shuffle') return;
+  randomizePreset(preset);
+  renderTuningPanel(preset);
+}
+
+function mutateActiveProperties(presetId: string): void {
+  const activePreset = PRESETS.find(p => p.id === presetId);
+  if (activePreset) {
+    mutatePresetParamsIfEnabled(activePreset);
+  }
+  shuffleThemesIfEnabled();
+  if (autoCycleConfig.effects === 'shuffle') {
+    randomizeAllFxShaders();
+  }
+  if (autoCycleConfig.camera === 'shuffle') {
+    randomizeAllCameraOptics();
+  }
+}
+
+function pickNextAutoCyclePreset(): VisualizerPreset | null {
   let pool = PRESETS.slice();
   if (autoCycleConfig.pool === 'favorites') {
     const favs = PRESETS.filter(p => favoritePresets.has(p.id));
     if (favs.length > 0) pool = favs;
   }
-
   const unlocked = pool.filter(p => !isPresetLocked(p.id));
   const usable = unlocked.length > 0 ? unlocked : pool;
   const different = usable.filter(p => p.id !== activePresetId);
   const candidates = different.length > 0 ? different : usable;
-  const chosen = candidates[Math.floor(Math.random() * candidates.length)];
-  if (!chosen) return;
+  return candidates[Math.floor(Math.random() * candidates.length)] ?? null;
+}
 
-  // Shuffle Themes if enabled
-  if (autoCycleConfig.themes === 'shuffle') {
-    const allThemeKeys = Object.keys(THEMES);
-    if (allThemeKeys.length > 0) {
-      const nextThemeKey = allThemeKeys[Math.floor(Math.random() * allThemeKeys.length)];
-      renderEngine.setTheme(getTheme(nextThemeKey));
-    }
+function executeAutoCycleStep(): void {
+  // If active 3D preset is locked, do not switch away to another preset!
+  if (!milkdropEngine.isActive && activePresetId && isPresetLocked(activePresetId)) {
+    mutateActiveProperties(activePresetId);
+    return;
   }
 
-  // Shuffle Parameters if enabled
+  const chosen = pickNextAutoCyclePreset();
+  if (!chosen) return;
+
+  shuffleThemesIfEnabled();
   if (autoCycleConfig.parameters === 'shuffle') {
     randomizePreset(chosen);
   }
-
-  // Shuffle Effects if enabled
   if (autoCycleConfig.effects === 'shuffle') {
     randomizeAllFxShaders();
   }
-
-  // Shuffle Camera if enabled
   if (autoCycleConfig.camera === 'shuffle') {
     randomizeAllCameraOptics();
   }
@@ -1216,7 +1214,7 @@ document.getElementById('closeAutoCyclePopoverBtn')?.addEventListener('click', (
 // Click outside popover to close
 document.addEventListener('click', (e) => {
   const popover = document.getElementById('autoCyclePopover');
-  if (!popover || popover.style.display !== 'block') return;
+  if (popover?.style.display !== 'block') return;
   const target = e.target as HTMLElement;
   if (!popover.contains(target) && target !== loopPresetBtn && target !== autoCycleBtn) {
     popover.style.display = 'none';
@@ -1504,43 +1502,42 @@ cameraReset?.addEventListener('click', () => {
   document.getElementById('viewDefaultBtn')?.classList.add('active');
 });
 
-function updateZoomReadout(val: number, allowBeyondLimits: boolean = false) {
-  if (!allowBeyondLimits) {
-    const clamped = Math.max(0, Math.min(1, val));
-    if (zoomSlider) zoomSlider.value = clamped.toString();
-    if (zoomValue) zoomValue.textContent = `${Math.round(clamped * 100)}%`;
-    const camZoomValInput = document.getElementById('camZoomValInput') as HTMLInputElement | null;
-    if (camZoomValInput && document.activeElement !== camZoomValInput) {
-      camZoomValInput.value = clamped.toFixed(2);
-    }
-    renderEngine.cameraController.setZoom(clamped);
-  } else {
-    const pct = Math.round(val * 100);
-    if (zoomSlider) zoomSlider.value = Math.max(0, Math.min(1, val)).toString();
-    if (zoomValue) zoomValue.textContent = `${pct}%`;
-    const camZoomValInput = document.getElementById('camZoomValInput') as HTMLInputElement | null;
-    if (camZoomValInput && document.activeElement !== camZoomValInput) {
-      camZoomValInput.value = val.toFixed(2);
-    }
-    renderEngine.cameraController.setZoom(val, true, true);
+function syncZoomUI(sliderVal: number, displayVal: number): void {
+  if (zoomSlider) zoomSlider.value = sliderVal.toString();
+  if (zoomValue) zoomValue.textContent = `${Math.round(displayVal * 100)}%`;
+  const camZoomValInput = document.getElementById('camZoomValInput') as HTMLInputElement | null;
+  if (camZoomValInput && document.activeElement !== camZoomValInput) {
+    camZoomValInput.value = displayVal.toFixed(2);
   }
+}
+
+function applyStandardZoom(val: number): void {
+  const clamped = Math.max(0, Math.min(1, val));
+  syncZoomUI(clamped, clamped);
+  renderEngine.cameraController.setZoom(clamped);
+}
+
+function applyExtendedZoom(val: number): void {
+  const sliderClamped = Math.max(0, Math.min(1, val));
+  syncZoomUI(sliderClamped, val);
+  renderEngine.cameraController.setZoom(val, true, true);
 }
 
 zoomSlider?.addEventListener('input', () => {
   const val = Number.parseFloat(zoomSlider.value);
-  updateZoomReadout(val);
+  applyStandardZoom(val);
 });
 
 zoomIn?.addEventListener('click', () => {
   const current = renderEngine.cameraController.getZoom();
   const next = Math.round((current + 0.1) * 100) / 100;
-  updateZoomReadout(next, true);
+  applyExtendedZoom(next);
 });
 
 zoomOut?.addEventListener('click', () => {
   const current = renderEngine.cameraController.getZoom();
   const next = Math.max(0.01, Math.round((current - 0.1) * 100) / 100);
-  updateZoomReadout(next, true);
+  applyExtendedZoom(next);
 });
 
 viewpointBtns.forEach(btn => {
@@ -1593,26 +1590,25 @@ camShakeSlider?.addEventListener('input', () => {
   if (camShakeVal) camShakeVal.textContent = `${Math.round(val * 100)}%`;
 });
 
+function syncNumericControl(sliderId: string, inputId: string, valId: string, sliderVal: string, inputVal: string, readoutVal: string): void {
+  const slider = document.getElementById(sliderId) as HTMLInputElement | null;
+  const input = document.getElementById(inputId) as HTMLInputElement | null;
+  const readout = document.getElementById(valId) as HTMLElement | null;
+  if (slider) slider.value = sliderVal;
+  if (input && document.activeElement !== input) input.value = inputVal;
+  if (readout) readout.textContent = readoutVal;
+}
+
 export function syncCameraUI(): void {
   const ctrl = renderEngine.cameraController;
   if (!ctrl) return;
 
   if (autoRotateToggle) autoRotateToggle.checked = ctrl.autoRotate;
-  if (rotateSpeedSlider) rotateSpeedSlider.value = ctrl.autoRotateSpeed.toString();
-  const camSpeedValInput = document.getElementById('camSpeedValInput') as HTMLInputElement | null;
-  if (camSpeedValInput && document.activeElement !== camSpeedValInput) {
-    camSpeedValInput.value = ctrl.autoRotateSpeed.toFixed(2);
-  }
-  if (rotateSpeedValue) rotateSpeedValue.textContent = `${Math.round(ctrl.autoRotateSpeed * 100)}%`;
+  syncNumericControl('rotateSpeedSlider', 'camSpeedValInput', 'rotateSpeedValue', ctrl.autoRotateSpeed.toString(), ctrl.autoRotateSpeed.toFixed(2), `${Math.round(ctrl.autoRotateSpeed * 100)}%`);
 
   // Zoom
   const zoom = ctrl.getZoom();
-  if (zoomSlider) zoomSlider.value = Math.max(0, Math.min(1, zoom)).toString();
-  if (zoomValue) zoomValue.textContent = `${Math.round(zoom * 100)}%`;
-  const camZoomValInput = document.getElementById('camZoomValInput') as HTMLInputElement | null;
-  if (camZoomValInput && document.activeElement !== camZoomValInput) {
-    camZoomValInput.value = zoom.toFixed(2);
-  }
+  syncNumericControl('zoomSlider', 'camZoomValInput', 'zoomValue', Math.max(0, Math.min(1, zoom)).toString(), zoom.toFixed(2), `${Math.round(zoom * 100)}%`);
 
   // Coordinates: Orbit, Tilt, Distance, Height
   const rotDeg = Math.round(ctrl.getRotAngle() * 180 / Math.PI);
@@ -1620,51 +1616,19 @@ export function syncCameraUI(): void {
   const dist = ctrl.getDistance();
   const height = ctrl.getTargetHeight();
 
-  const orbitSlider = document.getElementById('camOrbitSlider') as HTMLInputElement | null;
-  const orbitInput = document.getElementById('camOrbitValInput') as HTMLInputElement | null;
-  const orbitVal = document.getElementById('camOrbitVal') as HTMLElement | null;
-  if (orbitSlider) orbitSlider.value = rotDeg.toString();
-  if (orbitInput && document.activeElement !== orbitInput) orbitInput.value = rotDeg.toString();
-  if (orbitVal) orbitVal.textContent = `${rotDeg}°`;
-
-  const tiltSlider = document.getElementById('camTiltSlider') as HTMLInputElement | null;
-  const tiltInput = document.getElementById('camTiltValInput') as HTMLInputElement | null;
-  const tiltVal = document.getElementById('camTiltVal') as HTMLElement | null;
-  if (tiltSlider) tiltSlider.value = tiltDeg.toString();
-  if (tiltInput && document.activeElement !== tiltInput) tiltInput.value = tiltDeg.toString();
-  if (tiltVal) tiltVal.textContent = `${tiltDeg}°`;
-
-  const distSlider = document.getElementById('camDistSlider') as HTMLInputElement | null;
-  const distInput = document.getElementById('camDistValInput') as HTMLInputElement | null;
-  const distVal = document.getElementById('camDistVal') as HTMLElement | null;
-  if (distSlider) distSlider.value = dist.toFixed(1);
-  if (distInput && document.activeElement !== distInput) distInput.value = dist.toFixed(1);
-  if (distVal) distVal.textContent = `${dist.toFixed(1)}m`;
-
-  const heightSlider = document.getElementById('camHeightSlider') as HTMLInputElement | null;
-  const heightInput = document.getElementById('camHeightValInput') as HTMLInputElement | null;
-  const heightVal = document.getElementById('camHeightVal') as HTMLElement | null;
-  if (heightSlider) heightSlider.value = height.toFixed(1);
-  if (heightInput && document.activeElement !== heightInput) heightInput.value = height.toFixed(1);
-  if (heightVal) heightVal.textContent = `${height.toFixed(1)}m`;
+  syncNumericControl('camOrbitSlider', 'camOrbitValInput', 'camOrbitVal', rotDeg.toString(), rotDeg.toString(), `${rotDeg}°`);
+  syncNumericControl('camTiltSlider', 'camTiltValInput', 'camTiltVal', tiltDeg.toString(), tiltDeg.toString(), `${tiltDeg}°`);
+  syncNumericControl('camDistSlider', 'camDistValInput', 'camDistVal', dist.toFixed(1), dist.toFixed(1), `${dist.toFixed(1)}m`);
+  syncNumericControl('camHeightSlider', 'camHeightValInput', 'camHeightVal', height.toFixed(1), height.toFixed(1), `${height.toFixed(1)}m`);
 
   // Spin Direction
-  if (ctrl.autoRotateDirection === 1) {
-    camDirCwBtn?.classList.add('active');
-    camDirCcwBtn?.classList.remove('active');
-  } else {
-    camDirCcwBtn?.classList.add('active');
-    camDirCwBtn?.classList.remove('active');
-  }
+  const isCw = ctrl.autoRotateDirection === 1;
+  camDirCwBtn?.classList.toggle('active', isCw);
+  camDirCcwBtn?.classList.toggle('active', !isCw);
 
   // Camera Shake
   if (camShakeToggle) camShakeToggle.checked = ctrl.cameraShakeEnabled;
-  if (camShakeSlider) camShakeSlider.value = ctrl.cameraShakeIntensity.toString();
-  const camShakeIntensityValInput = document.getElementById('camShakeIntensityValInput') as HTMLInputElement | null;
-  if (camShakeIntensityValInput && document.activeElement !== camShakeIntensityValInput) {
-    camShakeIntensityValInput.value = ctrl.cameraShakeIntensity.toFixed(2);
-  }
-  if (camShakeVal) camShakeVal.textContent = `${Math.round(ctrl.cameraShakeIntensity * 100)}%`;
+  syncNumericControl('camShakeSlider', 'camShakeIntensityValInput', 'camShakeVal', ctrl.cameraShakeIntensity.toString(), ctrl.cameraShakeIntensity.toFixed(2), `${Math.round(ctrl.cameraShakeIntensity * 100)}%`);
 }
 
 // Camera Save & Reset buttons
@@ -1898,7 +1862,7 @@ function setupOverlayPanel(engine: RenderEngine): void {
       chip.addEventListener('click', () => {
         chips.forEach(c => c.classList.remove('active'));
         chip.classList.add('active');
-        const mode = (chip.getAttribute('data-value') || 'dark') as 'dark' | 'white' | 'custom';
+        const mode = ((chip as HTMLElement).dataset.value || 'dark') as 'dark' | 'white' | 'custom';
         engine.setCanvasBackground(mode);
       });
     });
@@ -2649,7 +2613,7 @@ function bindFxMainInput(
     if (Number.isNaN(numVal)) return;
     if (fx.id === 'camZoom') {
       if (numVal > 10) numVal = numVal / 100;
-      updateZoomReadout(numVal, true);
+      applyExtendedZoom(numVal);
       return;
     }
     numVal = Math.max(fx.min, Math.min(fx.max, numVal));
