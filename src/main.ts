@@ -1755,6 +1755,7 @@ interface FxControlDef {
   defaultVal: number;
   format: (v: number) => string;
   apply: (v: number) => void;
+  chipGroupId?: string;
 }
 
 const FX_CONTROLS: readonly FxControlDef[] = [
@@ -1766,6 +1767,7 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 3,
     step: 0.1,
     defaultVal: 1.2,
+    chipGroupId: 'bloomSegments',
     format: (v) => v.toFixed(1),
     apply: (v) => renderEngine.updateConfig({ bloomStrength: v })
   },
@@ -1777,6 +1779,7 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 0.95,
     step: 0.05,
     defaultVal: 0.0,
+    chipGroupId: 'persistSegments',
     format: (v) => v.toFixed(2),
     apply: (v) => renderEngine.updateConfig({ persistence: v })
   },
@@ -1843,6 +1846,7 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 12,
     step: 3,
     defaultVal: 0,
+    chipGroupId: 'kaleidoSegments',
     format: (v) => (v === 0 ? 'Off' : `${v}x`),
     apply: (v) => renderEngine.updateConfig({ kaleidoscope: v })
   },
@@ -1854,6 +1858,7 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 3,
     step: 1,
     defaultVal: 0,
+    chipGroupId: 'mirrorSegments',
     format: (v) => ['Off', 'Side', 'Flip', 'Quad'][Math.round(v)] || 'Off',
     apply: (v) => renderEngine.updateConfig({ mirror: v })
   },
@@ -1865,6 +1870,7 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 64,
     step: 16,
     defaultVal: 0,
+    chipGroupId: 'pixelSegments',
     format: (v) => (v === 0 ? 'Off' : `${v}px`),
     apply: (v) => renderEngine.updateConfig({ pixelize: v })
   },
@@ -1914,15 +1920,41 @@ const FX_CONTROLS: readonly FxControlDef[] = [
   }
 ];
 
+function updateChipsForFx(fx: FxControlDef, val: number): void {
+  if (!fx.chipGroupId) return;
+  const chips = document.querySelectorAll(`#${fx.chipGroupId} .opt-chip`);
+  chips.forEach(chip => {
+    const chipVal = Number.parseFloat((chip as HTMLElement).dataset.value || '0');
+    const tolerance = fx.step * 0.6 || 0.05;
+    const matches = Math.abs(chipVal - val) <= tolerance;
+    chip.classList.toggle('active', matches);
+  });
+}
+
 function bindFxSlider(fx: FxControlDef): void {
   const slider = document.getElementById(fx.sliderId) as HTMLInputElement | null;
   const valEl = document.getElementById(fx.valId);
   if (!slider) return;
 
+  if (fx.chipGroupId) {
+    const chips = document.querySelectorAll(`#${fx.chipGroupId} .opt-chip`);
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const chipVal = Number.parseFloat((chip as HTMLElement).dataset.value || '0');
+        slider.value = chipVal.toString();
+        if (valEl) valEl.textContent = fx.format(chipVal);
+        fx.apply(chipVal);
+        chips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+      });
+    });
+  }
+
   slider.addEventListener('input', () => {
     const numVal = Number.parseFloat(slider.value);
     if (valEl) valEl.textContent = fx.format(numVal);
     fx.apply(numVal);
+    updateChipsForFx(fx, numVal);
   });
 
   const row = document.querySelector(`.fx-control-row[data-fx-id="${fx.id}"]`);
@@ -1950,6 +1982,7 @@ function bindFxSlider(fx: FxControlDef): void {
       slider.value = clamped.toString();
       if (valEl) valEl.textContent = fx.format(clamped);
       fx.apply(clamped);
+      updateChipsForFx(fx, clamped);
     });
   }
 }
@@ -1971,6 +2004,7 @@ function setupFxControls(): void {
       if (slider) slider.value = clamped.toString();
       if (valEl) valEl.textContent = fx.format(clamped);
       fx.apply(clamped);
+      updateChipsForFx(fx, clamped);
     }
   });
 
@@ -1982,6 +2016,7 @@ function setupFxControls(): void {
       if (slider) slider.value = fx.defaultVal.toString();
       if (valEl) valEl.textContent = fx.format(fx.defaultVal);
       fx.apply(fx.defaultVal);
+      updateChipsForFx(fx, fx.defaultVal);
     }
   });
 }
