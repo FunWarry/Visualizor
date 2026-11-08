@@ -141,7 +141,7 @@ export class AudioEngine {
   private screenPassthroughGain: GainNode | null = null;
   public onScreenAudioEnded?: () => void;
   public currentTrackName = 'No track loaded';
-  public currentArtistName = 'Visuval Audio Engine';
+  public currentArtistName = 'Visualizor Audio Engine';
   public duration = 0;
   public currentTime = 0;
   public isPlaying = false;
@@ -477,7 +477,7 @@ export class AudioEngine {
     this.isDemoPlaying = true;
     this.isPlaying = true;
     this.currentTrackName = 'Cyber Pulse (Demo Synth)';
-    this.currentArtistName = 'Visuval Procedural Audio';
+    this.currentArtistName = 'Visualizor Procedural Audio';
 
     let step = 0;
     const scale = [130.81, 155.56, 174.61, 196.00, 233.08, 261.63, 311.13, 392.00];

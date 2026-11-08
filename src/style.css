@@ -484,9 +484,12 @@ body, html {
   pointer-events: none;
 }
 
-.is-collapsed,
+.is-collapsed {
+  display: none !important;
+}
+
 .preset-settings-link.is-collapsed {
-  display: none;
+  display: none !important;
 }
 
 /* Preset Fine-Tuning Drawer Styles */
@@ -1090,6 +1093,17 @@ body, html {
   border: 1px solid rgba(255, 255, 255, 0.2);
   flex-shrink: 0;
   cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.custom-swatch-preview:hover {
+  transform: scale(1.06);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
+}
+
+.custom-swatch-preview:active {
+  transform: scale(0.96);
 }
 
 .custom-hex-input {
@@ -1758,6 +1772,12 @@ body.ui-hidden .sidebar-pill,
 
 /* Mobile Viewports (<= 640px Width) */
 @media (max-width: 640px) {
+  .rail-btn--desktop-only {
+    display: none !important;
+  }
+  .rail-btn--mobile-only {
+    display: flex !important;
+  }
   .icon-rail .rail-group--desktop-only,
   .icon-rail .rail-btn--desktop-only {
     display: none;

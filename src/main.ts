@@ -32,7 +32,7 @@ const topUploadInput = document.getElementById('topUploadInput') as HTMLInputEle
 const queueFileInput = document.getElementById('queueFileInput') as HTMLInputElement;
 const micBtn = document.getElementById('micBtn') as HTMLButtonElement;
 const captureBtn = document.getElementById('captureBtn') as HTMLButtonElement;
-const ambientBtn = document.getElementById('ambientBtn') as HTMLButtonElement;
+const ambientBtn = document.getElementById('ambientBtn') as HTMLButtonElement | null;
 const fsBtn = document.getElementById('fsBtn') as HTMLButtonElement;
 const dockFsBtn = document.getElementById('dockFsBtn') as HTMLButtonElement;
 const dockQueueBtn = document.getElementById('dockQueueBtn') as HTMLButtonElement;
@@ -178,28 +178,153 @@ updateTuningButtonState(PRESETS[0]);
 renderTuningPanel(PRESETS[0]);
 
 // --- Canonical 4-Column Colors Panel (Matching Image 3) ---
+
+// Color HSL & Saturation Utilities
+function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return [0, 0, l];
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h = 0;
+  if (max === r) {
+    h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+  } else if (max === g) {
+    h = ((b - r) / d + 2) / 6;
+  } else {
+    h = ((r - g) / d + 4) / 6;
+  }
+  return [h, s, l];
+}
+
+function hueToRgbChannel(p: number, q: number, t: number): number {
+  let norm = t;
+  if (norm < 0) norm += 1;
+  if (norm > 1) norm -= 1;
+  if (norm < 1 / 6) return p + (q - p) * 6 * norm;
+  if (norm < 1 / 2) return q;
+  if (norm < 2 / 3) return p + (q - p) * (2 / 3 - norm) * 6;
+  return p;
+}
+
+function hslToRgbHex(h: number, s: number, l: number): string {
+  if (s === 0) {
+    const val = Math.round(l * 255).toString(16).padStart(2, '0');
+    return `#${val}${val}${val}`;
+  }
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const r = Math.round(hueToRgbChannel(p, q, h + 1 / 3) * 255);
+  const g = Math.round(hueToRgbChannel(p, q, h) * 255);
+  const b = Math.round(hueToRgbChannel(p, q, h - 1 / 3) * 255);
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
+export function adjustHexSaturation(hex: string, factor: number): string {
+  if (factor === 1 || !/^#[0-9A-Fa-f]{6}$/.test(hex)) return hex;
+  const r = Number.parseInt(hex.slice(1, 3), 16) / 255;
+  const g = Number.parseInt(hex.slice(3, 5), 16) / 255;
+  const b = Number.parseInt(hex.slice(5, 7), 16) / 255;
+  const [h, s, l] = rgbToHsl(r, g, b);
+  const newS = Math.max(0, Math.min(1, s * factor));
+  return hslToRgbHex(h, newS, l);
+}
+
+function applySaturationToTheme(theme: VisualizerTheme, factor: number): VisualizerTheme {
+  if (factor === 1) return theme;
+  return {
+    ...theme,
+    primary: adjustHexSaturation(theme.primary, factor),
+    secondary: theme.secondary ? adjustHexSaturation(theme.secondary, factor) : adjustHexSaturation(theme.primary, factor),
+    accent: theme.accent ? adjustHexSaturation(theme.accent, factor) : adjustHexSaturation(theme.primary, factor),
+    glow: theme.glow ? adjustHexSaturation(theme.glow, factor) : adjustHexSaturation(theme.primary, factor)
+  };
+}
+
+let currentBaseTheme: VisualizerTheme = renderEngine.currentTheme;
+let currentSaturationPercent = 50;
+
+let customMode: 'solid' | 'gradient' = 'solid';
+let customPrimaryHex = '#FF5C00';
+let customSecondaryHex = '#00D2FF';
+
+const customSolidBtn = document.getElementById('customSolidBtn');
+const customGradientBtn = document.getElementById('customGradientBtn');
+const customColorBox = document.getElementById('customColorBox');
+const customHexInput = document.getElementById('customHexInput') as HTMLInputElement | null;
+const eyeDropperBtn = document.getElementById('eyeDropperBtn');
+const hiddenNativeColorPicker = document.getElementById('hiddenNativeColorPicker') as HTMLInputElement | null;
+
+const customColorRow2 = document.getElementById('customColorRow2');
+const customColorBox2 = document.getElementById('customColorBox2');
+const customHexInput2 = document.getElementById('customHexInput2') as HTMLInputElement | null;
+const eyeDropperBtn2 = document.getElementById('eyeDropperBtn2');
+const hiddenNativeColorPicker2 = document.getElementById('hiddenNativeColorPicker2') as HTMLInputElement | null;
+
+const randomCustomColorBtn = document.getElementById('randomCustomColorBtn');
+const themeSaturationSlider = document.getElementById('themeSaturationSlider') as HTMLInputElement | null;
+const themeSaturationVal = document.getElementById('themeSaturationVal');
+
 function updateColorCalloutAndInputs(theme: VisualizerTheme): void {
   const calloutName = document.getElementById('themeCalloutName');
   if (calloutName) calloutName.textContent = theme.name;
 
-  const box = document.getElementById('customColorBox');
-  if (box) box.style.backgroundColor = theme.primary;
+  if (theme.id !== 'custom') {
+    customPrimaryHex = theme.primary;
+    customSecondaryHex = theme.secondary || theme.primary;
+  }
 
-  const hexInput = document.getElementById('customHexInput') as HTMLInputElement | null;
-  if (hexInput) hexInput.value = theme.primary.toUpperCase();
+  if (customColorBox) customColorBox.style.backgroundColor = customPrimaryHex;
+  if (customHexInput) customHexInput.value = customPrimaryHex.toUpperCase();
+  if (hiddenNativeColorPicker) hiddenNativeColorPicker.value = customPrimaryHex;
 
-  const satSlider = document.getElementById('themeSaturationSlider') as HTMLInputElement | null;
-  if (satSlider) {
-    satSlider.style.background = `linear-gradient(90deg, #666666, ${theme.primary})`;
+  if (customColorBox2) customColorBox2.style.backgroundColor = customSecondaryHex;
+  if (customHexInput2) customHexInput2.value = customSecondaryHex.toUpperCase();
+  if (hiddenNativeColorPicker2) hiddenNativeColorPicker2.value = customSecondaryHex;
+
+  if (themeSaturationSlider) {
+    themeSaturationSlider.style.background = `linear-gradient(90deg, #666666, ${theme.primary})`;
   }
 }
 
 function applyAppTheme(theme: VisualizerTheme): void {
-  renderEngine.setTheme(theme);
+  currentBaseTheme = theme;
+  const factor = currentSaturationPercent / 50.0;
+  const saturatedTheme = applySaturationToTheme(theme, factor);
+  renderEngine.setTheme(saturatedTheme);
+
   document.querySelectorAll('.theme-swatch-card').forEach(c => {
     c.classList.toggle('active', (c as HTMLElement).dataset.themeId === theme.id);
   });
   updateColorCalloutAndInputs(theme);
+}
+
+function applySaturationLevel(val: number): void {
+  currentSaturationPercent = Math.max(0, Math.min(100, val));
+  const factor = currentSaturationPercent / 50.0;
+  if (themeSaturationVal) themeSaturationVal.textContent = `${currentSaturationPercent}%`;
+
+  const saturatedTheme = applySaturationToTheme(currentBaseTheme, factor);
+  renderEngine.setTheme(saturatedTheme);
+
+  if (themeSaturationSlider) {
+    themeSaturationSlider.style.background = `linear-gradient(90deg, #666666, ${currentBaseTheme.primary})`;
+  }
+}
+
+function applyCustomTheme(): void {
+  const isGrad = customMode === 'gradient';
+  const customTheme: VisualizerTheme = {
+    id: 'custom',
+    name: isGrad ? 'Custom Gradient' : 'Custom Solid',
+    primary: customPrimaryHex,
+    secondary: isGrad ? customSecondaryHex : customPrimaryHex,
+    accent: isGrad ? customSecondaryHex : customPrimaryHex,
+    background: '#0a0a0c',
+    glow: customPrimaryHex
+  };
+  applyAppTheme(customTheme);
 }
 
 function createThemeSwatchCard(
@@ -265,77 +390,128 @@ randomThemeBtn?.addEventListener('click', () => {
   applyAppTheme(randTheme);
 });
 
-// Saturation Slider
-const themeSaturationSlider = document.getElementById('themeSaturationSlider') as HTMLInputElement | null;
-const themeSaturationVal = document.getElementById('themeSaturationVal');
-themeSaturationSlider?.addEventListener('input', () => {
-  const val = Number.parseInt(themeSaturationSlider.value, 10);
-  if (themeSaturationVal) themeSaturationVal.textContent = `${val}%`;
+// Swatch squares open native color picker on click
+customColorBox?.addEventListener('click', () => {
+  hiddenNativeColorPicker?.click();
+});
+customColorBox2?.addEventListener('click', () => {
+  hiddenNativeColorPicker2?.click();
 });
 
-// Custom Color Controls
-const customHexInput = document.getElementById('customHexInput') as HTMLInputElement | null;
-const eyeDropperBtn = document.getElementById('eyeDropperBtn');
-const hiddenNativeColorPicker = document.getElementById('hiddenNativeColorPicker') as HTMLInputElement | null;
-const randomCustomColorBtn = document.getElementById('randomCustomColorBtn');
+// Color inputs
+hiddenNativeColorPicker?.addEventListener('input', () => {
+  if (hiddenNativeColorPicker.value) {
+    customPrimaryHex = hiddenNativeColorPicker.value;
+    if (customColorBox) customColorBox.style.backgroundColor = customPrimaryHex;
+    if (customHexInput) customHexInput.value = customPrimaryHex.toUpperCase();
+    applyCustomTheme();
+  }
+});
 
-function applyCustomColor(hex: string): void {
-  if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) return;
-  const customTheme: VisualizerTheme = {
-    id: 'custom',
-    name: 'Custom',
-    primary: hex,
-    secondary: hex,
-    accent: hex,
-    background: '#0a0a0c',
-    glow: hex
-  };
-  applyAppTheme(customTheme);
-}
+hiddenNativeColorPicker2?.addEventListener('input', () => {
+  if (hiddenNativeColorPicker2.value) {
+    customSecondaryHex = hiddenNativeColorPicker2.value;
+    if (customColorBox2) customColorBox2.style.backgroundColor = customSecondaryHex;
+    if (customHexInput2) customHexInput2.value = customSecondaryHex.toUpperCase();
+    applyCustomTheme();
+  }
+});
 
 customHexInput?.addEventListener('change', () => {
   let val = customHexInput.value.trim();
   if (!val.startsWith('#')) val = '#' + val;
-  applyCustomColor(val);
+  if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+    customPrimaryHex = val;
+    if (customColorBox) customColorBox.style.backgroundColor = val;
+    if (hiddenNativeColorPicker) hiddenNativeColorPicker.value = val;
+    applyCustomTheme();
+  }
 });
 
-eyeDropperBtn?.addEventListener('click', async () => {
+customHexInput2?.addEventListener('change', () => {
+  let val = customHexInput2.value.trim();
+  if (!val.startsWith('#')) val = '#' + val;
+  if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+    customSecondaryHex = val;
+    if (customColorBox2) customColorBox2.style.backgroundColor = val;
+    if (hiddenNativeColorPicker2) hiddenNativeColorPicker2.value = val;
+    applyCustomTheme();
+  }
+});
+
+async function pickEyedropperColor(onPicked: (hex: string) => void, fallbackInput: HTMLInputElement | null) {
   const win = window as unknown as { EyeDropper?: new () => { open: () => Promise<{ sRGBHex: string }> } };
   if (win.EyeDropper) {
     try {
       const dropper = new win.EyeDropper();
       const res = await dropper.open();
-      if (res?.sRGBHex) {
-        applyCustomColor(res.sRGBHex);
-      }
+      if (res?.sRGBHex) onPicked(res.sRGBHex);
     } catch {
-      // User cancelled dropper
+      // User cancelled
     }
-  } else if (hiddenNativeColorPicker) {
-    hiddenNativeColorPicker.click();
+  } else if (fallbackInput) {
+    fallbackInput.click();
   }
+}
+
+eyeDropperBtn?.addEventListener('click', () => {
+  void pickEyedropperColor((hex) => {
+    customPrimaryHex = hex;
+    if (customColorBox) customColorBox.style.backgroundColor = hex;
+    if (customHexInput) customHexInput.value = hex.toUpperCase();
+    if (hiddenNativeColorPicker) hiddenNativeColorPicker.value = hex;
+    applyCustomTheme();
+  }, hiddenNativeColorPicker);
 });
 
-hiddenNativeColorPicker?.addEventListener('input', () => {
-  if (hiddenNativeColorPicker.value) {
-    applyCustomColor(hiddenNativeColorPicker.value);
-  }
+eyeDropperBtn2?.addEventListener('click', () => {
+  void pickEyedropperColor((hex) => {
+    customSecondaryHex = hex;
+    if (customColorBox2) customColorBox2.style.backgroundColor = hex;
+    if (customHexInput2) customHexInput2.value = hex.toUpperCase();
+    if (hiddenNativeColorPicker2) hiddenNativeColorPicker2.value = hex;
+    applyCustomTheme();
+  }, hiddenNativeColorPicker2);
 });
+
+function getRandomHex(): string {
+  return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+}
 
 randomCustomColorBtn?.addEventListener('click', () => {
-  const randHex = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
-  applyCustomColor(randHex);
+  customPrimaryHex = getRandomHex();
+  if (customColorBox) customColorBox.style.backgroundColor = customPrimaryHex;
+  if (customHexInput) customHexInput.value = customPrimaryHex.toUpperCase();
+  if (hiddenNativeColorPicker) hiddenNativeColorPicker.value = customPrimaryHex;
+
+  if (customMode === 'gradient') {
+    customSecondaryHex = getRandomHex();
+    if (customColorBox2) customColorBox2.style.backgroundColor = customSecondaryHex;
+    if (customHexInput2) customHexInput2.value = customSecondaryHex.toUpperCase();
+    if (hiddenNativeColorPicker2) hiddenNativeColorPicker2.value = customSecondaryHex;
+  }
+  applyCustomTheme();
 });
 
-const customSolidBtn = document.getElementById('customSolidBtn');
-const customGradientBtn = document.getElementById('customGradientBtn');
 customSolidBtn?.addEventListener('click', () => {
+  customMode = 'solid';
   customSolidBtn.classList.add('active');
   customGradientBtn?.classList.remove('active');
+  if (customColorRow2) customColorRow2.style.display = 'none';
+  applyCustomTheme();
 });
+
 customGradientBtn?.addEventListener('click', () => {
+  customMode = 'gradient';
   customGradientBtn.classList.add('active');
   customSolidBtn?.classList.remove('active');
+  if (customColorRow2) customColorRow2.style.display = 'flex';
+  applyCustomTheme();
+});
+
+themeSaturationSlider?.addEventListener('input', () => {
+  const val = Number.parseInt(themeSaturationSlider.value, 10);
+  applySaturationLevel(val);
 });
 
 const ARIA_SELECTED = 'aria-selected';
@@ -1457,8 +1633,10 @@ const MIDI_DISPATCH_TABLE: Record<string, (value: number) => void> = {
   volume: (value) => MIDI_DISPATCH_TABLE.audioVolume(value),
 
   colorSaturation: (value) => {
-    renderEngine.updateConfig({ chromaticAberration: value });
-    updateSliderUi(chromaSlider, value.toFixed(2), 'chromaVal', value.toFixed(2));
+    const percent = Math.round(value * 100);
+    const satSlider = document.getElementById('themeSaturationSlider') as HTMLInputElement | null;
+    if (satSlider) satSlider.value = String(percent);
+    applySaturationLevel(percent);
   },
   saturation: (value) => MIDI_DISPATCH_TABLE.colorSaturation(value),
 
@@ -1970,7 +2148,7 @@ refreshSavedRecipesUI();
 syncStudioUIFromActiveRecipe();
 
 // Zen / Ambient Mode
-ambientBtn.addEventListener('click', () => {
+ambientBtn?.addEventListener('click', () => {
   document.body.classList.toggle(AMBIENT_MODE_CLASS);
 });
 
@@ -1990,7 +2168,7 @@ captureBtn.addEventListener('click', () => {
   const activeCanvas = milkdropEngine.isActive ? milkdropCanvas : canvas;
   const dataUrl = activeCanvas.toDataURL('image/png');
   const link = document.createElement('a');
-  link.download = `visuval-${activePresetId}-${Date.now()}.png`;
+  link.download = `visualizor-${activePresetId}-${Date.now()}.png`;
   link.href = dataUrl;
   link.click();
 });
@@ -2100,7 +2278,7 @@ startExportAction.addEventListener('click', () => {
 
         const ext = getExportExtension(format);
         const link = document.createElement('a');
-        link.download = `visuval-batch-${ratio.replace(':', 'x')}-${Date.now()}.${ext}`;
+        link.download = `visualizor-batch-${ratio.replace(':', 'x')}-${Date.now()}.${ext}`;
         link.href = downloadUrl;
         link.click();
       }
@@ -2122,7 +2300,7 @@ startExportAction.addEventListener('click', () => {
 
         const ext = getExportExtension(format);
         const link = document.createElement('a');
-        link.download = `visuval-${activePresetId}-${ratio.replace(':', 'x')}-${Date.now()}.${ext}`;
+        link.download = `visualizor-${activePresetId}-${ratio.replace(':', 'x')}-${Date.now()}.${ext}`;
         link.href = downloadUrl;
         link.click();
       }

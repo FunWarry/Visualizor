@@ -105,7 +105,7 @@ export class TextOverlayEngine {
 
     this.watermarkConfig = {
       enabled: false,
-      text: 'VISUVAL',
+      text: 'VISUALIZOR',
       anchor: 'bottom-right',
       fontSize: 14,
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
