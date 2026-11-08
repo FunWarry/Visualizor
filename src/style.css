@@ -515,6 +515,158 @@ body, html {
   color: #fff;
 }
 
+.tuning-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 8px;
+}
+
+.tuning-lock-btn {
+  font-size: 11px;
+  padding: 4px 10px;
+  gap: 5px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.15s ease;
+}
+
+.tuning-lock-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.tuning-lock-btn.locked {
+  background: rgba(255, 92, 0, 0.18);
+  border-color: rgba(255, 92, 0, 0.6);
+  color: #ffaa66;
+  font-weight: 600;
+}
+
+.tuning-saved-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+.tuning-param-lock-btn {
+  background: transparent;
+  border: none;
+  padding: 2px;
+  color: var(--text-muted);
+  opacity: 0.45;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: opacity 0.15s, color 0.15s, transform 0.15s;
+}
+
+.tuning-param-lock-btn:hover {
+  opacity: 1;
+  color: #fff;
+  transform: scale(1.1);
+}
+
+.tuning-param-lock-btn.locked {
+  opacity: 1;
+  color: #ff7722;
+}
+
+.tuning-random-card {
+  margin-top: 18px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+}
+
+.tuning-random-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.tuning-random-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.tuning-range-labels {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.tuning-range-readout {
+  color: var(--primary);
+  font-weight: 600;
+  font-family: monospace;
+}
+
+.tuning-bounds-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.tuning-bound-slider {
+  flex: 1;
+}
+
+.tuning-auto-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.tuning-auto-toggle-row:hover {
+  color: var(--text-main);
+}
+
+.tuning-actions-wrap {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tuning-save-btn {
+  font-size: 11px;
+  padding: 5px 12px;
+  gap: 5px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.tuning-save-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
 /* Slide-out Drawer Panel */
 .drawer-panel, .detail-panel {
   position: absolute;
@@ -831,6 +983,44 @@ body, html {
 
 .preset-fav-btn.active {
   color: #ff5c00;
+}
+
+.preset-card-lock-btn {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease, color 0.15s ease;
+  z-index: 2;
+}
+
+.preset-card-3:hover .preset-card-lock-btn {
+  opacity: 0.6;
+}
+
+.preset-card-lock-btn:hover {
+  transform: scale(1.15);
+  opacity: 1 !important;
+  color: #ffaa66;
+}
+
+.preset-card-lock-btn.active {
+  opacity: 1 !important;
+  color: #ffaa66;
+}
+
+.preset-custom-dot {
+  color: #22c55e;
+  font-size: 8px;
+  vertical-align: middle;
+  margin-left: 2px;
 }
 
 /* Responsive Grid Detents */

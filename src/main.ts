@@ -18,6 +18,14 @@ import {
 } from './studio/types';
 import { VisualizerTheme, ExportSettings, VisualizerPreset } from './types';
 import { renderTuningPanel, updateTuningButtonState as syncTuningButtonState } from './tuning/TuningPanel';
+import {
+  applySavedTuning,
+  isPresetLocked,
+  setPresetLocked,
+  isAutoRandomizeEnabled,
+  randomizePreset,
+  hasSavedTuning
+} from './tuning/PresetTuningManager';
 import { TextAnchor, TextAnimationMode } from './overlay/types';
 import { MidiManager, initMidiPanel } from './midi';
 
@@ -174,6 +182,7 @@ function initMilkdropIfNeeded() {
 }
 
 // Set initial 3D preset
+applySavedTuning(PRESETS[0]);
 renderEngine.setPreset(PRESETS[0]);
 updateTuningButtonState(PRESETS[0]);
 renderTuningPanel(PRESETS[0]);
@@ -586,6 +595,50 @@ export function updatePresetCategoryTabCounters(): void {
   }
 }
 
+function createPresetCard(p: VisualizerPreset): HTMLElement {
+  const isFav = favoritePresets.has(p.id);
+  const isLocked = isPresetLocked(p.id);
+  const hasCustom = hasSavedTuning(p.id);
+  const isActive = !milkdropEngine.isActive && activePresetId === p.id;
+
+  const card = document.createElement('div');
+  card.className = `preset-card-3 ${isActive ? 'active' : ''}`;
+  card.dataset.presetId = p.id;
+  card.dataset.category = p.category;
+  card.setAttribute('role', 'button');
+  card.setAttribute('tabindex', '0');
+  card.innerHTML = `
+    <span class="preset-active-indicator" title="Active"></span>
+    <button class="preset-card-lock-btn ${isLocked ? 'active' : ''}" aria-label="Lock preset" title="${isLocked ? 'Locked (Click to unlock)' : 'Lock preset'}">${isLocked ? '🔒' : '🔓'}</button>
+    <button class="preset-fav-btn ${isFav ? 'active' : ''}" aria-label="Favorite preset" title="Favorite">★</button>
+    <div class="preset-thumb-visual">${getPresetThumbnailSvg(p)}</div>
+    <div class="preset-card-info">
+      <div class="preset-badge-name" title="${p.name}">${p.name} ${hasCustom ? '<span class="preset-custom-dot" title="Custom tuning saved">●</span>' : ''}</div>
+      <span class="preset-cat-badge">${p.category}</span>
+    </div>
+  `;
+
+  card.querySelector('.preset-card-lock-btn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    setPresetLocked(p.id, !isLocked);
+    renderPresetsCatalog();
+    if (activePresetId === p.id) {
+      renderTuningPanel(p);
+    }
+  });
+
+  card.querySelector('.preset-fav-btn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleFavorite(p.id);
+  });
+
+  card.addEventListener('click', () => {
+    select3DPreset(p);
+  });
+
+  return card;
+}
+
 function renderCategoryPresets(cat: typeof CATEGORIES[0], q: string): void {
   let catPresets = PRESETS.filter(p => p.category === cat.key);
   if (q) {
@@ -610,35 +663,7 @@ function renderCategoryPresets(cat: typeof CATEGORIES[0], q: string): void {
   grid.className = 'cards-grid-3';
 
   for (const p of catPresets) {
-    const isFav = favoritePresets.has(p.id);
-    const isActive = !milkdropEngine.isActive && activePresetId === p.id;
-
-    const card = document.createElement('div');
-    card.className = `preset-card-3 ${isActive ? 'active' : ''}`;
-    card.dataset.presetId = p.id;
-    card.dataset.category = p.category;
-    card.setAttribute('role', 'button');
-    card.setAttribute('tabindex', '0');
-    card.innerHTML = `
-      <span class="preset-active-indicator" title="Active"></span>
-      <button class="preset-fav-btn ${isFav ? 'active' : ''}" aria-label="Favorite preset" title="Favorite">★</button>
-      <div class="preset-thumb-visual">${getPresetThumbnailSvg(p)}</div>
-      <div class="preset-card-info">
-        <div class="preset-badge-name" title="${p.name}">${p.name}</div>
-        <span class="preset-cat-badge">${p.category}</span>
-      </div>
-    `;
-
-    card.querySelector('.preset-fav-btn')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      toggleFavorite(p.id);
-    });
-
-    card.addEventListener('click', () => {
-      select3DPreset(p);
-    });
-
-    grid.appendChild(card);
+    grid.appendChild(createPresetCard(p));
   }
 
   presetsCatalogView.appendChild(grid);
@@ -727,6 +752,7 @@ function select3DPreset(p: VisualizerPreset) {
   milkdropEngine.setActive(false);
   canvas.style.display = 'block';
   activePresetId = p.id;
+  applySavedTuning(p);
   renderEngine.setPreset(p);
   updateTuningButtonState(p);
   renderTuningPanel(p);
@@ -799,14 +825,36 @@ autoCycleBtn.addEventListener('click', () => {
 });
 
 function pickRandomPreset() {
+  // If active 3D preset is locked, do not switch away to another preset!
+  if (!milkdropEngine.isActive && activePresetId && isPresetLocked(activePresetId)) {
+    if (isAutoRandomizeEnabled()) {
+      const activePreset = PRESETS.find(p => p.id === activePresetId);
+      if (activePreset) {
+        randomizePreset(activePreset);
+        renderTuningPanel(activePreset);
+      }
+    }
+    return;
+  }
+
   const chooseMilkdrop = Math.random() > 0.5 && milkdropEngine.presetNames.length > 0;
   if (chooseMilkdrop) {
     milkdropEngine.loadRandomPreset(2.5);
     canvas.style.display = 'none';
     milkdropEngine.setActive(true);
+    updateTuningButtonState(null);
+    renderTuningPanel(null);
   } else {
-    const randomIdx = Math.floor(Math.random() * PRESETS.length);
-    select3DPreset(PRESETS[randomIdx]);
+    const unlockedPresets = PRESETS.filter(p => !isPresetLocked(p.id));
+    const pool = unlockedPresets.length > 0 ? unlockedPresets : PRESETS;
+    const randomIdx = Math.floor(Math.random() * pool.length);
+    const chosen = pool[randomIdx];
+
+    if (isAutoRandomizeEnabled()) {
+      randomizePreset(chosen);
+    }
+
+    select3DPreset(chosen);
   }
   renderPresetsCatalog();
 }
