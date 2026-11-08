@@ -51,7 +51,7 @@ export class FerrofluidPreset extends BasePreset {
 
   protected setup(ctx: PresetContext): void {
     // 1. Children[0]: Main ferrofluid sphere (72x72 = 5329 vertices > 5000 required by test)
-    this.geometry = new THREE.SphereGeometry(2.4, 72, 72);
+    this.geometry = new THREE.SphereGeometry(4.8, 72, 72);
     const pos = this.geometry.attributes.position.array as Float32Array;
     this.numVertices = pos.length / 3;
     this.basePositions = new Float32Array(pos);
@@ -68,13 +68,13 @@ export class FerrofluidPreset extends BasePreset {
     }
 
     this.material = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color(ctx.theme.background).offsetHSL(0, 0, 0.03),
+      color: new THREE.Color(ctx.theme.primary).multiplyScalar(0.7),
       emissive: new THREE.Color(ctx.theme.primary),
-      emissiveIntensity: 0.25,
-      roughness: 0.06,
-      metalness: 0.98,
+      emissiveIntensity: 0.35,
+      roughness: 0.15,
+      metalness: 0.35,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.05
+      clearcoatRoughness: 0.08
     });
 
     this.mesh = new THREE.Mesh(this.geometry, this.material);
@@ -135,7 +135,7 @@ export class FerrofluidPreset extends BasePreset {
 
     this.basePlane = new THREE.Mesh(planeGeom, this.basePlaneMaterial);
     this.basePlane.rotation.x = -Math.PI / 2;
-    this.basePlane.position.y = -6;
+    this.basePlane.position.y = -7.0;
     this.group.add(this.basePlane);
   }
 
@@ -148,13 +148,13 @@ export class FerrofluidPreset extends BasePreset {
     for (let i = 0; i < NUM_PARTICLES; i++) {
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
-      const radius = 10 + Math.random() * 20;
+      const radius = 12 + Math.random() * 25;
 
       positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 22;
       positions[i * 3 + 2] = radius * Math.sin(phi) * Math.sin(theta);
 
-      sizes[i] = 0.5 + Math.random() * 2.0;
+      sizes[i] = 1.2 + Math.random() * 2.5;
       randoms[i] = Math.random();
     }
 
@@ -228,11 +228,14 @@ export class FerrofluidPreset extends BasePreset {
     this.deformSphere(time, speed, reactivity, deformation, density);
     this.updateFloorAndParticles(time, audio);
 
+    const baseEmissive = 0.35 * reactivity;
+    const beatEmissive = audio.beat ? 0.65 * reactivity : (this.smoothBass * 0.35 * reactivity);
+    this.material.emissiveIntensity = baseEmissive + beatEmissive;
+
     if (audio.beat) {
       this.material.emissive.set(ctx.theme.accent);
-      this.material.emissiveIntensity = 0.98 * reactivity;
     } else {
-      this.material.emissiveIntensity *= 0.93;
+      this.material.emissive.lerp(new THREE.Color(ctx.theme.primary), 0.08);
     }
   }
 
@@ -313,6 +316,7 @@ export class FerrofluidPreset extends BasePreset {
   }
 
   public override onThemeChange(theme: VisualizerTheme): void {
+    this.material.color.set(theme.primary).multiplyScalar(0.7);
     this.material.emissive.set(theme.primary);
     if (this.basePlaneMaterial) {
       this.basePlaneMaterial.uniforms.uColor1.value.set(theme.primary);

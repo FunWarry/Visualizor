@@ -44,11 +44,11 @@ export class FacePreset extends BasePreset {
     geom.computeVertexNormals();
 
     this.material = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(ctx.theme.background).offsetHSL(0, 0, 0.04),
+      color: new THREE.Color(ctx.theme.primary).multiplyScalar(0.4),
       emissive: new THREE.Color(ctx.theme.primary),
       emissiveIntensity: 0.45,
-      roughness: 0.15,
-      metalness: 0.95
+      roughness: 0.25,
+      metalness: 0.4
     });
 
     this.wireMaterial = new THREE.LineBasicMaterial({
@@ -140,6 +140,7 @@ export class FacePreset extends BasePreset {
   }
 
   public override onThemeChange(theme: VisualizerTheme): void {
+    this.material.color.set(theme.primary).multiplyScalar(0.4);
     this.material.emissive.set(theme.primary);
     this.wireMaterial.color.set(theme.accent);
   }

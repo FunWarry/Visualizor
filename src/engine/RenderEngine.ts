@@ -403,6 +403,10 @@ export class RenderEngine {
     dirLight.position.set(5, 10, 7);
     this.scene.add(dirLight);
 
+    const rimLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    rimLight.position.set(-6, -5, -6);
+    this.scene.add(rimLight);
+
     // Initialize animated text overlay engine (Ticket #43)
     this.textOverlay = new TextOverlayEngine(width, height, this.renderer.getPixelRatio());
 

@@ -66,20 +66,21 @@ export class ObsidianPolyPreset extends BasePreset {
 
   protected setup(ctx: PresetContext): void {
     // 1. Children[0]: Main faceted obsidian polyhedron
-    const geometry = new THREE.IcosahedronGeometry(3.0, 3);
+    const geometry = new THREE.IcosahedronGeometry(4.8, 3);
     const pos = geometry.attributes.position.array as Float32Array;
     const norm = geometry.attributes.normal.array as Float32Array;
     this.basePositions = new Float32Array(pos);
     this.baseNormals = new Float32Array(norm);
 
     this.material = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color(ctx.theme.background).offsetHSL(0, 0, 0.04),
+      color: new THREE.Color(ctx.theme.primary).lerp(new THREE.Color('#1c1c28'), 0.4),
       emissive: new THREE.Color(ctx.theme.primary),
-      emissiveIntensity: 0.25,
-      roughness: 0.08,
-      metalness: 0.95,
+      emissiveIntensity: 0.35,
+      roughness: 0.12,
+      metalness: 0.35,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.08
+      clearcoatRoughness: 0.08,
+      flatShading: true
     });
 
     this.mesh = new THREE.Mesh(geometry, this.material);
@@ -91,33 +92,35 @@ export class ObsidianPolyPreset extends BasePreset {
     // 3. Children[2]: Stardust particles
     this.setupParticles(ctx);
 
-    // 4. Children[3]: Aurora nebula background quad
+    // 4. Children[3]: Aurora nebula background dome
     this.setupNebula(ctx);
   }
 
   private setupShards(ctx: PresetContext): void {
     const shardGeom = new THREE.IcosahedronGeometry(1.0, 0);
     this.shardMaterial = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color(ctx.theme.background).offsetHSL(0, 0, 0.05),
+      color: new THREE.Color(ctx.theme.secondary),
       emissive: new THREE.Color(ctx.theme.secondary),
-      emissiveIntensity: 0.3,
-      roughness: 0.1,
-      metalness: 0.9,
+      emissiveIntensity: 0.5,
+      roughness: 0.15,
+      metalness: 0.3,
       clearcoat: 1.0,
+      clearcoatRoughness: 0.1,
+      flatShading: true,
       transparent: true,
-      opacity: 0.85
+      opacity: 0.9
     });
 
     this.shardMesh = new THREE.InstancedMesh(shardGeom, this.shardMaterial, NUM_SHARDS);
     this.shardData = [];
 
     for (let i = 0; i < NUM_SHARDS; i++) {
-      const radius = 5.0 + Math.random() * 4.0;
+      const radius = 7.5 + Math.random() * 5.0;
       const speed = 0.08 + Math.random() * 0.3;
       const height = (Math.random() - 0.4) * 6.0;
       const phase = Math.random() * Math.PI * 2;
       const tilt = (Math.random() - 0.5) * 0.6;
-      const size = 0.15 + Math.random() * 0.35;
+      const size = 0.25 + Math.random() * 0.45;
       const tumbleSpeed = 0.8 + Math.random() * 2.5;
       const tumbleAxis = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
       const bobSpeed = 0.2 + Math.random() * 0.6;
@@ -224,7 +227,7 @@ export class ObsidianPolyPreset extends BasePreset {
   }
 
   private setupNebula(ctx: PresetContext): void {
-    const geom = new THREE.PlaneGeometry(60, 40);
+    const geom = new THREE.SphereGeometry(60, 32, 32);
     this.nebulaMaterial = new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
@@ -234,9 +237,9 @@ export class ObsidianPolyPreset extends BasePreset {
         uBass: { value: 0 }
       },
       vertexShader: `
-        varying vec2 vUv;
+        varying vec3 vWorldDir;
         void main() {
-          vUv = uv;
+          vWorldDir = normalize(position);
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `,
@@ -246,46 +249,58 @@ export class ObsidianPolyPreset extends BasePreset {
         uniform vec3 uColor2;
         uniform float uAudio;
         uniform float uBass;
-        varying vec2 vUv;
+        varying vec3 vWorldDir;
 
-        float hash2(vec2 p) {
-          return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+        float hash3(vec3 p) {
+          p = fract(p * vec3(443.897, 441.423, 437.195));
+          p += dot(p, p.yzx + 19.19);
+          return fract((p.x + p.y) * p.z);
         }
-        float noise2(vec2 p) {
-          vec2 i = floor(p);
-          vec2 f = fract(p);
-          vec2 u = f * f * (3.0 - 2.0 * f);
-          return mix(mix(hash2(i + vec2(0,0)), hash2(i + vec2(1,0)), u.x),
-                     mix(hash2(i + vec2(0,1)), hash2(i + vec2(1,1)), u.x), u.y);
+        float noise3(vec3 p) {
+          vec3 i = floor(p);
+          vec3 f = fract(p);
+          vec3 u = f * f * (3.0 - 2.0 * f);
+          return mix(
+            mix(mix(hash3(i), hash3(i + vec3(1.0, 0.0, 0.0)), u.x),
+                mix(hash3(i + vec3(0.0, 1.0, 0.0)), hash3(i + vec3(1.0, 1.0, 0.0)), u.x), u.y),
+            mix(mix(hash3(i + vec3(0.0, 0.0, 1.0)), hash3(i + vec3(1.0, 0.0, 1.0)), u.x),
+                mix(hash3(i + vec3(0.0, 1.0, 1.0)), hash3(i + vec3(1.0, 1.0, 1.0)), u.x), u.y),
+            u.z
+          );
         }
-        float fbm2(vec2 p) {
+        float fbm3(vec3 p) {
           float v = 0.0;
           float a = 0.5;
           for (int i = 0; i < 4; i++) {
-            v += a * noise2(p);
-            p = p * 2.0 + vec2(1.3, 2.7);
+            v += a * noise3(p);
+            p = p * 2.0 + vec3(1.3, 2.7, 1.9);
             a *= 0.5;
           }
           return v;
         }
 
         void main() {
-          vec2 uv = vUv * 2.0 - 1.0;
-          float t = uTime * 0.08;
-          float n1 = fbm2(uv * 3.0 + vec2(t, t * 0.7));
-          float n2 = fbm2(uv * 2.0 - vec2(t * 0.5, t * 1.2));
+          vec3 dir = normalize(vWorldDir);
+          float t = uTime * 0.06;
+          vec3 p1 = dir * 3.0 + vec3(t, t * 0.7, t * 0.3);
+          vec3 p2 = dir * 2.0 - vec3(t * 0.5, t * 1.2, t * 0.4);
+          float n1 = fbm3(p1);
+          float n2 = fbm3(p2);
           float aurora = smoothstep(0.3, 0.7, n1) * smoothstep(0.2, 0.6, n2);
           vec3 col = mix(uColor1 * (0.6 + uBass * 0.4), uColor2 * (0.6 + uAudio * 0.4), n1) * aurora;
-          float alpha = aurora * (0.15 + uAudio * 0.25);
+          float streaks = pow(abs(sin(dir.y * 20.0 + n1 * 5.0 + uTime * 0.2)), 8.0);
+          col += mix(uColor1, uColor2, 0.5) * streaks * 0.15;
+          float alpha = (0.2 + uAudio * 0.3) * aurora;
           gl_FragColor = vec4(col, alpha);
         }
       `,
+      side: THREE.BackSide,
       transparent: true,
       depthWrite: false
     });
 
     this.nebula = new THREE.Mesh(geom, this.nebulaMaterial);
-    this.nebula.position.z = -20;
+    this.nebula.renderOrder = -1;
     this.group.add(this.nebula);
   }
 
@@ -300,11 +315,14 @@ export class ObsidianPolyPreset extends BasePreset {
     this.updateParticles(audio, time);
     this.updateNebula(audio, time);
 
+    const baseEmissive = 0.35 * reactivity;
+    const beatEmissive = audio.beat ? 0.65 * reactivity : (this.smoothBass * 0.35 * reactivity);
+    this.material.emissiveIntensity = baseEmissive + beatEmissive;
+
     if (audio.beat) {
       this.material.emissive.set(ctx.theme.accent);
-      this.material.emissiveIntensity = 0.95 * reactivity;
     } else {
-      this.material.emissiveIntensity *= 0.92;
+      this.material.emissive.lerp(new THREE.Color(ctx.theme.primary), 0.08);
     }
   }
 
@@ -404,8 +422,12 @@ export class ObsidianPolyPreset extends BasePreset {
   }
 
   public override onThemeChange(theme: VisualizerTheme): void {
+    this.material.color.set(theme.primary).lerp(new THREE.Color('#1c1c28'), 0.4);
     this.material.emissive.set(theme.primary);
-    if (this.shardMaterial) this.shardMaterial.emissive.set(theme.secondary);
+    if (this.shardMaterial) {
+      this.shardMaterial.color.set(theme.secondary);
+      this.shardMaterial.emissive.set(theme.secondary);
+    }
     if (this.particleMaterial) {
       this.particleMaterial.uniforms.uColor1.value.set(theme.primary);
       this.particleMaterial.uniforms.uColor2.value.set(theme.secondary);
