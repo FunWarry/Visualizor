@@ -1920,7 +1920,7 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 1,
     step: 0.05,
     defaultVal: 0.0,
-    panel: 'camera',
+    panel: 'fx',
     format: (v) => v.toFixed(1),
     apply: (v) => renderEngine.updateConfig({ scanlines: v })
   },
@@ -1932,7 +1932,7 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 1,
     step: 0.05,
     defaultVal: 0.0,
-    panel: 'camera',
+    panel: 'fx',
     format: (v) => v.toFixed(2),
     apply: (v) => renderEngine.updateConfig({ phosphor: v })
   },
@@ -1944,7 +1944,7 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 0.3,
     step: 0.02,
     defaultVal: 0.0,
-    panel: 'camera',
+    panel: 'fx',
     format: (v) => v.toFixed(2),
     apply: (v) => renderEngine.updateConfig({ crtBend: v })
   },
@@ -1956,7 +1956,7 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 0.5,
     step: 0.02,
     defaultVal: 0.0,
-    panel: 'camera',
+    panel: 'fx',
     format: (v) => v.toFixed(2),
     apply: (v) => renderEngine.updateConfig({ filmGrain: v })
   },
@@ -1968,7 +1968,7 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 1,
     step: 0.05,
     defaultVal: 0.0,
-    panel: 'camera',
+    panel: 'fx',
     format: (v) => v.toFixed(2),
     apply: (v) => renderEngine.updateConfig({ vignette: v })
   },
@@ -1980,7 +1980,7 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 1,
     step: 0.05,
     defaultVal: 0.0,
-    panel: 'camera',
+    panel: 'fx',
     format: (v) => v.toFixed(2),
     apply: (v) => renderEngine.updateConfig({ chromaticAberration: v })
   },
@@ -1992,7 +1992,7 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 1,
     step: 0.05,
     defaultVal: 0.0,
-    panel: 'camera',
+    panel: 'fx',
     format: (v) => v.toFixed(2),
     apply: (v) => renderEngine.updateConfig({ drip: v })
   },
@@ -2004,7 +2004,7 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 1,
     step: 0.05,
     defaultVal: 0.0,
-    panel: 'camera',
+    panel: 'fx',
     format: (v) => v.toFixed(2),
     apply: (v) => renderEngine.updateConfig({ edgeDetect: v })
   },
@@ -2016,7 +2016,7 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 12,
     step: 3,
     defaultVal: 0,
-    panel: 'camera',
+    panel: 'fx',
     chipGroupId: 'kaleidoSegments',
     format: (v) => (v === 0 ? 'Off' : `${v}x`),
     apply: (v) => renderEngine.updateConfig({ kaleidoscope: v })
@@ -2029,7 +2029,7 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 3,
     step: 1,
     defaultVal: 0,
-    panel: 'camera',
+    panel: 'fx',
     chipGroupId: 'mirrorSegments',
     format: (v) => ['Off', 'Side', 'Flip', 'Quad'][Math.round(v)] || 'Off',
     apply: (v) => renderEngine.updateConfig({ mirror: v })
@@ -2042,10 +2042,39 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 64,
     step: 16,
     defaultVal: 0,
-    panel: 'camera',
+    panel: 'fx',
     chipGroupId: 'pixelSegments',
     format: (v) => (v === 0 ? 'Off' : `${v}px`),
     apply: (v) => renderEngine.updateConfig({ pixelize: v })
+  },
+  {
+    id: 'camZoom',
+    sliderId: 'zoomSlider',
+    valId: 'zoomValue',
+    min: 0,
+    max: 1,
+    step: 0.05,
+    defaultVal: 0.5,
+    panel: 'camera',
+    format: (v) => `${Math.round(v * 100)}%`,
+    apply: (v) => {
+      renderEngine.cameraController.setZoom(v, true);
+    }
+  },
+  {
+    id: 'camSpeed',
+    sliderId: 'rotateSpeedSlider',
+    valId: 'rotateSpeedValue',
+    min: 0,
+    max: 1,
+    step: 0.05,
+    defaultVal: 0.5,
+    panel: 'camera',
+    format: (v) => `${Math.round(v * 100)}%`,
+    apply: (v) => {
+      renderEngine.cameraController.autoRotateSpeed = v;
+      renderEngine.config.autoRotateSpeed = v;
+    }
   },
   {
     id: 'camShake',

@@ -328,6 +328,21 @@ export class WaveFormPreset extends BasePreset {
     u.uSheetShape.value = this.sheetShape;
   }
 
+  public onParticleConfigChange(density: number, spread: number): void {
+    if (this.particlesGeo) {
+      if (density <= 0) {
+        if (this.particlesMesh) this.particlesMesh.visible = false;
+        this.particlesGeo.setDrawRange(0, 0);
+      } else {
+        if (this.particlesMesh) {
+          this.particlesMesh.visible = true;
+          this.particlesMesh.scale.set(spread, spread, spread);
+        }
+        this.particlesGeo.setDrawRange(0, Math.floor(this.numParticles * Math.min(1.0, density)));
+      }
+    }
+  }
+
   public override onThemeChange(theme: VisualizerTheme): void {
     const primaryCol = new THREE.Color(theme.primary);
     const secondaryCol = new THREE.Color(theme.secondary || theme.accent || theme.primary);

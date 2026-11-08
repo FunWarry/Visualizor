@@ -195,8 +195,9 @@ export class ParticleFieldPreset extends BasePreset {
     const reactivity = this.paramStore.getValue('reactivity');
     const density = this.paramStore.getValue('density');
 
-    const activeCount = Math.floor(this.count * Math.max(0.01, Math.min(1.0, density)));
+    const activeCount = density <= 0 ? 0 : Math.floor(this.count * Math.min(1.0, density));
     this.geometry.setDrawRange(0, activeCount);
+    if (this.points) this.points.visible = density > 0;
 
     const bassIn = audio.bass * reactivity;
     const midIn = audio.mid * reactivity;

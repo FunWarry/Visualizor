@@ -436,6 +436,8 @@ export class RenderEngine {
       height: this.renderer.domElement.height,
       theme: this.currentTheme
     });
+
+    this.updateParticleConfig(this.config);
   }
 
   public setTheme(theme: VisualizerTheme) {
@@ -459,14 +461,47 @@ export class RenderEngine {
   }
 
   private updateParticleConfig(newConfig: Partial<PostProcessingConfig>): void {
-    const preset = this.activePreset;
-    if (!preset || typeof preset.setCustomParameter !== 'function') return;
-    if (newConfig.particleDensity !== undefined) {
-      preset.setCustomParameter('density', newConfig.particleDensity);
-      preset.setCustomParameter('particleCount', newConfig.particleDensity);
+    const density = this.config.particleDensity ?? 1.0;
+    const spread = this.config.particleSpread ?? 1.0;
+
+    if (this.scene) {
+      this.scene.traverse((obj) => {
+        if (obj instanceof THREE.Points) {
+          const geom = obj.geometry;
+          if (geom && geom.attributes && geom.attributes.position) {
+            const totalCount = geom.attributes.position.count;
+            if (density <= 0) {
+              obj.visible = false;
+              geom.setDrawRange(0, 0);
+            } else {
+              obj.visible = true;
+              const activeCount = Math.max(1, Math.floor(totalCount * Math.min(1.0, density)));
+              geom.setDrawRange(0, activeCount);
+            }
+          }
+          if (spread > 0) {
+            obj.scale.set(spread, spread, spread);
+          }
+          if (obj.material instanceof THREE.ShaderMaterial && obj.material.uniforms?.uSpread) {
+            obj.material.uniforms.uSpread.value = spread;
+          }
+        }
+      });
     }
-    if (newConfig.particleSpread !== undefined) {
-      preset.setCustomParameter('spread', newConfig.particleSpread);
+
+    const preset = this.activePreset;
+    if (!preset) return;
+    if (typeof (preset as any).onParticleConfigChange === 'function') {
+      (preset as any).onParticleConfigChange(density, spread);
+    }
+    if (typeof preset.setCustomParameter === 'function') {
+      if (newConfig.particleDensity !== undefined) {
+        preset.setCustomParameter('density', newConfig.particleDensity);
+        preset.setCustomParameter('particleCount', newConfig.particleDensity);
+      }
+      if (newConfig.particleSpread !== undefined) {
+        preset.setCustomParameter('spread', newConfig.particleSpread);
+      }
     }
   }
 

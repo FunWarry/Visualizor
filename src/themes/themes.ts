@@ -366,7 +366,13 @@ export const GRADIENT_PRESETS: readonly GradientPreset[] = [
   { name: 'Fire & Ice', stops: ['#FF3B00', '#FFAA00', '#00D2FF', '#0044FF'] },
   { name: 'Electric Violet', stops: ['#3A1C71', '#D76D77', '#FFAF7B'] },
   { name: 'Emerald Wave', stops: ['#0575E6', '#00F260', '#11998E', '#38EF7D'] },
-  { name: 'Golden Sun', stops: ['#F12711', '#F5AF19', '#FFDD00'] }
+  { name: 'Golden Sun', stops: ['#F12711', '#F5AF19', '#FFDD00'] },
+  { name: 'Acid Techno', stops: ['#39FF14', '#00FFFF', '#FF007F', '#FFFF00'] },
+  { name: 'Neon Tokyo', stops: ['#FE00FE', '#00F0FF', '#FF0055', '#7F00FF'] },
+  { name: 'Pastel Dreams', stops: ['#FFAAA6', '#FF8C94', '#FFD3B6', '#A8E6CF'] },
+  { name: 'Black Hole', stops: ['#0D0D11', '#4A00E0', '#8E2DE2', '#FF007F'] },
+  { name: 'Solar Flare', stops: ['#FFE000', '#FF8C00', '#FF0055', '#7F00FF'] },
+  { name: 'Synth Glitch', stops: ['#00FFFF', '#FF00FF', '#FFFF00', '#00E5FF'] }
 ];
 
 export function sampleGradient(stops: string[], t: number): string {
