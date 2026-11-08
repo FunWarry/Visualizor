@@ -156,13 +156,14 @@ const MasterShader = {
       // 3. Liquid Drip / Wave distortion
       uv = applyDrip(uv, uDrip, uTime, uAudioBass);
 
-      // 4. CRT Barrel Distortion
-      uv = crtDistort(uv, uCrtBend);
+      // 4. CRT Barrel Distortion (automatically bypassed when kaleidoscope is active to prevent black curved edge cutouts)
+      float effectiveCrtBend = (uKaleidoscope > 1.0) ? 0.0 : uCrtBend;
+      uv = crtDistort(uv, effectiveCrtBend);
 
       // 5. Pixelize / Retro Arcade
       uv = applyPixelize(uv, uPixelize, uResolution);
 
-      if (uCrtBend > 0.001) {
+      if (effectiveCrtBend > 0.001) {
         if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
           gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
           return;
@@ -600,7 +601,8 @@ export class RenderEngine {
     uniforms.uFilmGrain.value = this.config.filmGrain;
     uniforms.uChromaticAberration.value = this.config.chromaticAberration;
     uniforms.uScanlines.value = this.config.scanlines;
-    uniforms.uCrtBend.value = this.config.crtBend;
+    const hasKaleido = (this.config.kaleidoscope ?? 0) > 1.0;
+    uniforms.uCrtBend.value = hasKaleido ? 0.0 : this.config.crtBend;
     uniforms.uAudioBass.value = audio.bass;
     uniforms.uPersistence.value = this.config.persistence;
     uniforms.tFeedback.value = currentReadTarget.texture;
