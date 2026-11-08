@@ -96,6 +96,8 @@ export interface PostProcessingConfig {
   phosphor?: number;           // 0.0 - 1.0 (CRT phosphor stripes)
   edgeDetect?: number;         // 0.0 - 1.0 (neon outline)
   brightness?: number;         // -0.5 - 0.5 (exposure/brightness)
+  particleDensity?: number;    // 0.0 - 2.0 (particle system count/density)
+  particleSpread?: number;     // 0.0 - 2.0 (particle spatial dispersion)
 }
 
 export interface ExportSettings {

@@ -12,6 +12,7 @@ const STORAGE_PREFIX_BOUNDS = 'visualizor_random_bounds_';
 const STORAGE_PREFIX_PARAM_BOUNDS = 'visualizor_param_bounds_';
 const STORAGE_KEY_AUTO_RANDOMIZE = 'visualizor_auto_randomize_enabled';
 const STORAGE_PREFIX_FX_LOCKS = 'visualizor_fx_locks_';
+const STORAGE_PREFIX_FX_BOUNDS = 'visualizor_fx_bounds_';
 
 // Safe localStorage helper
 function getStorageItem(key: string): string | null {
@@ -242,6 +243,49 @@ export function isFxParamLocked(fxId: string): boolean {
  */
 export function setFxParamLocked(fxId: string, locked: boolean): void {
   setStorageItem(STORAGE_PREFIX_FX_LOCKS + fxId, String(locked));
+}
+
+/**
+ * Gets the independent randomization bounds for a shader or camera parameter.
+ */
+export function getFxParamRandomizeBounds(paramId: string): RandomizeBounds {
+  const raw = getStorageItem(STORAGE_PREFIX_FX_BOUNDS + paramId);
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (typeof parsed?.minPercent === 'number' && typeof parsed?.maxPercent === 'number') {
+        return {
+          minPercent: Math.max(0, Math.min(100, parsed.minPercent)),
+          maxPercent: Math.max(0, Math.min(100, parsed.maxPercent))
+        };
+      }
+    } catch {
+      // Fallback
+    }
+  }
+  return { minPercent: 0, maxPercent: 100 };
+}
+
+/**
+ * Sets the independent randomization bounds for a shader or camera parameter.
+ */
+export function setFxParamRandomizeBounds(paramId: string, minPercent: number, maxPercent: number): void {
+  const boundedMin = Math.max(0, Math.min(100, Math.min(minPercent, maxPercent)));
+  const boundedMax = Math.max(0, Math.min(100, Math.max(minPercent, maxPercent)));
+  setStorageItem(`${STORAGE_PREFIX_FX_BOUNDS}${paramId}`, JSON.stringify({ minPercent: boundedMin, maxPercent: boundedMax }));
+}
+
+/**
+ * Computes a random parameter value within configured bounds.
+ */
+export function computeRandomFxValue(min: number, max: number, step: number, minPercent: number, maxPercent: number): number {
+  const normMin = minPercent / 100;
+  const normMax = maxPercent / 100;
+  const range = max - min;
+  const randFactor = normMin + Math.random() * (normMax - normMin);
+  const rawVal = min + randFactor * range;
+  const snapped = Math.round((rawVal - min) / step) * step + min;
+  return Math.max(min, Math.min(max, Number(snapped.toFixed(2))));
 }
 
 /**

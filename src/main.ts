@@ -26,7 +26,10 @@ import {
   randomizePreset,
   hasSavedTuning,
   isFxParamLocked,
-  setFxParamLocked
+  setFxParamLocked,
+  getFxParamRandomizeBounds,
+  setFxParamRandomizeBounds,
+  computeRandomFxValue
 } from './tuning/PresetTuningManager';
 import { TextAnchor, TextAnimationMode } from './overlay/types';
 import { MidiManager, initMidiPanel } from './midi';
@@ -1755,6 +1758,7 @@ interface FxControlDef {
   defaultVal: number;
   format: (v: number) => string;
   apply: (v: number) => void;
+  panel: 'fx' | 'camera';
   chipGroupId?: string;
 }
 
@@ -1767,9 +1771,53 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 3,
     step: 0.1,
     defaultVal: 1.2,
+    panel: 'fx',
     chipGroupId: 'bloomSegments',
     format: (v) => v.toFixed(1),
     apply: (v) => renderEngine.updateConfig({ bloomStrength: v })
+  },
+  {
+    id: 'bright',
+    sliderId: 'brightSlider',
+    valId: 'brightVal',
+    min: -0.4,
+    max: 0.4,
+    step: 0.05,
+    defaultVal: 0.0,
+    panel: 'fx',
+    format: (v) => (v > 0 ? `+${v.toFixed(2)}` : v.toFixed(2)),
+    apply: (v) => renderEngine.updateConfig({ brightness: v })
+  },
+  {
+    id: 'particleDensity',
+    sliderId: 'particleDensitySlider',
+    valId: 'particleDensityVal',
+    min: 0,
+    max: 2,
+    step: 0.1,
+    defaultVal: 1.0,
+    panel: 'fx',
+    chipGroupId: 'particleDensitySegments',
+    format: (v) => {
+      if (v === 0) return 'Off';
+      if (v <= 0.5) return 'Low';
+      if (v <= 1.0) return 'Normal';
+      if (v <= 1.5) return 'Dense';
+      return 'Max';
+    },
+    apply: (v) => renderEngine.updateConfig({ particleDensity: v })
+  },
+  {
+    id: 'particleSpread',
+    sliderId: 'particleSpreadSlider',
+    valId: 'particleSpreadVal',
+    min: 0,
+    max: 2,
+    step: 0.05,
+    defaultVal: 1.0,
+    panel: 'fx',
+    format: (v) => `${Math.round(v * 50)}%`,
+    apply: (v) => renderEngine.updateConfig({ particleSpread: v })
   },
   {
     id: 'persist',
@@ -1779,20 +1827,46 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 0.95,
     step: 0.05,
     defaultVal: 0.0,
+    panel: 'fx',
     chipGroupId: 'persistSegments',
     format: (v) => v.toFixed(2),
     apply: (v) => renderEngine.updateConfig({ persistence: v })
   },
   {
-    id: 'chroma',
-    sliderId: 'chromaSlider',
-    valId: 'chromaVal',
+    id: 'scan',
+    sliderId: 'scanSlider',
+    valId: 'scanVal',
     min: 0,
     max: 1,
     step: 0.05,
     defaultVal: 0.0,
+    panel: 'camera',
+    format: (v) => v.toFixed(1),
+    apply: (v) => renderEngine.updateConfig({ scanlines: v })
+  },
+  {
+    id: 'phosphor',
+    sliderId: 'phosphorSlider',
+    valId: 'phosphorVal',
+    min: 0,
+    max: 1,
+    step: 0.05,
+    defaultVal: 0.0,
+    panel: 'camera',
     format: (v) => v.toFixed(2),
-    apply: (v) => renderEngine.updateConfig({ chromaticAberration: v })
+    apply: (v) => renderEngine.updateConfig({ phosphor: v })
+  },
+  {
+    id: 'bend',
+    sliderId: 'bendSlider',
+    valId: 'bendVal',
+    min: 0,
+    max: 0.3,
+    step: 0.02,
+    defaultVal: 0.0,
+    panel: 'camera',
+    format: (v) => v.toFixed(2),
+    apply: (v) => renderEngine.updateConfig({ crtBend: v })
   },
   {
     id: 'grain',
@@ -1802,6 +1876,7 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 0.5,
     step: 0.02,
     defaultVal: 0.0,
+    panel: 'camera',
     format: (v) => v.toFixed(2),
     apply: (v) => renderEngine.updateConfig({ filmGrain: v })
   },
@@ -1813,30 +1888,45 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 1,
     step: 0.05,
     defaultVal: 0.0,
+    panel: 'camera',
     format: (v) => v.toFixed(2),
     apply: (v) => renderEngine.updateConfig({ vignette: v })
   },
   {
-    id: 'scan',
-    sliderId: 'scanSlider',
-    valId: 'scanVal',
+    id: 'chroma',
+    sliderId: 'chromaSlider',
+    valId: 'chromaVal',
     min: 0,
     max: 1,
     step: 0.05,
     defaultVal: 0.0,
-    format: (v) => v.toFixed(1),
-    apply: (v) => renderEngine.updateConfig({ scanlines: v })
+    panel: 'camera',
+    format: (v) => v.toFixed(2),
+    apply: (v) => renderEngine.updateConfig({ chromaticAberration: v })
   },
   {
-    id: 'bend',
-    sliderId: 'bendSlider',
-    valId: 'bendVal',
+    id: 'drip',
+    sliderId: 'dripSlider',
+    valId: 'dripVal',
     min: 0,
-    max: 0.3,
-    step: 0.02,
+    max: 1,
+    step: 0.05,
     defaultVal: 0.0,
+    panel: 'camera',
     format: (v) => v.toFixed(2),
-    apply: (v) => renderEngine.updateConfig({ crtBend: v })
+    apply: (v) => renderEngine.updateConfig({ drip: v })
+  },
+  {
+    id: 'edge',
+    sliderId: 'edgeSlider',
+    valId: 'edgeVal',
+    min: 0,
+    max: 1,
+    step: 0.05,
+    defaultVal: 0.0,
+    panel: 'camera',
+    format: (v) => v.toFixed(2),
+    apply: (v) => renderEngine.updateConfig({ edgeDetect: v })
   },
   {
     id: 'kaleido',
@@ -1846,6 +1936,7 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 12,
     step: 3,
     defaultVal: 0,
+    panel: 'camera',
     chipGroupId: 'kaleidoSegments',
     format: (v) => (v === 0 ? 'Off' : `${v}x`),
     apply: (v) => renderEngine.updateConfig({ kaleidoscope: v })
@@ -1858,6 +1949,7 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 3,
     step: 1,
     defaultVal: 0,
+    panel: 'camera',
     chipGroupId: 'mirrorSegments',
     format: (v) => ['Off', 'Side', 'Flip', 'Quad'][Math.round(v)] || 'Off',
     apply: (v) => renderEngine.updateConfig({ mirror: v })
@@ -1870,53 +1962,26 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     max: 64,
     step: 16,
     defaultVal: 0,
+    panel: 'camera',
     chipGroupId: 'pixelSegments',
     format: (v) => (v === 0 ? 'Off' : `${v}px`),
     apply: (v) => renderEngine.updateConfig({ pixelize: v })
   },
   {
-    id: 'drip',
-    sliderId: 'dripSlider',
-    valId: 'dripVal',
+    id: 'camShake',
+    sliderId: 'camShakeIntensitySlider',
+    valId: 'camShakeIntensityVal',
     min: 0,
     max: 1,
     step: 0.05,
-    defaultVal: 0.0,
-    format: (v) => v.toFixed(2),
-    apply: (v) => renderEngine.updateConfig({ drip: v })
-  },
-  {
-    id: 'phosphor',
-    sliderId: 'phosphorSlider',
-    valId: 'phosphorVal',
-    min: 0,
-    max: 1,
-    step: 0.05,
-    defaultVal: 0.0,
-    format: (v) => v.toFixed(2),
-    apply: (v) => renderEngine.updateConfig({ phosphor: v })
-  },
-  {
-    id: 'edge',
-    sliderId: 'edgeSlider',
-    valId: 'edgeVal',
-    min: 0,
-    max: 1,
-    step: 0.05,
-    defaultVal: 0.0,
-    format: (v) => v.toFixed(2),
-    apply: (v) => renderEngine.updateConfig({ edgeDetect: v })
-  },
-  {
-    id: 'bright',
-    sliderId: 'brightSlider',
-    valId: 'brightVal',
-    min: -0.4,
-    max: 0.4,
-    step: 0.05,
-    defaultVal: 0.0,
-    format: (v) => (v > 0 ? `+${v.toFixed(2)}` : v.toFixed(2)),
-    apply: (v) => renderEngine.updateConfig({ brightness: v })
+    defaultVal: 0.6,
+    panel: 'camera',
+    chipGroupId: 'cameraShakeSegments',
+    format: (v) => `${Math.round(v * 100)}%`,
+    apply: (v) => {
+      renderEngine.cameraController.setCameraShakeIntensity(v);
+      if (camShakeToggle) camShakeToggle.checked = v > 0;
+    }
   }
 ];
 
@@ -1931,6 +1996,68 @@ function updateChipsForFx(fx: FxControlDef, val: number): void {
   });
 }
 
+function syncFilterCardState(fxId: string, isActive: boolean): void {
+  const card = document.querySelector(`.filter-card[data-fx-target="${fxId}"]`);
+  card?.classList.toggle('active', isActive);
+}
+
+function applyFxValue(
+  fx: FxControlDef,
+  slider: HTMLInputElement,
+  valEl: HTMLElement | null,
+  val: number
+): void {
+  slider.value = val.toString();
+  if (valEl) valEl.textContent = fx.format(val);
+  fx.apply(val);
+  updateChipsForFx(fx, val);
+  syncFilterCardState(fx.id, val > 0);
+}
+
+function randomizeFxControl(
+  fx: FxControlDef,
+  slider: HTMLInputElement,
+  valEl: HTMLElement | null
+): void {
+  if (isFxParamLocked(fx.id)) return;
+  const bounds = getFxParamRandomizeBounds(fx.id);
+  const clamped = computeRandomFxValue(fx.min, fx.max, fx.step, bounds.minPercent, bounds.maxPercent);
+  applyFxValue(fx, slider, valEl, clamped);
+}
+
+function bindFxSliderMargins(fx: FxControlDef, row: Element | null): void {
+  const gearBtn = row?.querySelector(`.fx-gear-btn[data-fx="${fx.id}"]`) as HTMLElement | null;
+  const drawer = document.getElementById(`${fx.id}_margin_drawer`);
+  if (!drawer) return;
+
+  const readout = drawer.querySelector('.fx-margin-readout');
+  const minSlider = drawer.querySelector('.fx-bound-min') as HTMLInputElement | null;
+  const maxSlider = drawer.querySelector('.fx-bound-max') as HTMLInputElement | null;
+
+  const currentBounds = getFxParamRandomizeBounds(fx.id);
+  if (minSlider) minSlider.value = currentBounds.minPercent.toString();
+  if (maxSlider) maxSlider.value = currentBounds.maxPercent.toString();
+  if (readout) readout.textContent = `Margin: ${currentBounds.minPercent}% — ${currentBounds.maxPercent}%`;
+
+  const onBoundsInput = () => {
+    if (!minSlider || !maxSlider) return;
+    const minP = Math.min(Number(minSlider.value), Number(maxSlider.value));
+    const maxP = Math.max(Number(minSlider.value), Number(maxSlider.value));
+    if (readout) readout.textContent = `Margin: ${minP}% — ${maxP}%`;
+    setFxParamRandomizeBounds(fx.id, minP, maxP);
+  };
+
+  minSlider?.addEventListener('input', onBoundsInput);
+  maxSlider?.addEventListener('input', onBoundsInput);
+
+  gearBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const isOpen = drawer.classList.toggle('open');
+    gearBtn.classList.toggle('active', isOpen);
+  });
+}
+
 function bindFxSlider(fx: FxControlDef): void {
   const slider = document.getElementById(fx.sliderId) as HTMLInputElement | null;
   const valEl = document.getElementById(fx.valId);
@@ -1941,9 +2068,7 @@ function bindFxSlider(fx: FxControlDef): void {
     chips.forEach(chip => {
       chip.addEventListener('click', () => {
         const chipVal = Number.parseFloat((chip as HTMLElement).dataset.value || '0');
-        slider.value = chipVal.toString();
-        if (valEl) valEl.textContent = fx.format(chipVal);
-        fx.apply(chipVal);
+        applyFxValue(fx, slider, valEl, chipVal);
         chips.forEach(c => c.classList.remove('active'));
         chip.classList.add('active');
       });
@@ -1955,11 +2080,12 @@ function bindFxSlider(fx: FxControlDef): void {
     if (valEl) valEl.textContent = fx.format(numVal);
     fx.apply(numVal);
     updateChipsForFx(fx, numVal);
+    syncFilterCardState(fx.id, numVal > 0);
   });
 
   const row = document.querySelector(`.fx-control-row[data-fx-id="${fx.id}"]`);
-  const lockBtn = row?.querySelector('.fx-lock-btn') as HTMLElement | null;
-  const randBtn = row?.querySelector('.fx-rand-btn') as HTMLElement | null;
+  const lockBtn = row?.querySelector(`.fx-lock-btn[data-fx="${fx.id}"]`) as HTMLElement | null;
+  const randBtn = row?.querySelector(`.fx-rand-btn[data-fx="${fx.id}"]`) as HTMLElement | null;
 
   if (lockBtn) {
     const isLocked = isFxParamLocked(fx.id);
@@ -1975,48 +2101,87 @@ function bindFxSlider(fx: FxControlDef): void {
 
   if (randBtn) {
     randBtn.addEventListener('click', () => {
-      if (isFxParamLocked(fx.id)) return;
-      const randVal = fx.min + Math.random() * (fx.max - fx.min);
-      const snapped = Math.round((randVal - fx.min) / fx.step) * fx.step + fx.min;
-      const clamped = Math.max(fx.min, Math.min(fx.max, Number(snapped.toFixed(2))));
-      slider.value = clamped.toString();
-      if (valEl) valEl.textContent = fx.format(clamped);
-      fx.apply(clamped);
-      updateChipsForFx(fx, clamped);
+      randomizeFxControl(fx, slider, valEl);
     });
   }
+
+  bindFxSliderMargins(fx, row);
+}
+
+function setupFilterCards(): void {
+  const cards = document.querySelectorAll('.filter-card[data-fx-target]');
+  cards.forEach(card => {
+    card.addEventListener('click', () => {
+      const targetId = (card as HTMLElement).dataset.fxTarget;
+      const fx = FX_CONTROLS.find(c => c.id === targetId);
+      if (!fx) return;
+      const slider = document.getElementById(fx.sliderId) as HTMLInputElement | null;
+      const valEl = document.getElementById(fx.valId);
+      if (!slider) return;
+      const current = Number.parseFloat(slider.value);
+      const nextVal = current > 0 ? 0 : (fx.defaultVal > 0 ? fx.defaultVal : fx.min + (fx.max - fx.min) * 0.4);
+      applyFxValue(fx, slider, valEl, nextVal);
+    });
+  });
+}
+
+function setupPerformanceChips(): void {
+  const qualityChips = document.querySelectorAll('#qualitySegments .opt-chip');
+  qualityChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      qualityChips.forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+  const aaChips = document.querySelectorAll('#aaSegments .opt-chip');
+  aaChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      aaChips.forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
 }
 
 function setupFxControls(): void {
   for (const fx of FX_CONTROLS) {
     bindFxSlider(fx);
   }
+  setupFilterCards();
+  setupPerformanceChips();
 
-  const randAllBtn = document.getElementById('randomizeAllFxBtn');
-  randAllBtn?.addEventListener('click', () => {
-    for (const fx of FX_CONTROLS) {
-      if (isFxParamLocked(fx.id)) continue;
+  const randAllFxBtn = document.getElementById('randomizeAllFxBtn');
+  randAllFxBtn?.addEventListener('click', () => {
+    for (const fx of FX_CONTROLS.filter(c => c.panel === 'fx')) {
       const slider = document.getElementById(fx.sliderId) as HTMLInputElement | null;
       const valEl = document.getElementById(fx.valId);
-      const randVal = fx.min + Math.random() * (fx.max - fx.min);
-      const snapped = Math.round((randVal - fx.min) / fx.step) * fx.step + fx.min;
-      const clamped = Math.max(fx.min, Math.min(fx.max, Number(snapped.toFixed(2))));
-      if (slider) slider.value = clamped.toString();
-      if (valEl) valEl.textContent = fx.format(clamped);
-      fx.apply(clamped);
-      updateChipsForFx(fx, clamped);
+      if (slider) randomizeFxControl(fx, slider, valEl);
     }
   });
 
-  const resetAllBtn = document.getElementById('resetFxBtn');
-  resetAllBtn?.addEventListener('click', () => {
-    for (const fx of FX_CONTROLS) {
+  const resetAllFxBtn = document.getElementById('resetFxBtn');
+  resetAllFxBtn?.addEventListener('click', () => {
+    for (const fx of FX_CONTROLS.filter(c => c.panel === 'fx')) {
       const slider = document.getElementById(fx.sliderId) as HTMLInputElement | null;
       const valEl = document.getElementById(fx.valId);
-      if (slider) slider.value = fx.defaultVal.toString();
-      if (valEl) valEl.textContent = fx.format(fx.defaultVal);
-      fx.apply(fx.defaultVal);
-      updateChipsForFx(fx, fx.defaultVal);
+      if (slider) applyFxValue(fx, slider, valEl, fx.defaultVal);
+    }
+  });
+
+  const randAllCamBtn = document.getElementById('randomizeAllCamBtn');
+  randAllCamBtn?.addEventListener('click', () => {
+    for (const fx of FX_CONTROLS.filter(c => c.panel === 'camera')) {
+      const slider = document.getElementById(fx.sliderId) as HTMLInputElement | null;
+      const valEl = document.getElementById(fx.valId);
+      if (slider) randomizeFxControl(fx, slider, valEl);
+    }
+  });
+
+  const resetAllCamBtn = document.getElementById('resetCamBtn');
+  resetAllCamBtn?.addEventListener('click', () => {
+    for (const fx of FX_CONTROLS.filter(c => c.panel === 'camera')) {
+      const slider = document.getElementById(fx.sliderId) as HTMLInputElement | null;
+      const valEl = document.getElementById(fx.valId);
+      if (slider) applyFxValue(fx, slider, valEl, fx.defaultVal);
     }
   });
 }

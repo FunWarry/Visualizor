@@ -2678,5 +2678,133 @@ body.ui-hidden .sidebar-pill,
   }
 }
 
+/* =========================================================================
+   FX & Camera Parameter Margins, Filter Cards & Chip Icons
+   ========================================================================= */
+.fx-lock-btn, .fx-rand-btn, .fx-gear-btn {
+  background: transparent;
+  border: none;
+  font-size: 11px;
+  line-height: 1;
+  padding: 2px 3px;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 0.15s ease, transform 0.15s ease, color 0.15s ease;
+  border-radius: 4px;
+}
+.fx-lock-btn:hover, .fx-rand-btn:hover, .fx-gear-btn:hover {
+  opacity: 1;
+  transform: scale(1.15);
+}
+.fx-lock-btn.locked {
+  opacity: 1;
+  color: #ff7722;
+}
+.fx-gear-btn.active {
+  opacity: 1;
+  color: var(--primary);
+  background: rgba(255, 92, 0, 0.15);
+}
+.fx-margin-drawer {
+  display: none;
+  margin-top: 4px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  font-size: 10px;
+}
+.fx-margin-drawer.open {
+  display: block;
+}
+.fx-margin-readout {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--primary);
+  font-weight: 500;
+}
+.fx-margin-sliders {
+  display: flex;
+  gap: 6px;
+}
+.fx-margin-sliders input[type="range"] {
+  height: 4px;
+  accent-color: var(--primary);
+}
+
+.filters-grid-3x3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+  margin-bottom: 12px;
+}
+.filter-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  text-align: center;
+}
+.filter-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+.filter-card.active {
+  background: rgba(255, 92, 0, 0.14);
+  border-color: var(--primary);
+  box-shadow: 0 0 10px rgba(255, 92, 0, 0.25);
+}
+.filter-card__thumb {
+  width: 100%;
+  height: 40px;
+  border-radius: 5px;
+  margin-bottom: 6px;
+  position: relative;
+  overflow: hidden;
+  background: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.filter-card__label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.filter-card.active .filter-card__label {
+  color: #ffaa66;
+  font-weight: 600;
+}
+
+.opt-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.opt-chip .chip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+}
+.opt-chip.active .chip-icon {
+  opacity: 1;
+}
+
+
 
 

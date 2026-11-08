@@ -264,7 +264,9 @@ export class RenderEngine {
       drip: 0.0,
       phosphor: 0.0,
       edgeDetect: 0.0,
-      brightness: 0.0
+      brightness: 0.0,
+      particleDensity: 1.0,
+      particleSpread: 1.0
     };
 
     // Scene setup
@@ -437,17 +439,33 @@ export class RenderEngine {
     }
   }
 
-  public updateConfig(newConfig: Partial<PostProcessingConfig>) {
-    Object.assign(this.config, newConfig);
+  private updateBloomConfig(newConfig: Partial<PostProcessingConfig>): void {
     if (newConfig.bloomStrength !== undefined) {
       const intensity = newConfig.bloomStrength;
       this.bloomPass.strength = intensity * 0.72;
       this.bloomPass.threshold = Math.max(0.05, 1.0 - (intensity * 0.3));
       this.bloomPass.radius = 0.3 + (intensity * 0.3);
-    } else {
-      if (newConfig.bloomRadius !== undefined) this.bloomPass.radius = newConfig.bloomRadius;
-      if (newConfig.bloomThreshold !== undefined) this.bloomPass.threshold = newConfig.bloomThreshold;
+      return;
     }
+    if (newConfig.bloomRadius !== undefined) this.bloomPass.radius = newConfig.bloomRadius;
+    if (newConfig.bloomThreshold !== undefined) this.bloomPass.threshold = newConfig.bloomThreshold;
+  }
+
+  private updateParticleConfig(newConfig: Partial<PostProcessingConfig>): void {
+    const preset = this.activePreset;
+    if (!preset || typeof preset.setCustomParameter !== 'function') return;
+    if (newConfig.particleDensity !== undefined) {
+      preset.setCustomParameter('density', newConfig.particleDensity);
+      preset.setCustomParameter('particleCount', newConfig.particleDensity);
+    }
+    if (newConfig.particleSpread !== undefined) {
+      preset.setCustomParameter('spread', newConfig.particleSpread);
+    }
+  }
+
+  public updateConfig(newConfig: Partial<PostProcessingConfig>) {
+    Object.assign(this.config, newConfig);
+    this.updateBloomConfig(newConfig);
     if (newConfig.autoRotate !== undefined) {
       this.cameraController.autoRotate = newConfig.autoRotate;
     }
@@ -457,6 +475,7 @@ export class RenderEngine {
     if (newConfig.cameraShake !== undefined) {
       this.cameraController.cameraShakeEnabled = newConfig.cameraShake;
     }
+    this.updateParticleConfig(newConfig);
   }
 
   public render(audio: AudioFeatures) {

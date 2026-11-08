@@ -354,7 +354,7 @@
     </div>
   </div>
 
-  <!-- 4. FX Drawer Panel (Effects: Bloom, Brightness, Motion Trails) -->
+  <!-- 4. FX Drawer Panel (Effects: Bloom, Brightness, Particles, Motion Trails, Performance) -->
   <div class="drawer-panel glass-panel detail-panel" id="fxPanel" data-panel="effects">
     <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
       <span>Effects</span>
@@ -371,15 +371,35 @@
           <div style="display:flex;align-items:center;gap:6px;">
             <button type="button" class="fx-lock-btn" data-fx="bloom" title="Lock bloom">🔓</button>
             <button type="button" class="fx-rand-btn" data-fx="bloom" title="Randomize bloom">🎲</button>
-            <span>Bloom / Glow</span>
+            <button type="button" class="fx-gear-btn" data-fx="bloom" title="Configure margin bounds">⚙️</button>
+            <span>Bloom</span>
           </div>
           <span id="bloomVal">1.2</span>
         </label>
         <div class="chip-group" id="bloomSegments" style="margin-bottom:8px;">
-          <div class="opt-chip" data-value="0">Off</div>
-          <div class="opt-chip" data-value="0.6">Low</div>
-          <div class="opt-chip active" data-value="1.2">Med</div>
-          <div class="opt-chip" data-value="2.4">High</div>
+          <div class="opt-chip" data-value="0">
+            <span class="chip-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4"/></svg></span>
+            <span>Off</span>
+          </div>
+          <div class="opt-chip" data-value="0.6">
+            <span class="chip-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6" opacity="0.6"/><circle cx="12" cy="12" r="3"/></svg></span>
+            <span>Low</span>
+          </div>
+          <div class="opt-chip active" data-value="1.2">
+            <span class="chip-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="9" opacity="0.4"/><circle cx="12" cy="12" r="5"/></svg></span>
+            <span>Med</span>
+          </div>
+          <div class="opt-chip" data-value="2.4">
+            <span class="chip-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="11" opacity="0.3"/><circle cx="12" cy="12" r="7" opacity="0.7"/><circle cx="12" cy="12" r="4"/></svg></span>
+            <span>High</span>
+          </div>
+        </div>
+        <div class="fx-margin-drawer" id="bloom_margin_drawer">
+          <span class="fx-margin-readout">Margin: 0% — 100%</span>
+          <div class="fx-margin-sliders">
+            <input type="range" class="fx-bound-min" min="0" max="100" value="0" title="Min %">
+            <input type="range" class="fx-bound-max" min="0" max="100" value="100" title="Max %">
+          </div>
         </div>
         <input class="ui-slider" type="range" id="bloomSlider" min="0" max="3" step="0.1" value="1.2" aria-label="Bloom Glow">
       </div>
@@ -390,11 +410,68 @@
           <div style="display:flex;align-items:center;gap:6px;">
             <button type="button" class="fx-lock-btn" data-fx="bright" title="Lock brightness">🔓</button>
             <button type="button" class="fx-rand-btn" data-fx="bright" title="Randomize brightness">🎲</button>
+            <button type="button" class="fx-gear-btn" data-fx="bright" title="Configure margin bounds">⚙️</button>
             <span>Brightness</span>
           </div>
           <span id="brightVal">0.00</span>
         </label>
+        <div class="fx-margin-drawer" id="bright_margin_drawer">
+          <span class="fx-margin-readout">Margin: 0% — 100%</span>
+          <div class="fx-margin-sliders">
+            <input type="range" class="fx-bound-min" min="0" max="100" value="0" title="Min %">
+            <input type="range" class="fx-bound-max" min="0" max="100" value="100" title="Max %">
+          </div>
+        </div>
         <input class="ui-slider" type="range" id="brightSlider" min="-0.4" max="0.4" step="0.05" value="0.0" aria-label="Overall Brightness">
+      </div>
+
+      <!-- Particles -->
+      <div class="control-row fx-control-row" data-fx-id="particleDensity" style="margin-top:14px;">
+        <label for="particleDensitySlider" class="control-label">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="fx-lock-btn" data-fx="particleDensity" title="Lock particles">🔓</button>
+            <button type="button" class="fx-rand-btn" data-fx="particleDensity" title="Randomize particles">🎲</button>
+            <button type="button" class="fx-gear-btn" data-fx="particleDensity" title="Configure margin bounds">⚙️</button>
+            <span>Particles</span>
+          </div>
+          <span id="particleDensityVal">Normal</span>
+        </label>
+        <div class="chip-group" id="particleDensitySegments" style="margin-bottom:8px;">
+          <div class="opt-chip" data-value="0">Off</div>
+          <div class="opt-chip" data-value="0.5">Low</div>
+          <div class="opt-chip active" data-value="1.0">Normal</div>
+          <div class="opt-chip" data-value="1.5">Dense</div>
+          <div class="opt-chip" data-value="2.0">Max</div>
+        </div>
+        <div class="fx-margin-drawer" id="particleDensity_margin_drawer">
+          <span class="fx-margin-readout">Margin: 0% — 100%</span>
+          <div class="fx-margin-sliders">
+            <input type="range" class="fx-bound-min" min="0" max="100" value="0" title="Min %">
+            <input type="range" class="fx-bound-max" min="0" max="100" value="100" title="Max %">
+          </div>
+        </div>
+        <input class="ui-slider" type="range" id="particleDensitySlider" min="0" max="2" step="0.1" value="1.0" aria-label="Particle Density">
+      </div>
+
+      <!-- Particle Spread -->
+      <div class="control-row fx-control-row" data-fx-id="particleSpread" style="margin-top:14px;">
+        <label for="particleSpreadSlider" class="control-label">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="fx-lock-btn" data-fx="particleSpread" title="Lock particle spread">🔓</button>
+            <button type="button" class="fx-rand-btn" data-fx="particleSpread" title="Randomize particle spread">🎲</button>
+            <button type="button" class="fx-gear-btn" data-fx="particleSpread" title="Configure margin bounds">⚙️</button>
+            <span>Particle Spread</span>
+          </div>
+          <span id="particleSpreadVal">1.00</span>
+        </label>
+        <div class="fx-margin-drawer" id="particleSpread_margin_drawer">
+          <span class="fx-margin-readout">Margin: 0% — 100%</span>
+          <div class="fx-margin-sliders">
+            <input type="range" class="fx-bound-min" min="0" max="100" value="0" title="Min %">
+            <input type="range" class="fx-bound-max" min="0" max="100" value="100" title="Max %">
+          </div>
+        </div>
+        <input class="ui-slider" type="range" id="particleSpreadSlider" min="0" max="2" step="0.05" value="1.0" aria-label="Particle Spread">
       </div>
 
       <!-- Motion Trails (Persistence) -->
@@ -403,7 +480,8 @@
           <div style="display:flex;align-items:center;gap:6px;">
             <button type="button" class="fx-lock-btn" data-fx="persist" title="Lock persistence">🔓</button>
             <button type="button" class="fx-rand-btn" data-fx="persist" title="Randomize persistence">🎲</button>
-            <span>Motion Trails (Persistence)</span>
+            <button type="button" class="fx-gear-btn" data-fx="persist" title="Configure margin bounds">⚙️</button>
+            <span>Motion Trails</span>
           </div>
           <span id="persistVal">0.00</span>
         </label>
@@ -413,16 +491,48 @@
           <div class="opt-chip" data-value="0.75">Medium</div>
           <div class="opt-chip" data-value="0.9">Heavy</div>
         </div>
+        <div class="fx-margin-drawer" id="persist_margin_drawer">
+          <span class="fx-margin-readout">Margin: 0% — 100%</span>
+          <div class="fx-margin-sliders">
+            <input type="range" class="fx-bound-min" min="0" max="100" value="0" title="Min %">
+            <input type="range" class="fx-bound-max" min="0" max="100" value="100" title="Max %">
+          </div>
+        </div>
         <input class="ui-slider" type="range" id="persistSlider" min="0" max="0.95" step="0.05" value="0.0" aria-label="Motion Trails Persistence">
+      </div>
+
+      <!-- Performance Settings -->
+      <div style="margin-top:20px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
+        <span style="font-size:12px;font-weight:600;display:block;margin-bottom:10px;">Performance</span>
+        <div class="control-row">
+          <span class="control-label"><span>Quality</span></span>
+          <div class="chip-group" id="qualitySegments" style="margin-top:4px;">
+            <div class="opt-chip active" data-value="auto">Auto</div>
+            <div class="opt-chip" data-value="low">Low</div>
+            <div class="opt-chip" data-value="med">Med</div>
+            <div class="opt-chip" data-value="high">High</div>
+          </div>
+        </div>
+        <div class="control-row" style="margin-top:10px;">
+          <span class="control-label"><span>Anti-Aliasing</span></span>
+          <div class="chip-group" id="aaSegments" style="margin-top:4px;">
+            <div class="opt-chip active" data-value="off">Off</div>
+            <div class="opt-chip" data-value="on">On</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- 5. Camera & 3D Views Drawer Panel (Camera, Views, Filters & Optics) -->
   <div class="drawer-panel glass-panel detail-panel" id="cameraPanel" data-panel="camera">
-    <div class="panel-header">
-      <span>Camera & 3D Views</span>
-      <button class="btn-icon close-drawer-btn closeCameraBtn" style="width:28px;height:28px;" aria-label="Close camera panel">✕</button>
+    <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>Camera</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <button type="button" class="btn-pill" id="randomizeAllCamBtn" style="font-size:10px;padding:3px 8px;background:rgba(255,92,0,0.18);border-color:rgba(255,92,0,0.5);color:#ffaa66;border-radius:12px;cursor:pointer;" title="Randomize camera optics">🎲 Cam</button>
+        <button type="button" class="btn-pill" id="resetCamBtn" style="font-size:10px;padding:3px 8px;border-radius:12px;cursor:pointer;" title="Reset camera optics">↺ Reset</button>
+        <button class="btn-icon close-drawer-btn closeCameraBtn" style="width:28px;height:28px;" aria-label="Close camera panel">✕</button>
+      </div>
     </div>
     <div class="panel-content camera-motion" id="cameraMotion">
       <!-- 1. View Directional Pad & Zoom Rig -->
@@ -460,7 +570,32 @@
         </div>
       </div>
 
-      <!-- 2. Cinematic Viewpoints -->
+      <!-- 2. Auto-Rotate & Direction Controls -->
+      <div class="camera-group camera-spin" style="margin-top:16px;">
+        <div class="control-row">
+          <label for="autoRotateToggle" class="control-label"><span>Auto-Rotate</span></label>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <input type="checkbox" id="autoRotateToggle" data-alias="camAutoOrbitToggle" checked style="accent-color:var(--primary);width:16px;height:16px;" aria-label="Auto-Rotate Toggle">
+          </div>
+        </div>
+        <div class="control-row" style="margin-top:8px;">
+          <span class="control-label"><span>Spin Direction</span></span>
+          <div class="camera-dir" id="rotateDirection" aria-label="Spin direction">
+            <button type="button" class="seg-btn" id="camDirCcwBtn" data-direction="-1" aria-pressed="false" title="Spin counter-clockwise" aria-label="Spin counter-clockwise">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            </button>
+            <button type="button" class="seg-btn active" id="camDirCwBtn" data-direction="1" aria-pressed="true" title="Spin clockwise" aria-label="Spin clockwise">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="control-row" style="margin-top:8px;">
+          <label for="rotateSpeedSlider" class="control-label"><span>Rotation Speed</span><span id="rotateSpeedValue">50%</span></label>
+          <input class="ui-slider" type="range" id="rotateSpeedSlider" data-alias="camOrbitSpeedSlider" min="0" max="1" step="0.05" value="0.5" aria-label="Rotation Speed">
+        </div>
+      </div>
+
+      <!-- 3. Cinematic Viewpoints -->
       <div class="camera-group camera-viewpoints" style="margin-top:16px;">
         <span class="camera-group__label" id="viewpointsLabel" style="font-weight:600;font-size:12px;display:block;margin-bottom:8px;">Cinematic Viewpoints</span>
         <div class="viewpoints-grid" id="viewpointsGrid" aria-labelledby="viewpointsLabel">
@@ -487,52 +622,294 @@
         </div>
       </div>
 
-      <!-- 3. Auto-Rotate & Direction Controls -->
-      <div class="camera-group camera-spin" style="margin-top:16px;">
-        <div class="control-row">
-          <label for="autoRotateToggle" class="control-label"><span>Auto-Rotate</span></label>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <input type="checkbox" id="autoRotateToggle" data-alias="camAutoOrbitToggle" checked style="accent-color:var(--primary);width:16px;height:16px;" aria-label="Auto-Rotate Toggle">
+      <!-- 4. Filters (3x3 Visual Grid) -->
+      <div class="camera-group" style="margin-top:20px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
+        <span style="font-size:12px;font-weight:600;display:block;margin-bottom:8px;">Filters</span>
+        <div class="filters-grid-3x3" id="cameraFiltersGrid">
+          <div class="filter-card" data-fx-target="scan">
+            <div class="filter-card__thumb" style="background:repeating-linear-gradient(0deg,#151515,#151515 2px,#302010 2px,#302010 4px);"></div>
+            <span class="filter-card__label">Scanlines</span>
+          </div>
+          <div class="filter-card" data-fx-target="phosphor">
+            <div class="filter-card__thumb" style="background:repeating-linear-gradient(90deg,#0a150a,#0a150a 2px,#103510 2px,#103510 4px);"></div>
+            <span class="filter-card__label">Phosphor</span>
+          </div>
+          <div class="filter-card" data-fx-target="bend">
+            <div class="filter-card__thumb" style="background:radial-gradient(circle at center, #2e1e12 20%, #050505 85%);"></div>
+            <span class="filter-card__label">Screen Bend</span>
+          </div>
+          <div class="filter-card" data-fx-target="grain">
+            <div class="filter-card__thumb" style="background:radial-gradient(#553311 1px, transparent 1px), #111;background-size:3px 3px;"></div>
+            <span class="filter-card__label">Film Grain</span>
+          </div>
+          <div class="filter-card" data-fx-target="vig">
+            <div class="filter-card__thumb" style="background:radial-gradient(circle, #332015 30%, #000 90%);"></div>
+            <span class="filter-card__label">Vignette</span>
+          </div>
+          <div class="filter-card" data-fx-target="chroma">
+            <div class="filter-card__thumb" style="background:linear-gradient(135deg, rgba(255,0,80,0.5), rgba(0,255,200,0.5));"></div>
+            <span class="filter-card__label">Chroma</span>
+          </div>
+          <div class="filter-card" data-fx-target="pixel">
+            <div class="filter-card__thumb" style="background:repeating-conic-gradient(#111 0% 25%, #3a2512 0% 50%) 50% / 8px 8px;"></div>
+            <span class="filter-card__label">Old Display</span>
+          </div>
+          <div class="filter-card" data-fx-target="drip">
+            <div class="filter-card__thumb" style="background:radial-gradient(ellipse at 50% 20%, #ff5500 0%, #150a00 70%);"></div>
+            <span class="filter-card__label">Drip</span>
+          </div>
+          <div class="filter-card" data-fx-target="edge">
+            <div class="filter-card__thumb" style="border:1.5px solid #ff7722;box-shadow:inset 0 0 6px #ff7722;background:#050505;"></div>
+            <span class="filter-card__label">Trace</span>
           </div>
         </div>
-        <div class="control-row" style="margin-top:8px;">
-          <span class="control-label"><span>Spin Direction</span></span>
-          <div class="camera-dir" id="rotateDirection" aria-label="Spin direction">
-            <button type="button" class="seg-btn" id="camDirCcwBtn" data-direction="-1" aria-pressed="false" title="Spin counter-clockwise" aria-label="Spin counter-clockwise">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-            </button>
-            <button type="button" class="seg-btn active" id="camDirCwBtn" data-direction="1" aria-pressed="true" title="Spin clockwise" aria-label="Spin clockwise">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-            </button>
+
+        <!-- Filter Detail Controls (with Lock, Dice, Gear Margins) -->
+        <div id="cameraFilterSliders" style="display:flex;flex-direction:column;gap:12px;margin-top:10px;">
+          <div class="control-row fx-control-row" data-fx-id="scan">
+            <label for="scanSlider" class="control-label">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <button type="button" class="fx-lock-btn" data-fx="scan" title="Lock scanlines">🔓</button>
+                <button type="button" class="fx-rand-btn" data-fx="scan" title="Randomize scanlines">🎲</button>
+                <button type="button" class="fx-gear-btn" data-fx="scan" title="Configure margin bounds">⚙️</button>
+                <span>CRT Scanlines</span>
+              </div>
+              <span id="scanVal">0.0</span>
+            </label>
+            <div class="fx-margin-drawer" id="scan_margin_drawer">
+              <span class="fx-margin-readout">Margin: 0% — 100%</span>
+              <div class="fx-margin-sliders">
+                <input type="range" class="fx-bound-min" min="0" max="100" value="0" title="Min %">
+                <input type="range" class="fx-bound-max" min="0" max="100" value="100" title="Max %">
+              </div>
+            </div>
+            <input class="ui-slider" type="range" id="scanSlider" min="0" max="1" step="0.05" value="0.0" aria-label="CRT Scanlines">
           </div>
-        </div>
-        <div class="control-row" style="margin-top:8px;">
-          <label for="rotateSpeedSlider" class="control-label"><span>Rotation Speed</span><span id="rotateSpeedValue">50%</span></label>
-          <input class="ui-slider" type="range" id="rotateSpeedSlider" data-alias="camOrbitSpeedSlider" min="0" max="1" step="0.05" value="0.5" aria-label="Rotation Speed">
+
+          <div class="control-row fx-control-row" data-fx-id="phosphor">
+            <label for="phosphorSlider" class="control-label">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <button type="button" class="fx-lock-btn" data-fx="phosphor" title="Lock phosphor CRT">🔓</button>
+                <button type="button" class="fx-rand-btn" data-fx="phosphor" title="Randomize phosphor CRT">🎲</button>
+                <button type="button" class="fx-gear-btn" data-fx="phosphor" title="Configure margin bounds">⚙️</button>
+                <span>CRT Phosphor</span>
+              </div>
+              <span id="phosphorVal">0.00</span>
+            </label>
+            <div class="fx-margin-drawer" id="phosphor_margin_drawer">
+              <span class="fx-margin-readout">Margin: 0% — 100%</span>
+              <div class="fx-margin-sliders">
+                <input type="range" class="fx-bound-min" min="0" max="100" value="0" title="Min %">
+                <input type="range" class="fx-bound-max" min="0" max="100" value="100" title="Max %">
+              </div>
+            </div>
+            <input class="ui-slider" type="range" id="phosphorSlider" min="0" max="1" step="0.05" value="0.0" aria-label="CRT Phosphor Stripes">
+          </div>
+
+          <div class="control-row fx-control-row" data-fx-id="bend">
+            <label for="bendSlider" class="control-label">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <button type="button" class="fx-lock-btn" data-fx="bend" title="Lock CRT bend">🔓</button>
+                <button type="button" class="fx-rand-btn" data-fx="bend" title="Randomize CRT bend">🎲</button>
+                <button type="button" class="fx-gear-btn" data-fx="bend" title="Configure margin bounds">⚙️</button>
+                <span>Screen Bend</span>
+              </div>
+              <span id="bendVal">0.0</span>
+            </label>
+            <div class="fx-margin-drawer" id="bend_margin_drawer">
+              <span class="fx-margin-readout">Margin: 0% — 100%</span>
+              <div class="fx-margin-sliders">
+                <input type="range" class="fx-bound-min" min="0" max="100" value="0" title="Min %">
+                <input type="range" class="fx-bound-max" min="0" max="100" value="100" title="Max %">
+              </div>
+            </div>
+            <input class="ui-slider" type="range" id="bendSlider" min="0" max="0.3" step="0.02" value="0.0" aria-label="CRT Screen Bend">
+          </div>
+
+          <div class="control-row fx-control-row" data-fx-id="grain">
+            <label for="grainSlider" class="control-label">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <button type="button" class="fx-lock-btn" data-fx="grain" title="Lock film grain">🔓</button>
+                <button type="button" class="fx-rand-btn" data-fx="grain" title="Randomize film grain">🎲</button>
+                <button type="button" class="fx-gear-btn" data-fx="grain" title="Configure margin bounds">⚙️</button>
+                <span>Film Grain</span>
+              </div>
+              <span id="grainVal">0.00</span>
+            </label>
+            <div class="fx-margin-drawer" id="grain_margin_drawer">
+              <span class="fx-margin-readout">Margin: 0% — 100%</span>
+              <div class="fx-margin-sliders">
+                <input type="range" class="fx-bound-min" min="0" max="100" value="0" title="Min %">
+                <input type="range" class="fx-bound-max" min="0" max="100" value="100" title="Max %">
+              </div>
+            </div>
+            <input class="ui-slider" type="range" id="grainSlider" min="0" max="0.5" step="0.02" value="0.0" aria-label="Film Grain">
+          </div>
+
+          <div class="control-row fx-control-row" data-fx-id="vig">
+            <label for="vigSlider" class="control-label">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <button type="button" class="fx-lock-btn" data-fx="vig" title="Lock vignette">🔓</button>
+                <button type="button" class="fx-rand-btn" data-fx="vig" title="Randomize vignette">🎲</button>
+                <button type="button" class="fx-gear-btn" data-fx="vig" title="Configure margin bounds">⚙️</button>
+                <span>Vignette</span>
+              </div>
+              <span id="vigVal">0.00</span>
+            </label>
+            <div class="fx-margin-drawer" id="vig_margin_drawer">
+              <span class="fx-margin-readout">Margin: 0% — 100%</span>
+              <div class="fx-margin-sliders">
+                <input type="range" class="fx-bound-min" min="0" max="100" value="0" title="Min %">
+                <input type="range" class="fx-bound-max" min="0" max="100" value="100" title="Max %">
+              </div>
+            </div>
+            <input class="ui-slider" type="range" id="vigSlider" min="0" max="1" step="0.05" value="0.0" aria-label="Vignette">
+          </div>
+
+          <div class="control-row fx-control-row" data-fx-id="chroma">
+            <label for="chromaSlider" class="control-label">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <button type="button" class="fx-lock-btn" data-fx="chroma" title="Lock chromatic aberration">🔓</button>
+                <button type="button" class="fx-rand-btn" data-fx="chroma" title="Randomize chromatic aberration">🎲</button>
+                <button type="button" class="fx-gear-btn" data-fx="chroma" title="Configure margin bounds">⚙️</button>
+                <span>Chromatic Aberration</span>
+              </div>
+              <span id="chromaVal">0.00</span>
+            </label>
+            <div class="fx-margin-drawer" id="chroma_margin_drawer">
+              <span class="fx-margin-readout">Margin: 0% — 100%</span>
+              <div class="fx-margin-sliders">
+                <input type="range" class="fx-bound-min" min="0" max="100" value="0" title="Min %">
+                <input type="range" class="fx-bound-max" min="0" max="100" value="100" title="Max %">
+              </div>
+            </div>
+            <input class="ui-slider" type="range" id="chromaSlider" min="0" max="1" step="0.05" value="0.0" aria-label="Chromatic Aberration">
+          </div>
+
+          <div class="control-row fx-control-row" data-fx-id="drip">
+            <label for="dripSlider" class="control-label">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <button type="button" class="fx-lock-btn" data-fx="drip" title="Lock drip / liquid wave">🔓</button>
+                <button type="button" class="fx-rand-btn" data-fx="drip" title="Randomize drip / liquid wave">🎲</button>
+                <button type="button" class="fx-gear-btn" data-fx="drip" title="Configure margin bounds">⚙️</button>
+                <span>Liquid Drip</span>
+              </div>
+              <span id="dripVal">0.00</span>
+            </label>
+            <div class="fx-margin-drawer" id="drip_margin_drawer">
+              <span class="fx-margin-readout">Margin: 0% — 100%</span>
+              <div class="fx-margin-sliders">
+                <input type="range" class="fx-bound-min" min="0" max="100" value="0" title="Min %">
+                <input type="range" class="fx-bound-max" min="0" max="100" value="100" title="Max %">
+              </div>
+            </div>
+            <input class="ui-slider" type="range" id="dripSlider" min="0" max="1" step="0.05" value="0.0" aria-label="Liquid Drip Distortion">
+          </div>
+
+          <div class="control-row fx-control-row" data-fx-id="edge">
+            <label for="edgeSlider" class="control-label">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <button type="button" class="fx-lock-btn" data-fx="edge" title="Lock neon edge trace">🔓</button>
+                <button type="button" class="fx-rand-btn" data-fx="edge" title="Randomize neon edge trace">🎲</button>
+                <button type="button" class="fx-gear-btn" data-fx="edge" title="Configure margin bounds">⚙️</button>
+                <span>Neon Edge Trace</span>
+              </div>
+              <span id="edgeVal">0.00</span>
+            </label>
+            <div class="fx-margin-drawer" id="edge_margin_drawer">
+              <span class="fx-margin-readout">Margin: 0% — 100%</span>
+              <div class="fx-margin-sliders">
+                <input type="range" class="fx-bound-min" min="0" max="100" value="0" title="Min %">
+                <input type="range" class="fx-bound-max" min="0" max="100" value="100" title="Max %">
+              </div>
+            </div>
+            <input class="ui-slider" type="range" id="edgeSlider" min="0" max="1" step="0.05" value="0.0" aria-label="Neon Outline Edge Detect">
+          </div>
         </div>
       </div>
 
-      <!-- 4. Camera Shake Controls -->
-      <div class="camera-group camera-shake-group" style="margin-top:16px;">
-        <div class="control-row">
-          <label for="camShakeToggle" class="control-label"><span>Audio Camera Shake</span></label>
-          <input type="checkbox" id="camShakeToggle" checked style="accent-color:var(--primary);width:16px;height:16px;" aria-label="Camera Shake Toggle">
+      <!-- 5. Kaleidoscope -->
+      <div class="control-row fx-control-row" data-fx-id="kaleido" style="margin-top:20px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
+        <label for="kaleidoSlider" class="control-label">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="fx-lock-btn" data-fx="kaleido" title="Lock kaleidoscope">🔓</button>
+            <button type="button" class="fx-rand-btn" data-fx="kaleido" title="Randomize kaleidoscope">🎲</button>
+            <button type="button" class="fx-gear-btn" data-fx="kaleido" title="Configure margin bounds">⚙️</button>
+            <span>Kaleidoscope</span>
+          </div>
+          <span id="kaleidoVal">Off</span>
+        </label>
+        <div class="chip-group" id="kaleidoSegments" style="margin-bottom:8px;">
+          <div class="opt-chip active" data-value="0">Off</div>
+          <div class="opt-chip" data-value="3">3x</div>
+          <div class="opt-chip" data-value="6">6x</div>
+          <div class="opt-chip" data-value="12">12x</div>
         </div>
-        <div style="margin-top:8px;">
-          <div class="chip-group" id="cameraShakeSegments">
-            <div class="opt-chip" data-value="0">Off</div>
-            <div class="opt-chip" data-value="0.3">Subtle</div>
-            <div class="opt-chip active" data-value="0.6">Medium</div>
-            <div class="opt-chip" data-value="1.0">Strong</div>
+        <div class="fx-margin-drawer" id="kaleido_margin_drawer">
+          <span class="fx-margin-readout">Margin: 0% — 100%</span>
+          <div class="fx-margin-sliders">
+            <input type="range" class="fx-bound-min" min="0" max="100" value="0" title="Min %">
+            <input type="range" class="fx-bound-max" min="0" max="100" value="100" title="Max %">
           </div>
         </div>
-        <div class="control-row" style="margin-top:8px;">
-          <label for="camShakeIntensitySlider" class="control-label"><span>Shake Intensity</span><span id="camShakeIntensityVal">60%</span></label>
-          <input class="ui-slider" type="range" id="camShakeIntensitySlider" min="0" max="1" step="0.05" value="0.6" aria-label="Camera Shake Intensity Slider">
-        </div>
+        <input class="ui-slider" type="range" id="kaleidoSlider" min="0" max="12" step="3" value="0" aria-label="Kaleidoscope Segments">
       </div>
 
-      <!-- 5. Depth of Field Segments -->
+      <!-- 6. Mirror Symmetry -->
+      <div class="control-row fx-control-row" data-fx-id="mirror" style="margin-top:14px;">
+        <label for="mirrorSlider" class="control-label">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="fx-lock-btn" data-fx="mirror" title="Lock mirror symmetry">🔓</button>
+            <button type="button" class="fx-rand-btn" data-fx="mirror" title="Randomize mirror symmetry">🎲</button>
+            <button type="button" class="fx-gear-btn" data-fx="mirror" title="Configure margin bounds">⚙️</button>
+            <span>Mirror</span>
+          </div>
+          <span id="mirrorVal">Off</span>
+        </label>
+        <div class="chip-group" id="mirrorSegments" style="margin-bottom:8px;">
+          <div class="opt-chip active" data-value="0">Off</div>
+          <div class="opt-chip" data-value="1">Side</div>
+          <div class="opt-chip" data-value="2">Flip</div>
+          <div class="opt-chip" data-value="3">Quad</div>
+        </div>
+        <div class="fx-margin-drawer" id="mirror_margin_drawer">
+          <span class="fx-margin-readout">Margin: 0% — 100%</span>
+          <div class="fx-margin-sliders">
+            <input type="range" class="fx-bound-min" min="0" max="100" value="0" title="Min %">
+            <input type="range" class="fx-bound-max" min="0" max="100" value="100" title="Max %">
+          </div>
+        </div>
+        <input class="ui-slider" type="range" id="mirrorSlider" min="0" max="3" step="1" value="0" aria-label="Mirror Symmetry Mode">
+      </div>
+
+      <!-- 7. Pixelize -->
+      <div class="control-row fx-control-row" data-fx-id="pixel" style="margin-top:14px;">
+        <label for="pixelSlider" class="control-label">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="fx-lock-btn" data-fx="pixel" title="Lock pixelize">🔓</button>
+            <button type="button" class="fx-rand-btn" data-fx="pixel" title="Randomize pixelize">🎲</button>
+            <button type="button" class="fx-gear-btn" data-fx="pixel" title="Configure margin bounds">⚙️</button>
+            <span>Pixelize</span>
+          </div>
+          <span id="pixelVal">Off</span>
+        </label>
+        <div class="chip-group" id="pixelSegments" style="margin-bottom:8px;">
+          <div class="opt-chip active" data-value="0">Off</div>
+          <div class="opt-chip" data-value="16">16-bit</div>
+          <div class="opt-chip" data-value="32">32-bit</div>
+          <div class="opt-chip" data-value="64">64-bit</div>
+        </div>
+        <div class="fx-margin-drawer" id="pixel_margin_drawer">
+          <span class="fx-margin-readout">Margin: 0% — 100%</span>
+          <div class="fx-margin-sliders">
+            <input type="range" class="fx-bound-min" min="0" max="100" value="0" title="Min %">
+            <input type="range" class="fx-bound-max" min="0" max="100" value="100" title="Max %">
+          </div>
+        </div>
+        <input class="ui-slider" type="range" id="pixelSlider" min="0" max="64" step="16" value="0" aria-label="Pixelation Factor">
+      </div>
+
+      <!-- 8. Depth of Field Segments -->
       <div style="margin-top:16px;">
         <span style="font-size:12px;font-weight:600;display:block;margin-bottom:6px;">Depth of Field</span>
         <div class="chip-group" id="dofSegments">
@@ -543,259 +920,15 @@
         </div>
       </div>
 
-      <!-- 6. Optical Transformations & Symmetry -->
-      <div class="camera-group" style="margin-top:20px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
-        <span style="font-size:12px;font-weight:600;display:block;margin-bottom:8px;">Optical Symmetry & Geometry</span>
-
-        <!-- Kaleidoscope -->
-        <div class="control-row fx-control-row" data-fx-id="kaleido">
-          <label for="kaleidoSlider" class="control-label">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <button type="button" class="fx-lock-btn" data-fx="kaleido" title="Lock kaleidoscope">🔓</button>
-              <button type="button" class="fx-rand-btn" data-fx="kaleido" title="Randomize kaleidoscope">🎲</button>
-              <span>Kaleidoscope</span>
-            </div>
-            <span id="kaleidoVal">Off</span>
-          </label>
-          <div class="chip-group" id="kaleidoSegments" style="margin-bottom:8px;">
-            <div class="opt-chip active" data-value="0">Off</div>
-            <div class="opt-chip" data-value="3">3x</div>
-            <div class="opt-chip" data-value="6">6x</div>
-            <div class="opt-chip" data-value="12">12x</div>
-          </div>
-          <input class="ui-slider" type="range" id="kaleidoSlider" min="0" max="12" step="3" value="0" aria-label="Kaleidoscope Segments">
-        </div>
-
-        <!-- Mirror Symmetry -->
-        <div class="control-row fx-control-row" data-fx-id="mirror" style="margin-top:14px;">
-          <label for="mirrorSlider" class="control-label">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <button type="button" class="fx-lock-btn" data-fx="mirror" title="Lock mirror symmetry">🔓</button>
-              <button type="button" class="fx-rand-btn" data-fx="mirror" title="Randomize mirror symmetry">🎲</button>
-              <span>Mirror Symmetry</span>
-            </div>
-            <span id="mirrorVal">Off</span>
-          </label>
-          <div class="chip-group" id="mirrorSegments" style="margin-bottom:8px;">
-            <div class="opt-chip active" data-value="0">Off</div>
-            <div class="opt-chip" data-value="1">Side</div>
-            <div class="opt-chip" data-value="2">Flip</div>
-            <div class="opt-chip" data-value="3">Quad</div>
-          </div>
-          <input class="ui-slider" type="range" id="mirrorSlider" min="0" max="3" step="1" value="0" aria-label="Mirror Symmetry Mode">
-        </div>
-
-        <!-- Pixelize -->
-        <div class="control-row fx-control-row" data-fx-id="pixel" style="margin-top:14px;">
-          <label for="pixelSlider" class="control-label">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <button type="button" class="fx-lock-btn" data-fx="pixel" title="Lock pixelize">🔓</button>
-              <button type="button" class="fx-rand-btn" data-fx="pixel" title="Randomize pixelize">🎲</button>
-              <span>Pixelize / Retro</span>
-            </div>
-            <span id="pixelVal">Off</span>
-          </label>
-          <div class="chip-group" id="pixelSegments" style="margin-bottom:8px;">
-            <div class="opt-chip active" data-value="0">Off</div>
-            <div class="opt-chip" data-value="16">16-bit</div>
-            <div class="opt-chip" data-value="32">32-bit</div>
-            <div class="opt-chip" data-value="64">64-bit</div>
-          </div>
-          <input class="ui-slider" type="range" id="pixelSlider" min="0" max="64" step="16" value="0" aria-label="Pixelation Factor">
-        </div>
-      </div>
-
-      <!-- 7. Optical Filters & Lenses (Image 3: Filters) -->
-      <div class="camera-group" style="margin-top:20px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
-        <span style="font-size:12px;font-weight:600;display:block;margin-bottom:8px;">Camera Lens Filters</span>
-
-        <div class="control-row fx-control-row" data-fx-id="chroma">
-          <label for="chromaSlider" class="control-label">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <button type="button" class="fx-lock-btn" data-fx="chroma" title="Lock chromatic aberration">🔓</button>
-              <button type="button" class="fx-rand-btn" data-fx="chroma" title="Randomize chromatic aberration">🎲</button>
-              <span>Chromatic Aberration</span>
-            </div>
-            <span id="chromaVal">0.00</span>
-          </label>
-          <input class="ui-slider" type="range" id="chromaSlider" min="0" max="1" step="0.05" value="0.0" aria-label="Chromatic Aberration">
-        </div>
-
-        <div class="control-row fx-control-row" data-fx-id="grain" style="margin-top:12px;">
-          <label for="grainSlider" class="control-label">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <button type="button" class="fx-lock-btn" data-fx="grain" title="Lock film grain">🔓</button>
-              <button type="button" class="fx-rand-btn" data-fx="grain" title="Randomize film grain">🎲</button>
-              <span>Film Grain</span>
-            </div>
-            <span id="grainVal">0.00</span>
-          </label>
-          <input class="ui-slider" type="range" id="grainSlider" min="0" max="0.5" step="0.02" value="0.0" aria-label="Film Grain">
-        </div>
-
-        <div class="control-row fx-control-row" data-fx-id="vig" style="margin-top:12px;">
-          <label for="vigSlider" class="control-label">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <button type="button" class="fx-lock-btn" data-fx="vig" title="Lock vignette">🔓</button>
-              <button type="button" class="fx-rand-btn" data-fx="vig" title="Randomize vignette">🎲</button>
-              <span>Vignette</span>
-            </div>
-            <span id="vigVal">0.00</span>
-          </label>
-          <input class="ui-slider" type="range" id="vigSlider" min="0" max="1" step="0.05" value="0.0" aria-label="Vignette">
-        </div>
-
-        <div class="control-row fx-control-row" data-fx-id="scan" style="margin-top:12px;">
-          <label for="scanSlider" class="control-label">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <button type="button" class="fx-lock-btn" data-fx="scan" title="Lock scanlines">🔓</button>
-              <button type="button" class="fx-rand-btn" data-fx="scan" title="Randomize scanlines">🎲</button>
-              <span>CRT Scanlines</span>
-            </div>
-            <span id="scanVal">0.0</span>
-          </label>
-          <input class="ui-slider" type="range" id="scanSlider" min="0" max="1" step="0.05" value="0.0" aria-label="CRT Scanlines">
-        </div>
-
-        <div class="control-row fx-control-row" data-fx-id="bend" style="margin-top:12px;">
-          <label for="bendSlider" class="control-label">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <button type="button" class="fx-lock-btn" data-fx="bend" title="Lock CRT bend">🔓</button>
-              <button type="button" class="fx-rand-btn" data-fx="bend" title="Randomize CRT bend">🎲</button>
-              <span>Screen Burn / Bend</span>
-            </div>
-            <span id="bendVal">0.0</span>
-          </label>
-          <input class="ui-slider" type="range" id="bendSlider" min="0" max="0.3" step="0.02" value="0.0" aria-label="CRT Screen Bend">
-        </div>
-
-        <div class="control-row fx-control-row" data-fx-id="phosphor" style="margin-top:12px;">
-          <label for="phosphorSlider" class="control-label">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <button type="button" class="fx-lock-btn" data-fx="phosphor" title="Lock phosphor CRT">🔓</button>
-              <button type="button" class="fx-rand-btn" data-fx="phosphor" title="Randomize phosphor CRT">🎲</button>
-              <span>CRT Phosphor Glow</span>
-            </div>
-            <span id="phosphorVal">0.00</span>
-          </label>
-          <input class="ui-slider" type="range" id="phosphorSlider" min="0" max="1" step="0.05" value="0.0" aria-label="CRT Phosphor Stripes">
-        </div>
-
-        <div class="control-row fx-control-row" data-fx-id="drip" style="margin-top:12px;">
-          <label for="dripSlider" class="control-label">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <button type="button" class="fx-lock-btn" data-fx="drip" title="Lock drip / liquid wave">🔓</button>
-              <button type="button" class="fx-rand-btn" data-fx="drip" title="Randomize drip / liquid wave">🎲</button>
-              <span>Liquid Drip / Wave</span>
-            </div>
-            <span id="dripVal">0.00</span>
-          </label>
-          <input class="ui-slider" type="range" id="dripSlider" min="0" max="1" step="0.05" value="0.0" aria-label="Liquid Drip Distortion">
-        </div>
-
-        <div class="control-row fx-control-row" data-fx-id="edge" style="margin-top:12px;">
-          <label for="edgeSlider" class="control-label">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <button type="button" class="fx-lock-btn" data-fx="edge" title="Lock neon edge trace">🔓</button>
-              <button type="button" class="fx-rand-btn" data-fx="edge" title="Randomize neon edge trace">🎲</button>
-              <span>Neon Edge Trace</span>
-            </div>
-            <span id="edgeVal">0.00</span>
-          </label>
-          <input class="ui-slider" type="range" id="edgeSlider" min="0" max="1" step="0.05" value="0.0" aria-label="Neon Outline Edge Detect">
-        </div>
-      </div>
-      <!-- 1. View Directional Pad & Zoom Rig -->
-      <div class="camera-group camera-view" aria-labelledby="cameraViewLabel">
-        <div class="sidebar-label-row" style="display:flex;justify-content:space-between;margin-bottom:8px;">
-          <span class="camera-group__label" id="cameraViewLabel" style="font-weight:600;">View</span>
-          <span class="camera-hint" id="cameraViewHint" style="font-size:10px;color:var(--text-muted);">Tap to nudge · hold to glide</span>
-        </div>
-        <div class="camera-view__rig">
-          <div class="camera-pad" aria-label="Orbit and tilt">
-            <button type="button" class="camera-pad__arrow camera-pad__arrow--up" id="tiltUp" data-alias="camUpBtn" data-axis="tilt" data-direction="1" aria-label="Tilt up" title="Tilt up">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
-            </button>
-            <button type="button" class="camera-pad__arrow camera-pad__arrow--left" id="rotateLeft" data-alias="camLeftBtn" data-axis="orbit" data-direction="-1" aria-label="Orbit left" title="Orbit left">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-            </button>
-            <button type="button" class="camera-pad__arrow camera-pad__arrow--right" id="rotateRight" data-alias="camRightBtn" data-axis="orbit" data-direction="1" aria-label="Orbit right" title="Orbit right">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-            <button type="button" class="camera-pad__arrow camera-pad__arrow--down" id="tiltDown" data-alias="camDownBtn" data-axis="tilt" data-direction="-1" aria-label="Tilt down" title="Tilt down">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-            <button type="button" class="camera-pad__hub" id="cameraReset" data-alias="camResetBtn" aria-label="Reset camera to front" title="Reset camera to front">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
-            </button>
-          </div>
-
-          <!-- 2. Zoom Controls -->
-          <div class="camera-zoom" id="zoomControl" aria-label="Zoom">
-            <span class="camera-zoom__readout" style="font-size:11px;">Zoom <span class="sidebar-value" id="zoomValue">50%</span></span>
-            <button type="button" class="camera-icon-btn" id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button>
-            <input class="ui-slider" type="range" id="zoomSlider" data-alias="camZoomSlider" min="0" max="1" step="0.05" value="0.5" aria-label="Zoom Slider">
-            <button type="button" class="camera-icon-btn" id="zoomOut" aria-label="Zoom out" title="Zoom out">−</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 2. Cinematic Viewpoints -->
-      <div class="camera-group camera-viewpoints" style="margin-top:16px;">
-        <span class="camera-group__label" id="viewpointsLabel" style="font-weight:600;font-size:12px;display:block;margin-bottom:8px;">Cinematic Viewpoints</span>
-        <div class="viewpoints-grid" id="viewpointsGrid" aria-labelledby="viewpointsLabel">
-          <button type="button" class="viewpoint-btn active" id="viewDefaultBtn" data-view="default" title="Front View (0°)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-            <span class="viewpoint-name">Default</span>
-          </button>
-          <button type="button" class="viewpoint-btn" id="viewTopBtn" data-view="top" title="Top-Down Bird's Eye View (+87°)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 15-6-6-6 6"/></svg>
-            <span class="viewpoint-name">Top</span>
-          </button>
-          <button type="button" class="viewpoint-btn" id="viewLowBtn" data-view="low" title="Low Angle Worm's Eye View (-35°)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
-            <span class="viewpoint-name">Low</span>
-          </button>
-          <button type="button" class="viewpoint-btn" id="viewIsoBtn" data-view="iso" title="Isometric Perspective (45°, 30°)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21 16-9 5-9-5V8l9-5 9 5v8Z"/><path d="m3 8 9 5 9-5"/><path d="M12 13v8"/></svg>
-            <span class="viewpoint-name">Iso</span>
-          </button>
-          <button type="button" class="viewpoint-btn" id="viewSideBtn" data-view="side" title="Side Profile View (90°)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m10 8 4 4-4 4"/></svg>
-            <span class="viewpoint-name">Side</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- 3. Auto-Rotate & Direction Controls -->
-      <div class="camera-group camera-spin" style="margin-top:16px;">
-        <div class="control-row">
-          <label for="autoRotateToggle" class="control-label"><span>Auto-Rotate</span></label>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <input type="checkbox" id="autoRotateToggle" data-alias="camAutoOrbitToggle" checked style="accent-color:var(--primary);width:16px;height:16px;" aria-label="Auto-Rotate Toggle">
-          </div>
-        </div>
-        <div class="control-row" style="margin-top:8px;">
-          <span class="control-label"><span>Spin Direction</span></span>
-          <div class="camera-dir" id="rotateDirection" aria-label="Spin direction">
-            <button type="button" class="seg-btn" id="camDirCcwBtn" data-direction="-1" aria-pressed="false" title="Spin counter-clockwise" aria-label="Spin counter-clockwise">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-            </button>
-            <button type="button" class="seg-btn active" id="camDirCwBtn" data-direction="1" aria-pressed="true" title="Spin clockwise" aria-label="Spin clockwise">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="control-row" style="margin-top:8px;">
-          <label for="rotateSpeedSlider" class="control-label"><span>Rotation Speed</span><span id="rotateSpeedValue">50%</span></label>
-          <input class="ui-slider" type="range" id="rotateSpeedSlider" data-alias="camOrbitSpeedSlider" min="0" max="1" step="0.05" value="0.5" aria-label="Rotation Speed">
-        </div>
-      </div>
-
-      <!-- 4. Camera Shake Controls -->
+      <!-- 9. Camera Shake Controls -->
       <div class="camera-group camera-shake-group" style="margin-top:16px;">
         <div class="control-row">
-          <label for="camShakeToggle" class="control-label"><span>Audio Camera Shake</span></label>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="fx-lock-btn" data-fx="camShake" title="Lock camera shake">🔓</button>
+            <button type="button" class="fx-rand-btn" data-fx="camShake" title="Randomize camera shake">🎲</button>
+            <button type="button" class="fx-gear-btn" data-fx="camShake" title="Configure margin bounds">⚙️</button>
+            <label for="camShakeToggle" class="control-label" style="margin-bottom:0;"><span>Camera Shake</span></label>
+          </div>
           <input type="checkbox" id="camShakeToggle" checked style="accent-color:var(--primary);width:16px;height:16px;" aria-label="Camera Shake Toggle">
         </div>
         <div style="margin-top:8px;">
@@ -806,20 +939,16 @@
             <div class="opt-chip" data-value="1.0">Strong</div>
           </div>
         </div>
+        <div class="fx-margin-drawer" id="camShake_margin_drawer">
+          <span class="fx-margin-readout">Margin: 0% — 100%</span>
+          <div class="fx-margin-sliders">
+            <input type="range" class="fx-bound-min" min="0" max="100" value="0" title="Min %">
+            <input type="range" class="fx-bound-max" min="0" max="100" value="100" title="Max %">
+          </div>
+        </div>
         <div class="control-row" style="margin-top:8px;">
           <label for="camShakeIntensitySlider" class="control-label"><span>Shake Intensity</span><span id="camShakeIntensityVal">60%</span></label>
           <input class="ui-slider" type="range" id="camShakeIntensitySlider" min="0" max="1" step="0.05" value="0.6" aria-label="Camera Shake Intensity Slider">
-        </div>
-      </div>
-
-      <!-- 5. Depth of Field Segments -->
-      <div style="margin-top:16px;">
-        <span style="font-size:12px;font-weight:600;display:block;margin-bottom:6px;">Depth of Field</span>
-        <div class="chip-group" id="dofSegments">
-          <div class="opt-chip active" data-value="0">Off</div>
-          <div class="opt-chip" data-value="0.3">Subtle</div>
-          <div class="opt-chip" data-value="0.6">Medium</div>
-          <div class="opt-chip" data-value="1.0">Strong</div>
         </div>
       </div>
     </div>
