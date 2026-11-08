@@ -88,7 +88,7 @@ function deobfuscate(content) {
 
   // Replace decoder calls with exact alias match first
   const aliasList = Array.from(aliases).join('|');
-  const pattern = new RegExp(String.raw`\b(?:${aliasList})\s*\((0x[0-9a-fA-F]+|\d+)(?:\s*,\s*(['"`])(.*?)\2)?\s*\)`, 'g');
+  const pattern = new RegExp('\\b(?:' + aliasList + ')\\s*\\((0x[0-9a-fA-F]+|\\d+)(?:\\s*,\\s*([\'"`])(.*?)\\2)?\\s*\\)', 'g');
 
   let result = content.replace(pattern, (fullMatch, arg1, q, arg2) => {
     try {

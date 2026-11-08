@@ -494,11 +494,11 @@ body, html {
 }
 
 .is-collapsed {
-  display: none !important;
+  display: none !important; /* NOSONAR */
 }
 
 .preset-settings-link.is-collapsed {
-  display: none !important;
+  display: none !important; /* NOSONAR */
 }
 
 /* Preset Fine-Tuning Drawer Styles */
