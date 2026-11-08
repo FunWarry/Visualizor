@@ -9,10 +9,15 @@ import {
   setParamLocked,
   getRandomizeBounds,
   setRandomizeBounds,
+  getParamRandomizeBounds,
+  setParamRandomizeBounds,
+  randomizeSingleParameter,
   isAutoRandomizeEnabled,
   setAutoRandomizeEnabled,
   randomizePreset
 } from './PresetTuningManager';
+
+const BOUND_SLIDER_CLASS = 'ui-slider tuning-bound-slider';
 
 export function formatParamValue(val: number, step: number): string {
   if (Number.isInteger(step)) return Math.round(val).toString();
@@ -87,6 +92,57 @@ function renderToolbar(preset: VisualizerPreset, content: HTMLElement): void {
   content.appendChild(toolbar);
 }
 
+function createParamMarginDrawer(preset: VisualizerPreset, p: ParameterDefinition): HTMLElement {
+  const drawer = document.createElement('div');
+  drawer.className = 'tuning-param-margin-drawer';
+  drawer.id = `tuning_${p.id}_margin_drawer`;
+  drawer.style.cssText = 'display:none;margin-top:4px;padding:6px 8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:6px;font-size:10px;';
+
+  const bounds = getParamRandomizeBounds(preset.id, p.id);
+  let minP = bounds.minPercent;
+  let maxP = bounds.maxPercent;
+
+  const readout = document.createElement('span');
+  readout.className = 'tuning-range-readout';
+  readout.textContent = `Margin: ${minP}% — ${maxP}%`;
+  readout.style.cssText = 'display:block;margin-bottom:4px;color:var(--primary);';
+
+  const slidersRow = document.createElement('div');
+  slidersRow.style.cssText = 'display:flex;gap:6px;';
+
+  const minSlider = document.createElement('input');
+  minSlider.type = 'range';
+  minSlider.className = BOUND_SLIDER_CLASS;
+  minSlider.min = '0';
+  minSlider.max = '100';
+  minSlider.value = minP.toString();
+  minSlider.title = 'Min Margin (%)';
+
+  const maxSlider = document.createElement('input');
+  maxSlider.type = 'range';
+  maxSlider.className = BOUND_SLIDER_CLASS;
+  maxSlider.min = '0';
+  maxSlider.max = '100';
+  maxSlider.value = maxP.toString();
+  maxSlider.title = 'Max Margin (%)';
+
+  const onUpdateBounds = () => {
+    minP = Math.min(Number(minSlider.value), Number(maxSlider.value));
+    maxP = Math.max(Number(minSlider.value), Number(maxSlider.value));
+    readout.textContent = `Margin: ${minP}% — ${maxP}%`;
+    setParamRandomizeBounds(preset.id, p.id, minP, maxP);
+  };
+
+  minSlider.addEventListener('input', onUpdateBounds);
+  maxSlider.addEventListener('input', onUpdateBounds);
+
+  slidersRow.appendChild(minSlider);
+  slidersRow.appendChild(maxSlider);
+  drawer.appendChild(readout);
+  drawer.appendChild(slidersRow);
+  return drawer;
+}
+
 function renderParameterRow(
   preset: VisualizerPreset,
   p: ParameterDefinition,
@@ -128,10 +184,35 @@ function renderParameterRow(
       : `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>`;
   });
 
+  const randParamBtn = document.createElement('button');
+  randParamBtn.type = 'button';
+  randParamBtn.className = 'tuning-param-rand-btn';
+  randParamBtn.id = `tuning_${p.id}_rand_btn`;
+  randParamBtn.title = `Randomize ${p.name} within its margin`;
+  randParamBtn.innerHTML = '🎲';
+
+  const marginDrawer = createParamMarginDrawer(preset, p);
+
+  const gearBtn = document.createElement('button');
+  gearBtn.type = 'button';
+  gearBtn.className = 'tuning-param-gear-btn';
+  gearBtn.id = `tuning_${p.id}_gear_btn`;
+  gearBtn.title = `Configure margin bounds for ${p.name}`;
+  gearBtn.innerHTML = '⚙️';
+  gearBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const isHidden = marginDrawer.style.display === 'none';
+    marginDrawer.style.display = isHidden ? 'block' : 'none';
+    gearBtn.classList.toggle('active', isHidden);
+  });
+
   const nameSpan = document.createElement('span');
   nameSpan.textContent = p.name;
 
   leftWrap.appendChild(lockToggle);
+  leftWrap.appendChild(randParamBtn);
+  leftWrap.appendChild(gearBtn);
   leftWrap.appendChild(nameSpan);
 
   const valSpan = document.createElement('span');
@@ -168,8 +249,19 @@ function renderParameterRow(
     valSpan.textContent = formatParamValue(updatedVal, p.step);
   });
 
+  randParamBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const newVal = randomizeSingleParameter(preset, p.id);
+    if (newVal !== undefined) {
+      slider.value = newVal.toString();
+      valSpan.textContent = formatParamValue(newVal, p.step);
+    }
+  });
+
   row.appendChild(label);
   row.appendChild(slider);
+  row.appendChild(marginDrawer);
   content.appendChild(row);
 }
 
@@ -229,7 +321,7 @@ function renderRandomizeCard(
 
   const minSlider = document.createElement('input');
   minSlider.type = 'range';
-  minSlider.className = 'ui-slider tuning-bound-slider';
+  minSlider.className = BOUND_SLIDER_CLASS;
   minSlider.min = '0';
   minSlider.max = '100';
   minSlider.step = '5';
@@ -238,7 +330,7 @@ function renderRandomizeCard(
 
   const maxSlider = document.createElement('input');
   maxSlider.type = 'range';
-  maxSlider.className = 'ui-slider tuning-bound-slider';
+  maxSlider.className = BOUND_SLIDER_CLASS;
   maxSlider.min = '0';
   maxSlider.max = '100';
   maxSlider.step = '5';

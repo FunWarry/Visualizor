@@ -7,10 +7,42 @@ import { VisualizerPreset, VisualizerTheme, AudioFeatures, PostProcessingConfig 
 import { CameraController } from './CameraController';
 import { TextOverlayEngine } from '../overlay/TextOverlayEngine';
 
+const PersistenceShader = {
+  uniforms: {
+    tDiffuse: { value: null as THREE.Texture | null },
+    tFeedback: { value: null as THREE.Texture | null },
+    uPersistence: { value: 0.0 }
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform sampler2D tFeedback;
+    uniform float uPersistence;
+    varying vec2 vUv;
+
+    void main() {
+      vec4 curr = texture2D(tDiffuse, vUv);
+      if (uPersistence > 0.01) {
+        vec4 prev = texture2D(tFeedback, vUv);
+        vec3 trail = max(curr.rgb, prev.rgb * uPersistence);
+        gl_FragColor = vec4(trail, max(curr.a, prev.a * uPersistence));
+      } else {
+        gl_FragColor = curr;
+      }
+    }
+  `
+};
+
 const MasterShader = {
   uniforms: {
-    tDiffuse: { value: null },
-    tFeedback: { value: null },
+    tDiffuse: { value: null as THREE.Texture | null },
+    tFeedback: { value: null as THREE.Texture | null },
     uPersistence: { value: 0.0 },
     uTime: { value: 0 },
     uVignette: { value: 0.5 },
@@ -18,7 +50,15 @@ const MasterShader = {
     uChromaticAberration: { value: 0.4 },
     uScanlines: { value: 0.0 },
     uCrtBend: { value: 0.0 },
-    uAudioBass: { value: 0.0 }
+    uAudioBass: { value: 0.0 },
+    uKaleidoscope: { value: 0.0 },
+    uMirror: { value: 0.0 },
+    uPixelize: { value: 0.0 },
+    uDrip: { value: 0.0 },
+    uPhosphor: { value: 0.0 },
+    uEdgeDetect: { value: 0.0 },
+    uBrightness: { value: 0.0 },
+    uResolution: { value: new THREE.Vector2(1920, 1080) }
   },
   vertexShader: `
     varying vec2 vUv;
@@ -38,6 +78,14 @@ const MasterShader = {
     uniform float uScanlines;
     uniform float uCrtBend;
     uniform float uAudioBass;
+    uniform float uKaleidoscope;
+    uniform float uMirror;
+    uniform float uPixelize;
+    uniform float uDrip;
+    uniform float uPhosphor;
+    uniform float uEdgeDetect;
+    uniform float uBrightness;
+    uniform vec2 uResolution;
     varying vec2 vUv;
 
     float random(vec2 p) {
@@ -51,8 +99,56 @@ const MasterShader = {
       return uv + cc * (dist * bend);
     }
 
+    vec2 applyKaleido(vec2 uv, float segments) {
+      if (segments <= 1.0) return uv;
+      vec2 p = uv - 0.5;
+      float r = length(p);
+      float a = atan(p.y, p.x);
+      float seg = 6.283185307 / segments;
+      a = mod(a, seg);
+      if (a > seg * 0.5) a = seg - a;
+      return vec2(cos(a), sin(a)) * r + 0.5;
+    }
+
+    vec2 applyMirror(vec2 uv, float m) {
+      if (m < 0.5) return uv;
+      vec2 res = uv;
+      if (m < 1.5) res.x = abs(res.x - 0.5) + 0.5;
+      else if (m < 2.5) res.y = abs(res.y - 0.5) + 0.5;
+      else res = abs(res - 0.5) + 0.5;
+      return res;
+    }
+
+    vec2 applyPixelize(vec2 uv, float px, vec2 res) {
+      if (px <= 1.0) return uv;
+      vec2 grid = max(res / px, vec2(8.0));
+      return floor(uv * grid) / grid;
+    }
+
+    vec2 applyDrip(vec2 uv, float amount, float time, float bass) {
+      if (amount <= 0.001) return uv;
+      float factor = amount * 0.018 + bass * 0.012;
+      uv.x += sin(uv.y * 16.0 + time * 3.2) * factor;
+      uv.y += cos(uv.x * 14.0 + time * 2.6) * factor;
+      return uv;
+    }
+
     void main() {
-      vec2 uv = crtDistort(vUv, uCrtBend);
+      // 1. Mirror Symmetry
+      vec2 uv = applyMirror(vUv, uMirror);
+
+      // 2. Kaleidoscope
+      uv = applyKaleido(uv, uKaleidoscope);
+
+      // 3. Liquid Drip / Wave distortion
+      uv = applyDrip(uv, uDrip, uTime, uAudioBass);
+
+      // 4. CRT Barrel Distortion
+      uv = crtDistort(uv, uCrtBend);
+
+      // 5. Pixelize / Retro Arcade
+      uv = applyPixelize(uv, uPixelize, uResolution);
+
       if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
         gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
         return;
@@ -66,16 +162,36 @@ const MasterShader = {
       float b = texture2D(tDiffuse, uv - dir * split).b;
       vec3 color = vec3(r, g, b);
 
-      // Motion Persistence (Feedback trails)
+      // Motion Persistence fallback
       if (uPersistence > 0.01) {
         vec3 fb = texture2D(tFeedback, uv).rgb;
         color = max(color, fb * uPersistence);
+      }
+
+      // Neon Edge Trace
+      if (uEdgeDetect > 0.01) {
+        vec2 off = 1.5 / max(uResolution, vec2(1.0));
+        float lC = length(texture2D(tDiffuse, uv).rgb);
+        float lL = length(texture2D(tDiffuse, uv - vec2(off.x, 0.0)).rgb);
+        float lR = length(texture2D(tDiffuse, uv + vec2(off.x, 0.0)).rgb);
+        float lU = length(texture2D(tDiffuse, uv + vec2(0.0, off.y)).rgb);
+        float lD = length(texture2D(tDiffuse, uv - vec2(0.0, off.y)).rgb);
+        float edge = (abs(lC - lL) + abs(lC - lR) + abs(lC - lU) + abs(lC - lD)) * 2.0;
+        vec3 edgeCol = vec3(edge) * vec3(1.0, 0.7, 0.2);
+        color = mix(color, max(color, edgeCol), uEdgeDetect);
       }
 
       // CRT Scanlines
       if (uScanlines > 0.01) {
         float scanline = sin(uv.y * 700.0) * 0.5 + 0.5;
         color *= 1.0 - (scanline * uScanlines * 0.35);
+      }
+
+      // Phosphor CRT Glow
+      if (uPhosphor > 0.01) {
+        float px = floor(mod(gl_FragCoord.x, 3.0));
+        vec3 mask = (px == 0.0) ? vec3(1.25, 0.8, 0.8) : ((px == 1.0) ? vec3(0.8, 1.25, 0.8) : vec3(0.8, 0.8, 1.25));
+        color *= mix(vec3(1.0), mask, uPhosphor * 0.55);
       }
 
       // Vignette
@@ -91,6 +207,11 @@ const MasterShader = {
         color += noise;
       }
 
+      // Brightness / Exposure
+      if (abs(uBrightness) > 0.005) {
+        color += vec3(uBrightness);
+      }
+
       gl_FragColor = vec4(color, 1.0);
     }
   `
@@ -103,6 +224,7 @@ export class RenderEngine {
   private readonly composer: EffectComposer;
   private readonly renderPass: RenderPass;
   private readonly bloomPass: UnrealBloomPass;
+  private readonly persistencePass: ShaderPass;
   private readonly masterPass: ShaderPass;
 
   // Feedback targets for motion persistence
@@ -135,7 +257,14 @@ export class RenderEngine {
       crtBend: 0.0,
       cameraShake: true,
       autoRotate: true,
-      autoRotateSpeed: 0.35
+      autoRotateSpeed: 0.35,
+      kaleidoscope: 0.0,
+      mirror: 0.0,
+      pixelize: 0.0,
+      drip: 0.0,
+      phosphor: 0.0,
+      edgeDetect: 0.0,
+      brightness: 0.0
     };
 
     // Scene setup
@@ -206,6 +335,10 @@ export class RenderEngine {
     );
     this.composer.addPass(this.bloomPass);
 
+    // Persistence Pass
+    this.persistencePass = new ShaderPass(PersistenceShader);
+    this.composer.addPass(this.persistencePass);
+
     // Master Screen Effects Pass
     this.masterPass = new ShaderPass(MasterShader);
     this.composer.addPass(this.masterPass);
@@ -224,7 +357,10 @@ export class RenderEngine {
     // Ortho copy scene for ping-pong blit
     this.copyScene = new THREE.Scene();
     this.copyCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-    this.copyMaterial = new THREE.MeshBasicMaterial({ transparent: false });
+    this.copyMaterial = new THREE.MeshBasicMaterial({
+      map: this.feedbackTargets[0].texture,
+      transparent: false
+    });
     const copyQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.copyMaterial);
     this.copyScene.add(copyQuad);
 
@@ -358,6 +494,22 @@ export class RenderEngine {
     uniforms.uAudioBass.value = audio.bass;
     uniforms.uPersistence.value = this.config.persistence;
     uniforms.tFeedback.value = currentReadTarget.texture;
+    uniforms.uKaleidoscope.value = this.config.kaleidoscope ?? 0.0;
+    uniforms.uMirror.value = this.config.mirror ?? 0.0;
+    uniforms.uPixelize.value = this.config.pixelize ?? 0.0;
+    uniforms.uDrip.value = this.config.drip ?? 0.0;
+    uniforms.uPhosphor.value = this.config.phosphor ?? 0.0;
+    uniforms.uEdgeDetect.value = this.config.edgeDetect ?? 0.0;
+    uniforms.uBrightness.value = this.config.brightness ?? 0.0;
+    uniforms.uResolution.value.set(this.renderer.domElement.width, this.renderer.domElement.height);
+
+    if (this.config.persistence > 0.01) {
+      this.persistencePass.enabled = true;
+      this.persistencePass.uniforms.uPersistence.value = this.config.persistence;
+      this.persistencePass.uniforms.tFeedback.value = currentReadTarget.texture;
+    } else {
+      this.persistencePass.enabled = false;
+    }
 
     this.composer.render();
 
@@ -365,6 +517,7 @@ export class RenderEngine {
     if (this.config.persistence > 0.01) {
       this.renderer.setRenderTarget(currentWriteTarget);
       this.copyMaterial.map = this.composer.readBuffer.texture;
+      this.copyMaterial.needsUpdate = true;
       this.renderer.render(this.copyScene, this.copyCamera);
       this.renderer.setRenderTarget(null);
       this.currentFeedbackIndex = 1 - this.currentFeedbackIndex;

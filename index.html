@@ -329,6 +329,24 @@
           <label for="hiddenNativeColorPicker2" style="display:none;">Secondary Native Color Picker</label>
           <input type="color" id="hiddenNativeColorPicker2" value="#00D2FF" aria-label="Secondary Native Color Picker" style="opacity:0;position:absolute;pointer-events:none;width:0;height:0;">
         </div>
+
+        <!-- Dynamic Extra Color Stops for Multi-Color Gradient -->
+        <div id="customGradientExtraStops" style="display:none;flex-direction:column;gap:8px;margin-top:8px;"></div>
+        <div id="gradientControlsRow" style="display:none;align-items:center;gap:8px;margin-top:10px;">
+          <button type="button" class="btn-pill" id="addGradientStopBtn" style="font-size:11px;padding:5px 12px;display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,0.08);border:1px solid var(--border);color:var(--text-main);cursor:pointer;border-radius:14px;">
+            <span>+ Add Color Stop</span>
+          </button>
+          <div id="gradientPreviewBar" style="flex:1;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:linear-gradient(90deg, #ff5c00, #00d2ff);box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);" title="Gradient Preview"></div>
+        </div>
+
+        <!-- Curated Gradient Presets -->
+        <div id="gradientPresetsSection" style="display:none;margin-top:14px;">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:600;display:flex;justify-content:space-between;align-items:center;">
+            <span>Gradient Presets</span>
+            <span style="font-size:10px;color:var(--text-muted);font-weight:normal;">1-Click Palettes</span>
+          </div>
+          <div id="gradientPresetsGrid" class="gradient-presets-grid" style="display:grid;grid-template-columns:repeat(2, 1fr);gap:6px;"></div>
+        </div>
       </div>
 
       <!-- Hidden legacy container for compatibility -->
@@ -338,38 +356,170 @@
 
   <!-- 4. FX Drawer Panel -->
   <div class="drawer-panel glass-panel detail-panel" id="fxPanel" data-panel="effects">
-    <div class="panel-header">
+    <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
       <span>Post-Processing Shaders</span>
-      <button class="btn-icon closeFxBtn close-drawer-btn" style="width:28px;height:28px;" aria-label="Close effects panel">✕</button>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <button type="button" class="btn-pill" id="randomizeAllFxBtn" style="font-size:10px;padding:3px 8px;background:rgba(255,92,0,0.18);border-color:rgba(255,92,0,0.5);color:#ffaa66;border-radius:12px;cursor:pointer;" title="Randomize unlocked effects">🎲 FX</button>
+        <button type="button" class="btn-pill" id="resetFxBtn" style="font-size:10px;padding:3px 8px;border-radius:12px;cursor:pointer;" title="Reset effects to defaults">↺ Reset</button>
+        <button class="btn-icon closeFxBtn close-drawer-btn" style="width:28px;height:28px;" aria-label="Close effects panel">✕</button>
+      </div>
     </div>
     <div class="panel-content">
-      <div class="control-row">
-        <label for="bloomSlider" class="control-label"><span>Bloom / Glow</span><span id="bloomVal">1.2</span></label>
+      <div class="control-row fx-control-row" data-fx-id="bloom">
+        <label for="bloomSlider" class="control-label">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="fx-lock-btn" data-fx="bloom" title="Lock bloom">🔓</button>
+            <button type="button" class="fx-rand-btn" data-fx="bloom" title="Randomize bloom">🎲</button>
+            <span>Bloom / Glow</span>
+          </div>
+          <span id="bloomVal">1.2</span>
+        </label>
         <input class="ui-slider" type="range" id="bloomSlider" min="0" max="3" step="0.1" value="1.2" aria-label="Bloom Glow">
       </div>
-      <div class="control-row">
-        <label for="persistSlider" class="control-label"><span>Motion Trails (Persistence)</span><span id="persistVal">0.0</span></label>
-        <input class="ui-slider" type="range" id="persistSlider" min="0" max="0.9" step="0.05" value="0.0" aria-label="Motion Trails Persistence">
+      <div class="control-row fx-control-row" data-fx-id="persist">
+        <label for="persistSlider" class="control-label">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="fx-lock-btn" data-fx="persist" title="Lock persistence">🔓</button>
+            <button type="button" class="fx-rand-btn" data-fx="persist" title="Randomize persistence">🎲</button>
+            <span>Motion Trails (Persistence)</span>
+          </div>
+          <span id="persistVal">0.00</span>
+        </label>
+        <input class="ui-slider" type="range" id="persistSlider" min="0" max="0.95" step="0.05" value="0.0" aria-label="Motion Trails Persistence">
       </div>
-      <div class="control-row">
-        <label for="chromaSlider" class="control-label"><span>Chromatic Aberration</span><span id="chromaVal">0.00</span></label>
+      <div class="control-row fx-control-row" data-fx-id="chroma">
+        <label for="chromaSlider" class="control-label">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="fx-lock-btn" data-fx="chroma" title="Lock chromatic aberration">🔓</button>
+            <button type="button" class="fx-rand-btn" data-fx="chroma" title="Randomize chromatic aberration">🎲</button>
+            <span>Chromatic Aberration</span>
+          </div>
+          <span id="chromaVal">0.00</span>
+        </label>
         <input class="ui-slider" type="range" id="chromaSlider" min="0" max="1" step="0.05" value="0.0" aria-label="Chromatic Aberration">
       </div>
-      <div class="control-row">
-        <label for="grainSlider" class="control-label"><span>Film Grain</span><span id="grainVal">0.00</span></label>
+      <div class="control-row fx-control-row" data-fx-id="grain">
+        <label for="grainSlider" class="control-label">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="fx-lock-btn" data-fx="grain" title="Lock film grain">🔓</button>
+            <button type="button" class="fx-rand-btn" data-fx="grain" title="Randomize film grain">🎲</button>
+            <span>Film Grain</span>
+          </div>
+          <span id="grainVal">0.00</span>
+        </label>
         <input class="ui-slider" type="range" id="grainSlider" min="0" max="0.5" step="0.02" value="0.0" aria-label="Film Grain">
       </div>
-      <div class="control-row">
-        <label for="vigSlider" class="control-label"><span>Vignette</span><span id="vigVal">0.00</span></label>
+      <div class="control-row fx-control-row" data-fx-id="vig">
+        <label for="vigSlider" class="control-label">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="fx-lock-btn" data-fx="vig" title="Lock vignette">🔓</button>
+            <button type="button" class="fx-rand-btn" data-fx="vig" title="Randomize vignette">🎲</button>
+            <span>Vignette</span>
+          </div>
+          <span id="vigVal">0.00</span>
+        </label>
         <input class="ui-slider" type="range" id="vigSlider" min="0" max="1" step="0.05" value="0.0" aria-label="Vignette">
       </div>
-      <div class="control-row">
-        <label for="scanSlider" class="control-label"><span>CRT Scanlines</span><span id="scanVal">0.0</span></label>
+      <div class="control-row fx-control-row" data-fx-id="scan">
+        <label for="scanSlider" class="control-label">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="fx-lock-btn" data-fx="scan" title="Lock scanlines">🔓</button>
+            <button type="button" class="fx-rand-btn" data-fx="scan" title="Randomize scanlines">🎲</button>
+            <span>CRT Scanlines</span>
+          </div>
+          <span id="scanVal">0.0</span>
+        </label>
         <input class="ui-slider" type="range" id="scanSlider" min="0" max="1" step="0.05" value="0.0" aria-label="CRT Scanlines">
       </div>
-      <div class="control-row">
-        <label for="bendSlider" class="control-label"><span>CRT Screen Bend</span><span id="bendVal">0.0</span></label>
+      <div class="control-row fx-control-row" data-fx-id="bend">
+        <label for="bendSlider" class="control-label">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="fx-lock-btn" data-fx="bend" title="Lock CRT bend">🔓</button>
+            <button type="button" class="fx-rand-btn" data-fx="bend" title="Randomize CRT bend">🎲</button>
+            <span>CRT Screen Bend</span>
+          </div>
+          <span id="bendVal">0.0</span>
+        </label>
         <input class="ui-slider" type="range" id="bendSlider" min="0" max="0.3" step="0.02" value="0.0" aria-label="CRT Screen Bend">
+      </div>
+
+      <!-- New Post-Processing Shaders & Optical Effects -->
+      <div class="control-row fx-control-row" data-fx-id="kaleido">
+        <label for="kaleidoSlider" class="control-label">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="fx-lock-btn" data-fx="kaleido" title="Lock kaleidoscope">🔓</button>
+            <button type="button" class="fx-rand-btn" data-fx="kaleido" title="Randomize kaleidoscope">🎲</button>
+            <span>Kaleidoscope</span>
+          </div>
+          <span id="kaleidoVal">Off</span>
+        </label>
+        <input class="ui-slider" type="range" id="kaleidoSlider" min="0" max="12" step="3" value="0" aria-label="Kaleidoscope Segments">
+      </div>
+      <div class="control-row fx-control-row" data-fx-id="mirror">
+        <label for="mirrorSlider" class="control-label">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="fx-lock-btn" data-fx="mirror" title="Lock mirror symmetry">🔓</button>
+            <button type="button" class="fx-rand-btn" data-fx="mirror" title="Randomize mirror symmetry">🎲</button>
+            <span>Mirror Symmetry</span>
+          </div>
+          <span id="mirrorVal">Off</span>
+        </label>
+        <input class="ui-slider" type="range" id="mirrorSlider" min="0" max="3" step="1" value="0" aria-label="Mirror Symmetry Mode">
+      </div>
+      <div class="control-row fx-control-row" data-fx-id="pixel">
+        <label for="pixelSlider" class="control-label">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="fx-lock-btn" data-fx="pixel" title="Lock pixelize">🔓</button>
+            <button type="button" class="fx-rand-btn" data-fx="pixel" title="Randomize pixelize">🎲</button>
+            <span>Pixelize / 16-bit</span>
+          </div>
+          <span id="pixelVal">Off</span>
+        </label>
+        <input class="ui-slider" type="range" id="pixelSlider" min="0" max="64" step="16" value="0" aria-label="Pixelation Factor">
+      </div>
+      <div class="control-row fx-control-row" data-fx-id="drip">
+        <label for="dripSlider" class="control-label">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="fx-lock-btn" data-fx="drip" title="Lock drip / liquid wave">🔓</button>
+            <button type="button" class="fx-rand-btn" data-fx="drip" title="Randomize drip / liquid wave">🎲</button>
+            <span>Liquid Drip / Wave</span>
+          </div>
+          <span id="dripVal">0.00</span>
+        </label>
+        <input class="ui-slider" type="range" id="dripSlider" min="0" max="1" step="0.05" value="0.0" aria-label="Liquid Drip Distortion">
+      </div>
+      <div class="control-row fx-control-row" data-fx-id="phosphor">
+        <label for="phosphorSlider" class="control-label">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="fx-lock-btn" data-fx="phosphor" title="Lock phosphor CRT">🔓</button>
+            <button type="button" class="fx-rand-btn" data-fx="phosphor" title="Randomize phosphor CRT">🎲</button>
+            <span>CRT Phosphor Glow</span>
+          </div>
+          <span id="phosphorVal">0.00</span>
+        </label>
+        <input class="ui-slider" type="range" id="phosphorSlider" min="0" max="1" step="0.05" value="0.0" aria-label="CRT Phosphor Stripes">
+      </div>
+      <div class="control-row fx-control-row" data-fx-id="edge">
+        <label for="edgeSlider" class="control-label">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="fx-lock-btn" data-fx="edge" title="Lock neon edge trace">🔓</button>
+            <button type="button" class="fx-rand-btn" data-fx="edge" title="Randomize neon edge trace">🎲</button>
+            <span>Neon Edge Trace</span>
+          </div>
+          <span id="edgeVal">0.00</span>
+        </label>
+        <input class="ui-slider" type="range" id="edgeSlider" min="0" max="1" step="0.05" value="0.0" aria-label="Neon Outline Edge Detect">
+      </div>
+      <div class="control-row fx-control-row" data-fx-id="bright">
+        <label for="brightSlider" class="control-label">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="fx-lock-btn" data-fx="bright" title="Lock brightness">🔓</button>
+            <button type="button" class="fx-rand-btn" data-fx="bright" title="Randomize brightness">🎲</button>
+            <span>Brightness</span>
+          </div>
+          <span id="brightVal">0.00</span>
+        </label>
+        <input class="ui-slider" type="range" id="brightSlider" min="-0.4" max="0.4" step="0.05" value="0.0" aria-label="Overall Brightness">
       </div>
     </div>
   </div>

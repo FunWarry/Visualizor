@@ -2,7 +2,7 @@ import { AudioEngine, PlaylistTrack } from './audio/AudioEngine';
 import { RenderEngine } from './engine/RenderEngine';
 import { MilkdropEngine } from './engine/MilkdropEngine';
 import { ExportManager } from './export/ExportManager';
-import { THEMES, getTheme, SINGLE_COLOR_THEMES, EARTHY_THEMES, DUO_TONE_THEMES } from './themes/themes';
+import { THEMES, getTheme, SINGLE_COLOR_THEMES, EARTHY_THEMES, DUO_TONE_THEMES, GRADIENT_PRESETS } from './themes/themes';
 import { PRESETS, getPreset } from './presets';
 import { StudioComposerPreset } from './studio/StudioComposer';
 import {
@@ -24,7 +24,9 @@ import {
   setPresetLocked,
   isAutoRandomizeEnabled,
   randomizePreset,
-  hasSavedTuning
+  hasSavedTuning,
+  isFxParamLocked,
+  setFxParamLocked
 } from './tuning/PresetTuningManager';
 import { TextAnchor, TextAnimationMode } from './overlay/types';
 import { MidiManager, initMidiPanel } from './midi';
@@ -147,14 +149,10 @@ const exportProgressBar = document.getElementById('exportProgressBar') as HTMLEl
 const exportPercent = document.getElementById('exportPercent') as HTMLElement;
 const exportProgressSection = document.getElementById('exportProgressSection') as HTMLElement;
 
-// Sliders
+// Sliders used by MIDI controller
 const bloomSlider = document.getElementById('bloomSlider') as HTMLInputElement;
 const persistSlider = document.getElementById('persistSlider') as HTMLInputElement;
-const chromaSlider = document.getElementById('chromaSlider') as HTMLInputElement;
 const grainSlider = document.getElementById('grainSlider') as HTMLInputElement;
-const vigSlider = document.getElementById('vigSlider') as HTMLInputElement;
-const scanSlider = document.getElementById('scanSlider') as HTMLInputElement;
-const bendSlider = document.getElementById('bendSlider') as HTMLInputElement;
 const sensSlider = document.getElementById('sensSlider') as HTMLInputElement;
 
 // Instantiate Core Engines
@@ -258,6 +256,7 @@ let currentSaturationPercent = 50;
 let customMode: 'solid' | 'gradient' = 'solid';
 let customPrimaryHex = '#FF5C00';
 let customSecondaryHex = '#00D2FF';
+let customGradientStops: string[] = ['#FF5C00', '#00D2FF'];
 
 const customSolidBtn = document.getElementById('customSolidBtn');
 const customGradientBtn = document.getElementById('customGradientBtn');
@@ -272,9 +271,25 @@ const customHexInput2 = document.getElementById('customHexInput2') as HTMLInputE
 const eyeDropperBtn2 = document.getElementById('eyeDropperBtn2');
 const hiddenNativeColorPicker2 = document.getElementById('hiddenNativeColorPicker2') as HTMLInputElement | null;
 
+const customGradientExtraStops = document.getElementById('customGradientExtraStops');
+const gradientControlsRow = document.getElementById('gradientControlsRow');
+const addGradientStopBtn = document.getElementById('addGradientStopBtn');
+const gradientPreviewBar = document.getElementById('gradientPreviewBar');
+const gradientPresetsSection = document.getElementById('gradientPresetsSection');
+const gradientPresetsGrid = document.getElementById('gradientPresetsGrid');
+
 const randomCustomColorBtn = document.getElementById('randomCustomColorBtn');
 const themeSaturationSlider = document.getElementById('themeSaturationSlider') as HTMLInputElement | null;
 const themeSaturationVal = document.getElementById('themeSaturationVal');
+
+function updateGradientPreview(): void {
+  if (gradientPreviewBar) {
+    const stopsStr = customGradientStops.length > 1
+      ? customGradientStops.join(', ')
+      : `${customGradientStops[0]}, ${customGradientStops[0]}`;
+    gradientPreviewBar.style.background = `linear-gradient(90deg, ${stopsStr})`;
+  }
+}
 
 function updateColorCalloutAndInputs(theme: VisualizerTheme): void {
   const calloutName = document.getElementById('themeCalloutName');
@@ -283,6 +298,7 @@ function updateColorCalloutAndInputs(theme: VisualizerTheme): void {
   if (theme.id !== 'custom') {
     customPrimaryHex = theme.primary;
     customSecondaryHex = theme.secondary || theme.primary;
+    customGradientStops = [theme.primary, theme.secondary || theme.primary];
   }
 
   if (customColorBox) customColorBox.style.backgroundColor = customPrimaryHex;
@@ -296,6 +312,7 @@ function updateColorCalloutAndInputs(theme: VisualizerTheme): void {
   if (themeSaturationSlider) {
     themeSaturationSlider.style.background = `linear-gradient(90deg, #666666, ${theme.primary})`;
   }
+  updateGradientPreview();
 }
 
 function applyAppTheme(theme: VisualizerTheme): void {
@@ -327,14 +344,16 @@ function applyCustomTheme(): void {
   const isGrad = customMode === 'gradient';
   const customTheme: VisualizerTheme = {
     id: 'custom',
-    name: isGrad ? 'Custom Gradient' : 'Custom Solid',
+    name: isGrad ? `Custom Gradient (${customGradientStops.length} Colors)` : 'Custom Solid',
     primary: customPrimaryHex,
     secondary: isGrad ? customSecondaryHex : customPrimaryHex,
-    accent: isGrad ? customSecondaryHex : customPrimaryHex,
+    accent: isGrad ? (customGradientStops[2] || customSecondaryHex) : customPrimaryHex,
     background: '#0a0a0c',
-    glow: customPrimaryHex
+    glow: customPrimaryHex,
+    gradientStops: isGrad ? [...customGradientStops] : undefined
   };
   applyAppTheme(customTheme);
+  updateGradientPreview();
 }
 
 function createThemeSwatchCard(
@@ -467,6 +486,7 @@ async function pickEyedropperColor(onPicked: (hex: string) => void, fallbackInpu
 eyeDropperBtn?.addEventListener('click', () => {
   void pickEyedropperColor((hex) => {
     customPrimaryHex = hex;
+    customGradientStops[0] = hex;
     if (customColorBox) customColorBox.style.backgroundColor = hex;
     if (customHexInput) customHexInput.value = hex.toUpperCase();
     if (hiddenNativeColorPicker) hiddenNativeColorPicker.value = hex;
@@ -477,6 +497,11 @@ eyeDropperBtn?.addEventListener('click', () => {
 eyeDropperBtn2?.addEventListener('click', () => {
   void pickEyedropperColor((hex) => {
     customSecondaryHex = hex;
+    if (customGradientStops.length > 1) {
+      customGradientStops[1] = hex;
+    } else {
+      customGradientStops.push(hex);
+    }
     if (customColorBox2) customColorBox2.style.backgroundColor = hex;
     if (customHexInput2) customHexInput2.value = hex.toUpperCase();
     if (hiddenNativeColorPicker2) hiddenNativeColorPicker2.value = hex;
@@ -484,21 +509,159 @@ eyeDropperBtn2?.addEventListener('click', () => {
   }, hiddenNativeColorPicker2);
 });
 
+function renderExtraGradientStops(): void {
+  if (!customGradientExtraStops) return;
+  customGradientExtraStops.innerHTML = '';
+  updateGradientPreview();
+
+  for (let i = 2; i < customGradientStops.length; i++) {
+    const stopIdx = i;
+    const hex = customGradientStops[stopIdx];
+
+    const row = document.createElement('div');
+    row.className = 'custom-color-row';
+    row.style.marginTop = '4px';
+
+    const swatch = document.createElement('div');
+    swatch.className = 'custom-swatch-preview';
+    swatch.style.backgroundColor = hex;
+    swatch.title = `Color Stop ${stopIdx + 1}`;
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'custom-hex-input';
+    input.value = hex.toUpperCase();
+    input.maxLength = 7;
+    input.setAttribute('aria-label', `Color Stop ${stopIdx + 1} Hex`);
+
+    const dropperBtn = document.createElement('button');
+    dropperBtn.type = 'button';
+    dropperBtn.className = 'custom-picker-btn';
+    dropperBtn.title = 'Pick with eyedropper';
+    dropperBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2 2 0 0 1 0-2.8l.4-.4"/></svg>`;
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'remove-stop-btn';
+    removeBtn.title = 'Remove color stop';
+    removeBtn.textContent = '✕';
+
+    const nativePicker = document.createElement('input');
+    nativePicker.type = 'color';
+    nativePicker.value = hex;
+    nativePicker.style.cssText = 'opacity:0;position:absolute;pointer-events:none;width:0;height:0;';
+
+    swatch.addEventListener('click', () => nativePicker.click());
+    nativePicker.addEventListener('input', () => {
+      customGradientStops[stopIdx] = nativePicker.value;
+      swatch.style.backgroundColor = nativePicker.value;
+      input.value = nativePicker.value.toUpperCase();
+      applyCustomTheme();
+    });
+
+    input.addEventListener('change', () => {
+      let val = input.value.trim();
+      if (!val.startsWith('#')) val = '#' + val;
+      if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+        customGradientStops[stopIdx] = val;
+        swatch.style.backgroundColor = val;
+        nativePicker.value = val;
+        applyCustomTheme();
+      }
+    });
+
+    dropperBtn.addEventListener('click', () => {
+      void pickEyedropperColor((pickedHex) => {
+        customGradientStops[stopIdx] = pickedHex;
+        swatch.style.backgroundColor = pickedHex;
+        input.value = pickedHex.toUpperCase();
+        nativePicker.value = pickedHex;
+        applyCustomTheme();
+      }, nativePicker);
+    });
+
+    removeBtn.addEventListener('click', () => {
+      customGradientStops.splice(stopIdx, 1);
+      renderExtraGradientStops();
+      applyCustomTheme();
+    });
+
+    row.appendChild(swatch);
+    row.appendChild(input);
+    row.appendChild(dropperBtn);
+    row.appendChild(removeBtn);
+    row.appendChild(nativePicker);
+    customGradientExtraStops.appendChild(row);
+  }
+}
+
+function initGradientPresets(): void {
+  if (!gradientPresetsGrid) return;
+  gradientPresetsGrid.innerHTML = '';
+
+  for (const preset of GRADIENT_PRESETS) {
+    const chip = document.createElement('div');
+    chip.className = 'gradient-preset-chip';
+    chip.title = `${preset.name} (${preset.stops.join(', ')})`;
+
+    const thumb = document.createElement('div');
+    thumb.className = 'gradient-preset-thumb';
+    thumb.style.background = `linear-gradient(135deg, ${preset.stops.join(', ')})`;
+
+    const name = document.createElement('span');
+    name.textContent = preset.name;
+
+    chip.appendChild(thumb);
+    chip.appendChild(name);
+
+    chip.addEventListener('click', () => {
+      customGradientStops = [...preset.stops];
+      customPrimaryHex = customGradientStops[0];
+      customSecondaryHex = customGradientStops[1] || customPrimaryHex;
+      if (customColorBox) customColorBox.style.backgroundColor = customPrimaryHex;
+      if (customHexInput) customHexInput.value = customPrimaryHex.toUpperCase();
+      if (hiddenNativeColorPicker) hiddenNativeColorPicker.value = customPrimaryHex;
+      if (customColorBox2) customColorBox2.style.backgroundColor = customSecondaryHex;
+      if (customHexInput2) customHexInput2.value = customSecondaryHex.toUpperCase();
+      if (hiddenNativeColorPicker2) hiddenNativeColorPicker2.value = customSecondaryHex;
+      renderExtraGradientStops();
+      applyCustomTheme();
+    });
+
+    gradientPresetsGrid.appendChild(chip);
+  }
+}
+
+addGradientStopBtn?.addEventListener('click', () => {
+  const newHex = getRandomHex();
+  customGradientStops.push(newHex);
+  renderExtraGradientStops();
+  applyCustomTheme();
+});
+
+initGradientPresets();
+
 function getRandomHex(): string {
   return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
 }
 
 randomCustomColorBtn?.addEventListener('click', () => {
   customPrimaryHex = getRandomHex();
+  customGradientStops[0] = customPrimaryHex;
   if (customColorBox) customColorBox.style.backgroundColor = customPrimaryHex;
   if (customHexInput) customHexInput.value = customPrimaryHex.toUpperCase();
   if (hiddenNativeColorPicker) hiddenNativeColorPicker.value = customPrimaryHex;
 
   if (customMode === 'gradient') {
     customSecondaryHex = getRandomHex();
+    customGradientStops[1] = customSecondaryHex;
+    for (let i = 2; i < customGradientStops.length; i++) {
+      customGradientStops[i] = getRandomHex();
+    }
     if (customColorBox2) customColorBox2.style.backgroundColor = customSecondaryHex;
     if (customHexInput2) customHexInput2.value = customSecondaryHex.toUpperCase();
     if (hiddenNativeColorPicker2) hiddenNativeColorPicker2.value = customSecondaryHex;
+    renderExtraGradientStops();
   }
   applyCustomTheme();
 });
@@ -508,6 +671,9 @@ customSolidBtn?.addEventListener('click', () => {
   customSolidBtn.classList.add('active');
   customGradientBtn?.classList.remove('active');
   if (customColorRow2) customColorRow2.style.display = 'none';
+  if (customGradientExtraStops) customGradientExtraStops.style.display = 'none';
+  if (gradientControlsRow) gradientControlsRow.style.display = 'none';
+  if (gradientPresetsSection) gradientPresetsSection.style.display = 'none';
   applyCustomTheme();
 });
 
@@ -516,6 +682,10 @@ customGradientBtn?.addEventListener('click', () => {
   customGradientBtn.classList.add('active');
   customSolidBtn?.classList.remove('active');
   if (customColorRow2) customColorRow2.style.display = 'flex';
+  if (customGradientExtraStops) customGradientExtraStops.style.display = 'flex';
+  if (gradientControlsRow) gradientControlsRow.style.display = 'flex';
+  if (gradientPresetsSection) gradientPresetsSection.style.display = 'block';
+  renderExtraGradientStops();
   applyCustomTheme();
 });
 
@@ -1574,48 +1744,249 @@ volumeSlider.addEventListener('input', () => {
   audioEngine.setVolume(Number.parseFloat(volumeSlider.value));
 });
 
-// FX Controls
-bloomSlider.addEventListener('input', () => {
-  const val = Number.parseFloat(bloomSlider.value);
-  document.getElementById('bloomVal')!.textContent = val.toFixed(1);
-  renderEngine.updateConfig({ bloomStrength: val });
-});
+// FX Controls & Shaders Setup
+interface FxControlDef {
+  id: string;
+  sliderId: string;
+  valId: string;
+  min: number;
+  max: number;
+  step: number;
+  defaultVal: number;
+  format: (v: number) => string;
+  apply: (v: number) => void;
+}
 
-persistSlider.addEventListener('input', () => {
-  const val = Number.parseFloat(persistSlider.value);
-  document.getElementById('persistVal')!.textContent = val.toFixed(2);
-  renderEngine.updateConfig({ persistence: val });
-});
+const FX_CONTROLS: readonly FxControlDef[] = [
+  {
+    id: 'bloom',
+    sliderId: 'bloomSlider',
+    valId: 'bloomVal',
+    min: 0,
+    max: 3,
+    step: 0.1,
+    defaultVal: 1.2,
+    format: (v) => v.toFixed(1),
+    apply: (v) => renderEngine.updateConfig({ bloomStrength: v })
+  },
+  {
+    id: 'persist',
+    sliderId: 'persistSlider',
+    valId: 'persistVal',
+    min: 0,
+    max: 0.95,
+    step: 0.05,
+    defaultVal: 0.0,
+    format: (v) => v.toFixed(2),
+    apply: (v) => renderEngine.updateConfig({ persistence: v })
+  },
+  {
+    id: 'chroma',
+    sliderId: 'chromaSlider',
+    valId: 'chromaVal',
+    min: 0,
+    max: 1,
+    step: 0.05,
+    defaultVal: 0.0,
+    format: (v) => v.toFixed(2),
+    apply: (v) => renderEngine.updateConfig({ chromaticAberration: v })
+  },
+  {
+    id: 'grain',
+    sliderId: 'grainSlider',
+    valId: 'grainVal',
+    min: 0,
+    max: 0.5,
+    step: 0.02,
+    defaultVal: 0.0,
+    format: (v) => v.toFixed(2),
+    apply: (v) => renderEngine.updateConfig({ filmGrain: v })
+  },
+  {
+    id: 'vig',
+    sliderId: 'vigSlider',
+    valId: 'vigVal',
+    min: 0,
+    max: 1,
+    step: 0.05,
+    defaultVal: 0.0,
+    format: (v) => v.toFixed(2),
+    apply: (v) => renderEngine.updateConfig({ vignette: v })
+  },
+  {
+    id: 'scan',
+    sliderId: 'scanSlider',
+    valId: 'scanVal',
+    min: 0,
+    max: 1,
+    step: 0.05,
+    defaultVal: 0.0,
+    format: (v) => v.toFixed(1),
+    apply: (v) => renderEngine.updateConfig({ scanlines: v })
+  },
+  {
+    id: 'bend',
+    sliderId: 'bendSlider',
+    valId: 'bendVal',
+    min: 0,
+    max: 0.3,
+    step: 0.02,
+    defaultVal: 0.0,
+    format: (v) => v.toFixed(2),
+    apply: (v) => renderEngine.updateConfig({ crtBend: v })
+  },
+  {
+    id: 'kaleido',
+    sliderId: 'kaleidoSlider',
+    valId: 'kaleidoVal',
+    min: 0,
+    max: 12,
+    step: 3,
+    defaultVal: 0,
+    format: (v) => (v === 0 ? 'Off' : `${v}x`),
+    apply: (v) => renderEngine.updateConfig({ kaleidoscope: v })
+  },
+  {
+    id: 'mirror',
+    sliderId: 'mirrorSlider',
+    valId: 'mirrorVal',
+    min: 0,
+    max: 3,
+    step: 1,
+    defaultVal: 0,
+    format: (v) => ['Off', 'Side', 'Flip', 'Quad'][Math.round(v)] || 'Off',
+    apply: (v) => renderEngine.updateConfig({ mirror: v })
+  },
+  {
+    id: 'pixel',
+    sliderId: 'pixelSlider',
+    valId: 'pixelVal',
+    min: 0,
+    max: 64,
+    step: 16,
+    defaultVal: 0,
+    format: (v) => (v === 0 ? 'Off' : `${v}px`),
+    apply: (v) => renderEngine.updateConfig({ pixelize: v })
+  },
+  {
+    id: 'drip',
+    sliderId: 'dripSlider',
+    valId: 'dripVal',
+    min: 0,
+    max: 1,
+    step: 0.05,
+    defaultVal: 0.0,
+    format: (v) => v.toFixed(2),
+    apply: (v) => renderEngine.updateConfig({ drip: v })
+  },
+  {
+    id: 'phosphor',
+    sliderId: 'phosphorSlider',
+    valId: 'phosphorVal',
+    min: 0,
+    max: 1,
+    step: 0.05,
+    defaultVal: 0.0,
+    format: (v) => v.toFixed(2),
+    apply: (v) => renderEngine.updateConfig({ phosphor: v })
+  },
+  {
+    id: 'edge',
+    sliderId: 'edgeSlider',
+    valId: 'edgeVal',
+    min: 0,
+    max: 1,
+    step: 0.05,
+    defaultVal: 0.0,
+    format: (v) => v.toFixed(2),
+    apply: (v) => renderEngine.updateConfig({ edgeDetect: v })
+  },
+  {
+    id: 'bright',
+    sliderId: 'brightSlider',
+    valId: 'brightVal',
+    min: -0.4,
+    max: 0.4,
+    step: 0.05,
+    defaultVal: 0.0,
+    format: (v) => (v > 0 ? `+${v.toFixed(2)}` : v.toFixed(2)),
+    apply: (v) => renderEngine.updateConfig({ brightness: v })
+  }
+];
 
-chromaSlider.addEventListener('input', () => {
-  const val = Number.parseFloat(chromaSlider.value);
-  document.getElementById('chromaVal')!.textContent = val.toFixed(2);
-  renderEngine.updateConfig({ chromaticAberration: val });
-});
+function bindFxSlider(fx: FxControlDef): void {
+  const slider = document.getElementById(fx.sliderId) as HTMLInputElement | null;
+  const valEl = document.getElementById(fx.valId);
+  if (!slider) return;
 
-grainSlider.addEventListener('input', () => {
-  const val = Number.parseFloat(grainSlider.value);
-  document.getElementById('grainVal')!.textContent = val.toFixed(2);
-  renderEngine.updateConfig({ filmGrain: val });
-});
+  slider.addEventListener('input', () => {
+    const numVal = Number.parseFloat(slider.value);
+    if (valEl) valEl.textContent = fx.format(numVal);
+    fx.apply(numVal);
+  });
 
-vigSlider.addEventListener('input', () => {
-  const val = Number.parseFloat(vigSlider.value);
-  document.getElementById('vigVal')!.textContent = val.toFixed(2);
-  renderEngine.updateConfig({ vignette: val });
-});
+  const row = document.querySelector(`.fx-control-row[data-fx-id="${fx.id}"]`);
+  const lockBtn = row?.querySelector('.fx-lock-btn') as HTMLElement | null;
+  const randBtn = row?.querySelector('.fx-rand-btn') as HTMLElement | null;
 
-scanSlider.addEventListener('input', () => {
-  const val = Number.parseFloat(scanSlider.value);
-  document.getElementById('scanVal')!.textContent = val.toFixed(1);
-  renderEngine.updateConfig({ scanlines: val });
-});
+  if (lockBtn) {
+    const isLocked = isFxParamLocked(fx.id);
+    lockBtn.textContent = isLocked ? '🔒' : '🔓';
+    lockBtn.classList.toggle('locked', isLocked);
+    lockBtn.addEventListener('click', () => {
+      const nowLocked = !isFxParamLocked(fx.id);
+      setFxParamLocked(fx.id, nowLocked);
+      lockBtn.textContent = nowLocked ? '🔒' : '🔓';
+      lockBtn.classList.toggle('locked', nowLocked);
+    });
+  }
 
-bendSlider.addEventListener('input', () => {
-  const val = Number.parseFloat(bendSlider.value);
-  document.getElementById('bendVal')!.textContent = val.toFixed(2);
-  renderEngine.updateConfig({ crtBend: val });
-});
+  if (randBtn) {
+    randBtn.addEventListener('click', () => {
+      if (isFxParamLocked(fx.id)) return;
+      const randVal = fx.min + Math.random() * (fx.max - fx.min);
+      const snapped = Math.round((randVal - fx.min) / fx.step) * fx.step + fx.min;
+      const clamped = Math.max(fx.min, Math.min(fx.max, Number(snapped.toFixed(2))));
+      slider.value = clamped.toString();
+      if (valEl) valEl.textContent = fx.format(clamped);
+      fx.apply(clamped);
+    });
+  }
+}
+
+function setupFxControls(): void {
+  for (const fx of FX_CONTROLS) {
+    bindFxSlider(fx);
+  }
+
+  const randAllBtn = document.getElementById('randomizeAllFxBtn');
+  randAllBtn?.addEventListener('click', () => {
+    for (const fx of FX_CONTROLS) {
+      if (isFxParamLocked(fx.id)) continue;
+      const slider = document.getElementById(fx.sliderId) as HTMLInputElement | null;
+      const valEl = document.getElementById(fx.valId);
+      const randVal = fx.min + Math.random() * (fx.max - fx.min);
+      const snapped = Math.round((randVal - fx.min) / fx.step) * fx.step + fx.min;
+      const clamped = Math.max(fx.min, Math.min(fx.max, Number(snapped.toFixed(2))));
+      if (slider) slider.value = clamped.toString();
+      if (valEl) valEl.textContent = fx.format(clamped);
+      fx.apply(clamped);
+    }
+  });
+
+  const resetAllBtn = document.getElementById('resetFxBtn');
+  resetAllBtn?.addEventListener('click', () => {
+    for (const fx of FX_CONTROLS) {
+      const slider = document.getElementById(fx.sliderId) as HTMLInputElement | null;
+      const valEl = document.getElementById(fx.valId);
+      if (slider) slider.value = fx.defaultVal.toString();
+      if (valEl) valEl.textContent = fx.format(fx.defaultVal);
+      fx.apply(fx.defaultVal);
+    }
+  });
+}
+
+setupFxControls();
 
 sensSlider.addEventListener('input', () => {
   const val = Number.parseFloat(sensSlider.value);

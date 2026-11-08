@@ -9,7 +9,9 @@ const STORAGE_PREFIX_TUNING = 'visualizor_tuning_';
 const STORAGE_PREFIX_PARAM_LOCKS = 'visualizor_param_locks_';
 const STORAGE_KEY_LOCKED_PRESETS = 'visualizor_locked_presets';
 const STORAGE_PREFIX_BOUNDS = 'visualizor_random_bounds_';
+const STORAGE_PREFIX_PARAM_BOUNDS = 'visualizor_param_bounds_';
 const STORAGE_KEY_AUTO_RANDOMIZE = 'visualizor_auto_randomize_enabled';
+const STORAGE_PREFIX_FX_LOCKS = 'visualizor_fx_locks_';
 
 // Safe localStorage helper
 function getStorageItem(key: string): string | null {
@@ -199,6 +201,50 @@ export function setRandomizeBounds(presetId: string, minPercent: number, maxPerc
 }
 
 /**
+ * Gets the independent randomization bounds for a specific parameter.
+ */
+export function getParamRandomizeBounds(presetId: string, paramId: string): RandomizeBounds {
+  const raw = getStorageItem(`${STORAGE_PREFIX_PARAM_BOUNDS}${presetId}_${paramId}`);
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (typeof parsed?.minPercent === 'number' && typeof parsed?.maxPercent === 'number') {
+        return {
+          minPercent: Math.max(0, Math.min(100, parsed.minPercent)),
+          maxPercent: Math.max(0, Math.min(100, parsed.maxPercent))
+        };
+      }
+    } catch {
+      // Fallback
+    }
+  }
+  return getRandomizeBounds(presetId);
+}
+
+/**
+ * Sets the independent randomization bounds for a specific parameter.
+ */
+export function setParamRandomizeBounds(presetId: string, paramId: string, minPercent: number, maxPercent: number): void {
+  const boundedMin = Math.max(0, Math.min(100, Math.min(minPercent, maxPercent)));
+  const boundedMax = Math.max(0, Math.min(100, Math.max(minPercent, maxPercent)));
+  setStorageItem(`${STORAGE_PREFIX_PARAM_BOUNDS}${presetId}_${paramId}`, JSON.stringify({ minPercent: boundedMin, maxPercent: boundedMax }));
+}
+
+/**
+ * Checks if a post-processing shader parameter is locked.
+ */
+export function isFxParamLocked(fxId: string): boolean {
+  return getStorageItem(STORAGE_PREFIX_FX_LOCKS + fxId) === 'true';
+}
+
+/**
+ * Sets lock state for a post-processing shader parameter.
+ */
+export function setFxParamLocked(fxId: string, locked: boolean): void {
+  setStorageItem(STORAGE_PREFIX_FX_LOCKS + fxId, String(locked));
+}
+
+/**
  * Checks if auto-randomize during auto-cycle is enabled globally.
  */
 export function isAutoRandomizeEnabled(): boolean {
@@ -224,7 +270,33 @@ function computeRandomParamValue(p: ParameterDefinition, minPercent: number, max
 }
 
 /**
- * Randomizes unlocked parameters of a preset between two values (minPercent & maxPercent).
+ * Randomizes a single parameter independently using its own configured bounds.
+ */
+export function randomizeSingleParameter(
+  preset: VisualizerPreset,
+  paramId: string,
+  overrideMin?: number,
+  overrideMax?: number
+): number | undefined {
+  if (!preset || typeof preset.getCustomParameters !== 'function') return undefined;
+  const params = preset.getCustomParameters();
+  const p = params?.find(item => item.id === paramId);
+  if (!p) return undefined;
+  if (isParamLocked(preset.id, paramId)) {
+    return typeof preset.getCustomParameterValue === 'function'
+      ? (preset.getCustomParameterValue(paramId) ?? p.defaultValue)
+      : p.defaultValue;
+  }
+  const bounds = getParamRandomizeBounds(preset.id, paramId);
+  const minP = overrideMin ?? bounds.minPercent;
+  const maxP = overrideMax ?? bounds.maxPercent;
+  const newVal = computeRandomParamValue(p, minP, maxP);
+  preset.setCustomParameter?.(paramId, newVal);
+  return newVal;
+}
+
+/**
+ * Randomizes unlocked parameters of a preset using their independent bounds.
  * Locked parameters are preserved as-is.
  */
 export function randomizePreset(
@@ -238,18 +310,16 @@ export function randomizePreset(
   const params = preset.getCustomParameters();
   if (!params || params.length === 0) return result;
 
-  const bounds = getRandomizeBounds(preset.id);
-  const minP = overrideMin ?? bounds.minPercent;
-  const maxP = overrideMax ?? bounds.maxPercent;
-
   for (const p of params) {
     if (isParamLocked(preset.id, p.id)) {
-      // Keep existing value
       const current = typeof preset.getCustomParameterValue === 'function'
         ? (preset.getCustomParameterValue(p.id) ?? p.defaultValue)
         : p.defaultValue;
       result[p.id] = current;
     } else {
+      const paramBounds = getParamRandomizeBounds(preset.id, p.id);
+      const minP = overrideMin ?? paramBounds.minPercent;
+      const maxP = overrideMax ?? paramBounds.maxPercent;
       const newVal = computeRandomParamValue(p, minP, maxP);
       preset.setCustomParameter?.(p.id, newVal);
       result[p.id] = newVal;
@@ -258,3 +328,4 @@ export function randomizePreset(
 
   return result;
 }
+

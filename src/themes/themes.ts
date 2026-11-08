@@ -351,3 +351,46 @@ export const DUO_TONE_THEMES = [
   'arctic', 'eclipse', 'vapor', 'nebula', 'glacier', 'prism'
 ] as const;
 
+export interface GradientPreset {
+  name: string;
+  stops: string[];
+}
+
+export const GRADIENT_PRESETS: readonly GradientPreset[] = [
+  { name: 'Cyberpunk', stops: ['#FF007F', '#7928CA', '#00F0FF', '#FCEE0A'] },
+  { name: 'Sunset Dream', stops: ['#FF0844', '#FFB199', '#F3696E', '#F857A6'] },
+  { name: 'Aurora Borealis', stops: ['#00FF87', '#60EFFF', '#0061FF', '#7000FF'] },
+  { name: 'Deep Cosmic', stops: ['#8A2387', '#E94057', '#F27121', '#FFA07A'] },
+  { name: 'Toxic Lime', stops: ['#10B981', '#A3E635', '#06B6D4', '#3B82F6'] },
+  { name: 'Vaporwave', stops: ['#FF71CE', '#01CDFE', '#05FFA1', '#B967FF'] },
+  { name: 'Fire & Ice', stops: ['#FF3B00', '#FFAA00', '#00D2FF', '#0044FF'] },
+  { name: 'Electric Violet', stops: ['#3A1C71', '#D76D77', '#FFAF7B'] },
+  { name: 'Emerald Wave', stops: ['#0575E6', '#00F260', '#11998E', '#38EF7D'] },
+  { name: 'Golden Sun', stops: ['#F12711', '#F5AF19', '#FFDD00'] }
+];
+
+export function sampleGradient(stops: string[], t: number): string {
+  if (!stops || stops.length === 0) return '#FF5C00';
+  if (stops.length === 1) return stops[0];
+  const clampedT = Math.max(0, Math.min(1, t));
+  const scaled = clampedT * (stops.length - 1);
+  const idx = Math.floor(scaled);
+  const rem = scaled - idx;
+  if (idx >= stops.length - 1) return stops[stops.length - 1];
+
+  const c1 = stops[idx];
+  const c2 = stops[idx + 1];
+  const r1 = Number.parseInt(c1.slice(1, 3), 16);
+  const g1 = Number.parseInt(c1.slice(3, 5), 16);
+  const b1 = Number.parseInt(c1.slice(5, 7), 16);
+  const r2 = Number.parseInt(c2.slice(1, 3), 16);
+  const g2 = Number.parseInt(c2.slice(3, 5), 16);
+  const b2 = Number.parseInt(c2.slice(5, 7), 16);
+
+  const r = Math.round(r1 + (r2 - r1) * rem).toString(16).padStart(2, '0');
+  const g = Math.round(g1 + (g2 - g1) * rem).toString(16).padStart(2, '0');
+  const b = Math.round(b1 + (b2 - b1) * rem).toString(16).padStart(2, '0');
+  return `#${r}${g}${b}`;
+}
+
+

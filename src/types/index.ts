@@ -21,6 +21,7 @@ export interface VisualizerTheme {
   accent: string;
   background: string;
   glow: string;
+  gradientStops?: string[]; // Multiple gradient stops for multi-color gradients
 }
 
 export interface PresetContext {
@@ -87,6 +88,14 @@ export interface PostProcessingConfig {
   cameraShake: boolean;
   autoRotate: boolean;
   autoRotateSpeed: number;     // 0.1 - 2.0
+  // Extended Shaders & FX
+  kaleidoscope?: number;       // 0 (off), 3, 6, 12
+  mirror?: number;             // 0 (off), 1 (side), 2 (flip), 3 (quad)
+  pixelize?: number;           // 0 (off), 16, 32, 64
+  drip?: number;               // 0.0 - 1.0 (liquid wave distortion)
+  phosphor?: number;           // 0.0 - 1.0 (CRT phosphor stripes)
+  edgeDetect?: number;         // 0.0 - 1.0 (neon outline)
+  brightness?: number;         // -0.5 - 0.5 (exposure/brightness)
 }
 
 export interface ExportSettings {
