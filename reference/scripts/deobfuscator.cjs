@@ -34,13 +34,14 @@ function extractFunction(text, fnName) {
 }
 
 function deobfuscate(content) {
-  const match = content.match(/^const\s+([a-zA-Z0-9_$]+)=([a-zA-Z0-9_$]+);\(function/);
+  const match = content.match(/^const\s+([a-zA-Z0-9_$]+)\s*=\s*([a-zA-Z0-9_$]+);/);
   if (!match) {
     return content;
   }
   const aliasName = match[1];
   const decName = match[2];
-  const arrayFnMatch = content.match(/function\s+([a-zA-Z0-9_$]+)\s*\(\)\s*\{\s*const\s+[a-zA-Z0-9_$]+\s*=\s*\[/);
+
+  const arrayFnMatch = content.match(/function\s+([a-zA-Z0-9_$]+)\s*\(\)\s*\{\s*(?:const|var|let)\s+[a-zA-Z0-9_$]+\s*=\s*\[/);
   if (!arrayFnMatch) {
     return content;
   }
@@ -50,12 +51,12 @@ function deobfuscate(content) {
   const decFnCode = extractFunction(content, decName);
 
   const iifeStart = content.indexOf(`(function(`);
-  const callStart = content.indexOf(`}(`, iifeStart);
-  const iifeEnd = content.indexOf(`));`, callStart);
-  if (iifeStart === -1 || callStart === -1 || iifeEnd === -1) {
-    return content;
-  }
-  const iifeCode = content.slice(iifeStart, iifeEnd + 3);
+  if (iifeStart === -1) return content;
+  const callMatch = content.slice(iifeStart, iifeStart + 2500).match(/\}\s*\(\s*([a-zA-Z0-9_$]+)\s*,\s*0x[0-9a-fA-F]+/);
+  if (!callMatch) return content;
+  const iifeCallIdx = content.indexOf(callMatch[0], iifeStart);
+  const iifeEnd = content.indexOf(');', iifeCallIdx) + 2;
+  const iifeCode = content.slice(iifeStart, iifeEnd);
 
   if (!arrayFnCode || !decFnCode) {
     return content;
@@ -66,29 +67,60 @@ function deobfuscate(content) {
   try {
     vm.runInContext(`${arrayFnCode}\n${decFnCode}\n${iifeCode}`, sandbox);
   } catch (err) {
-    console.error('Failed to run sandbox for deobfuscation:', err.message);
     return content;
   }
 
   const decoder = sandbox[decName];
   if (typeof decoder !== 'function') return content;
 
-  // Replace all decoder calls: decoder(0x...) or decName(0x..., '...') or aliasName(...)
-  const names = [decName, aliasName].filter(Boolean);
-  const pattern = new RegExp(`\\b(?:${names.join('|')})\\s*\\((0x[0-9a-fA-F]+|\\d+)(?:\\s*,\\s*['"\`]([^'"\`]+)['"\`])?\\)`, 'g');
-  
-  return content.replace(pattern, (fullMatch, arg1, arg2) => {
+  // Collect all aliases transitively
+  const aliases = new Set([decName, aliasName]);
+  let prevSize = 0;
+  while (aliases.size > prevSize) {
+    prevSize = aliases.size;
+    const list = Array.from(aliases).join('|');
+    const aliasRegex = new RegExp(`(?:const|let|var)\\s+([a-zA-Z0-9_$]+)\\s*=\\s*(?:${list})\\b`, 'g');
+    let m;
+    while ((m = aliasRegex.exec(content)) !== null) {
+      aliases.add(m[1]);
+    }
+  }
+
+  // Replace decoder calls with exact alias match first
+  const aliasList = Array.from(aliases).join('|');
+  const pattern = new RegExp(`\\b(?:${aliasList})\\s*\\((0x[0-9a-fA-F]+|\\d+)(?:\\s*,\\s*(['"\`])(.*?)\\2)?\\s*\\)`, 'g');
+
+  let result = content.replace(pattern, (fullMatch, arg1, q, arg2) => {
     try {
       const num = arg1.startsWith('0x') ? parseInt(arg1, 16) : parseInt(arg1, 10);
       const val = arg2 !== undefined ? decoder(num, arg2) : decoder(num);
-      return JSON.stringify(val);
+      if (typeof val === 'string') {
+        return JSON.stringify(val);
+      }
+      return fullMatch;
     } catch {
       return fullMatch;
     }
   });
+
+  // Secondary universal pass for any remaining obfuscated hex/key calls
+  const universalPattern = /\b[a-zA-Z0-9_$]+\s*\(\s*(0x[0-9a-fA-F]+)\s*,\s*(['"`])(.*?)\2\s*\)/g;
+  result = result.replace(universalPattern, (fullMatch, hex, q, key) => {
+    try {
+      const num = parseInt(hex, 16);
+      const val = decoder(num, key);
+      if (typeof val === 'string') {
+        return JSON.stringify(val);
+      }
+    } catch {}
+    return fullMatch;
+  });
+
+  return result;
 }
 
 module.exports = {
   fetchUrl,
-  deobfuscate
+  deobfuscate,
+  extractFunction
 };
