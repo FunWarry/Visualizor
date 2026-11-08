@@ -135,23 +135,143 @@ export class CameraController {
     }
   }
 
-  public setZoom(zoom: number, immediate: boolean = false): void {
+  public setZoom(zoom: number, immediate: boolean = false, allowBeyondLimits: boolean = false): void {
     const validZoom = Number.isFinite(zoom) ? zoom : 0.5;
-    const clampedZoom = Math.max(0, Math.min(1, validZoom));
-    this.normalizedZoom = clampedZoom;
-    const multiplier = computeZoomDistance(clampedZoom);
-    const targetDist = Math.max(
-      this.minDistance,
-      Math.min(this.maxDistance, this.baseRadius * (multiplier / 1.6))
-    );
+    if (!allowBeyondLimits) {
+      const clampedZoom = Math.max(0, Math.min(1, validZoom));
+      this.normalizedZoom = clampedZoom;
+      const multiplier = computeZoomDistance(clampedZoom);
+      const targetDist = Math.max(
+        this.minDistance,
+        Math.min(this.maxDistance, this.baseRadius * (multiplier / 1.6))
+      );
 
-    if (immediate) {
-      this.radius = targetDist;
-      this.targetRadius = targetDist;
-      this.applyTransform();
+      if (immediate) {
+        this.radius = targetDist;
+        this.targetRadius = targetDist;
+        this.applyTransform();
+      } else {
+        this.targetRadius = targetDist;
+        this.isTransitioning = true;
+      }
     } else {
-      this.targetRadius = targetDist;
-      this.isTransitioning = true;
+      this.normalizedZoom = validZoom;
+      // Allow multiplier to scale continuously for zoom beyond standard limits
+      const multiplier = 0.7 + (2.5 - 0.7) * validZoom;
+      const targetDist = Math.max(0.1, Math.min(200.0, this.baseRadius * (multiplier / 1.6)));
+      if (immediate) {
+        this.radius = targetDist;
+        this.targetRadius = targetDist;
+        this.applyTransform();
+      } else {
+        this.targetRadius = targetDist;
+        this.isTransitioning = true;
+      }
+    }
+  }
+
+  public setOrbit(rotAngle: number, immediate: boolean = true): void {
+    const validRot = Number.isFinite(rotAngle) ? rotAngle : 0;
+    this.rotAngle = validRot;
+    this.targetRotAngle = validRot;
+    if (immediate) {
+      this.isTransitioning = false;
+      this.applyTransform();
+    }
+  }
+
+  public setTilt(tiltAngle: number, immediate: boolean = true): void {
+    const validTilt = Number.isFinite(tiltAngle) ? tiltAngle : 0;
+    const clampedTilt = Math.max(CameraController.MIN_TILT, Math.min(CameraController.MAX_TILT, validTilt));
+    this.tiltAngle = clampedTilt;
+    this.targetTiltAngle = clampedTilt;
+    if (immediate) {
+      this.isTransitioning = false;
+      this.applyTransform();
+    }
+  }
+
+  public setDistance(dist: number, immediate: boolean = true): void {
+    const validDist = Number.isFinite(dist) ? dist : this.baseRadius;
+    const clampedDist = Math.max(0.1, Math.min(200.0, validDist));
+    this.radius = clampedDist;
+    this.targetRadius = clampedDist;
+    if (immediate) {
+      this.isTransitioning = false;
+      this.applyTransform();
+    }
+  }
+
+  public setTargetHeight(height: number, immediate: boolean = true): void {
+    const validHeight = Number.isFinite(height) ? height : 0;
+    this.target.y = validHeight;
+    if (immediate) {
+      this.applyTransform();
+    }
+  }
+
+  public getTargetHeight(): number {
+    return this.target.y;
+  }
+
+  public exportState(): {
+    rotAngle: number;
+    tiltAngle: number;
+    radius: number;
+    zoom: number;
+    targetY: number;
+    autoRotate: boolean;
+    autoRotateSpeed: number;
+    autoRotateDirection: 1 | -1;
+    cameraShakeEnabled: boolean;
+    cameraShakeIntensity: number;
+  } {
+    return {
+      rotAngle: this.rotAngle,
+      tiltAngle: this.tiltAngle,
+      radius: this.radius,
+      zoom: this.normalizedZoom,
+      targetY: this.target.y,
+      autoRotate: this.autoRotate,
+      autoRotateSpeed: this.autoRotateSpeed,
+      autoRotateDirection: this.autoRotateDirection,
+      cameraShakeEnabled: this.cameraShakeEnabled,
+      cameraShakeIntensity: this.cameraShakeIntensity
+    };
+  }
+
+  public importState(
+    state: Partial<{
+      rotAngle: number;
+      tiltAngle: number;
+      radius: number;
+      zoom: number;
+      targetY: number;
+      autoRotate: boolean;
+      autoRotateSpeed: number;
+      autoRotateDirection: 1 | -1;
+      cameraShakeEnabled: boolean;
+      cameraShakeIntensity: number;
+    }>,
+    immediate: boolean = true
+  ): void {
+    if (state.rotAngle !== undefined) this.rotAngle = state.rotAngle;
+    if (state.tiltAngle !== undefined) this.tiltAngle = state.tiltAngle;
+    if (state.radius !== undefined) this.radius = state.radius;
+    if (state.zoom !== undefined) this.normalizedZoom = state.zoom;
+    if (state.targetY !== undefined) this.target.y = state.targetY;
+    if (state.autoRotate !== undefined) this.autoRotate = state.autoRotate;
+    if (state.autoRotateSpeed !== undefined) this.autoRotateSpeed = state.autoRotateSpeed;
+    if (state.autoRotateDirection !== undefined) this.autoRotateDirection = state.autoRotateDirection;
+    if (state.cameraShakeEnabled !== undefined) this.cameraShakeEnabled = state.cameraShakeEnabled;
+    if (state.cameraShakeIntensity !== undefined) this.cameraShakeIntensity = state.cameraShakeIntensity;
+
+    this.targetRotAngle = this.rotAngle;
+    this.targetTiltAngle = this.tiltAngle;
+    this.targetRadius = this.radius;
+    if (immediate) {
+      this.isTransitioning = false;
+      this.applyTransform();
     }
   }
 

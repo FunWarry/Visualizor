@@ -3001,6 +3001,90 @@ body.ui-hidden .sidebar-pill,
   opacity: 1;
 }
 
+/* Auto-Cycle Popover and glowing green active state */
+.tool-icon-btn.cycle-active,
+#loopPresetBtn.cycle-active {
+  border: 1.5px solid #22c55e !important;
+  background: rgba(34, 197, 94, 0.18) !important;
+  color: #22c55e !important;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.4) !important;
+}
+
+.autocycle-popover {
+  position: absolute;
+  top: 48px;
+  right: 10px;
+  width: 290px;
+  background: rgba(16, 17, 22, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.8), 0 0 1px rgba(255, 255, 255, 0.2);
+  z-index: 100;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.autocycle-popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.autocycle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 0;
+  gap: 8px;
+}
+
+.autocycle-row-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #f3f4f6;
+  white-space: nowrap;
+}
+
+.autocycle-pills {
+  display: flex;
+  align-items: center;
+  background: rgba(25, 28, 36, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 18px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.autocycle-pill {
+  border: 1px solid transparent;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.autocycle-pill:hover {
+  color: #ffffff;
+}
+
+.autocycle-pill.active {
+  border: 1.5px solid #22c55e;
+  background: rgba(34, 197, 94, 0.15);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.25);
+}
+
 
 
 

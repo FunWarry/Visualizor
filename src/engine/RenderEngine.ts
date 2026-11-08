@@ -401,29 +401,53 @@ export class RenderEngine {
 
     this.activePreset = preset;
 
-    // Apply preset-specific camera configuration
-    const cfg = preset.cameraConfig;
-    if (cfg?.position) {
-      const targetVec = cfg.target ? new THREE.Vector3(...cfg.target) : new THREE.Vector3(0, 0, 0);
-      this.cameraController.setCameraPosition(cfg.position[0], cfg.position[1], cfg.position[2], targetVec);
-      if (cfg.autoRotate !== undefined) {
-        this.cameraController.autoRotate = cfg.autoRotate;
-        this.config.autoRotate = cfg.autoRotate;
+    // Apply preset-specific camera configuration or restored saved camera
+    let restoredSaved = false;
+    if (typeof localStorage !== 'undefined') {
+      try {
+        const savedCamJson = localStorage.getItem(`visualizor_camera_${preset.id}`);
+        if (savedCamJson) {
+          const savedCam = JSON.parse(savedCamJson);
+          this.cameraController.importState(savedCam, true);
+          this.config.autoRotate = this.cameraController.autoRotate;
+          this.config.autoRotateSpeed = this.cameraController.autoRotateSpeed;
+          restoredSaved = true;
+        }
+      } catch (err) {
+        console.warn('Failed to parse saved camera state for preset', preset.id, err);
       }
-      if (cfg.autoRotateSpeed !== undefined) {
-        this.cameraController.autoRotateSpeed = cfg.autoRotateSpeed;
-        this.config.autoRotateSpeed = cfg.autoRotateSpeed;
+    }
+
+    if (!restoredSaved) {
+      const cfg = preset.cameraConfig;
+      if (cfg?.position) {
+        const targetVec = cfg.target ? new THREE.Vector3(...cfg.target) : new THREE.Vector3(0, 0, 0);
+        this.cameraController.setCameraPosition(cfg.position[0], cfg.position[1], cfg.position[2], targetVec);
+        if (cfg.autoRotate !== undefined) {
+          this.cameraController.autoRotate = cfg.autoRotate;
+          this.config.autoRotate = cfg.autoRotate;
+        } else {
+          this.cameraController.autoRotate = true;
+          this.config.autoRotate = true;
+        }
+        if (cfg.autoRotateSpeed !== undefined && cfg.autoRotateSpeed > 0) {
+          this.cameraController.autoRotateSpeed = cfg.autoRotateSpeed;
+          this.config.autoRotateSpeed = cfg.autoRotateSpeed;
+        } else if (this.cameraController.autoRotate) {
+          this.cameraController.autoRotateSpeed = 0.35;
+          this.config.autoRotateSpeed = 0.35;
+        }
+      } else {
+        this.cameraController.setCameraPosition(0, 4.5, 12, new THREE.Vector3(0, 0, 0));
+        this.cameraController.autoRotate = true;
+        this.cameraController.autoRotateSpeed = 0.35;
+        this.config.autoRotate = true;
+        this.config.autoRotateSpeed = 0.35;
       }
-    } else {
-      this.cameraController.setCameraPosition(0, 4.5, 12, new THREE.Vector3(0, 0, 0));
-      this.cameraController.autoRotate = true;
-      this.cameraController.autoRotateSpeed = 0.35;
-      this.config.autoRotate = true;
-      this.config.autoRotateSpeed = 0.35;
     }
 
     // Apply preset-specific bloom intensity if defined
-    const intensity = cfg?.bloomIntensity ?? 0.5;
+    const intensity = preset.cameraConfig?.bloomIntensity ?? 0.5;
     this.bloomPass.strength = intensity * 0.72;
     this.bloomPass.threshold = Math.max(0.05, 1.0 - (intensity * 0.3));
     this.bloomPass.radius = 0.3 + (intensity * 0.3);
@@ -654,6 +678,38 @@ export class RenderEngine {
 
   public triggerCameraShake(intensity: number): void {
     this.cameraController.triggerShake(intensity);
+  }
+
+  public saveCameraForPreset(presetId: string): void {
+    if (typeof localStorage === 'undefined') return;
+    const state = this.cameraController.exportState();
+    localStorage.setItem(`visualizor_camera_${presetId}`, JSON.stringify(state));
+  }
+
+  public resetCameraForPreset(presetId: string): void {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(`visualizor_camera_${presetId}`);
+    }
+    if (this.activePreset && this.activePreset.id === presetId) {
+      const cfg = this.activePreset.cameraConfig;
+      if (cfg?.position) {
+        const targetVec = cfg.target ? new THREE.Vector3(...cfg.target) : new THREE.Vector3(0, 0, 0);
+        this.cameraController.setCameraPosition(cfg.position[0], cfg.position[1], cfg.position[2], targetVec);
+        this.cameraController.autoRotate = cfg.autoRotate ?? true;
+        this.cameraController.autoRotateSpeed = (cfg.autoRotateSpeed && cfg.autoRotateSpeed > 0) ? cfg.autoRotateSpeed : 0.35;
+      } else {
+        this.cameraController.setCameraPosition(0, 4.5, 12, new THREE.Vector3(0, 0, 0));
+        this.cameraController.autoRotate = true;
+        this.cameraController.autoRotateSpeed = 0.35;
+      }
+      this.config.autoRotate = this.cameraController.autoRotate;
+      this.config.autoRotateSpeed = this.cameraController.autoRotateSpeed;
+    }
+  }
+
+  public hasSavedCameraForPreset(presetId: string): boolean {
+    if (typeof localStorage === 'undefined') return false;
+    return Boolean(localStorage.getItem(`visualizor_camera_${presetId}`));
   }
 
   public setCameraShake(enabled: boolean, intensity?: number): void {

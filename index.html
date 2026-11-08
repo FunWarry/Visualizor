@@ -199,13 +199,106 @@
 
   <!-- 1. Presets Drawer Panel (Visuval Presets Catalog with 3D & ProjectM/MilkDrop) -->
   <div class="drawer-panel glass-panel detail-panel open" id="presetsPanel" data-panel="presets">
-    <div class="panel-header">
+    <div class="panel-header" style="position:relative;">
       <span>Presets</span>
       <div class="header-tools">
         <button class="tool-icon-btn" id="autoCycleBtn" title="Auto Cycle Presets">✨</button>
         <button class="tool-icon-btn" id="shufflePresetBtn" title="Random Preset">🔀</button>
-        <button class="tool-icon-btn" id="loopPresetBtn" title="Loop Sequence">🔁</button>
+        <button class="tool-icon-btn" id="loopPresetBtn" title="Loop Sequence (Auto-Cycle)">🔁</button>
         <button class="btn-icon close-drawer-btn" style="width:26px;height:26px;" id="closeDrawerBtn" aria-label="Close presets panel">✕</button>
+      </div>
+
+      <!-- Auto-Cycle Popover Configuration -->
+      <div class="autocycle-popover" id="autoCyclePopover" style="display:none;" role="region" aria-label="Auto-Cycle Settings">
+        <div class="autocycle-popover-header">
+          <span style="font-weight:700;font-size:13px;color:#f3f4f6;">Auto-Cycle</span>
+          <button type="button" class="btn-icon" id="closeAutoCyclePopoverBtn" style="width:20px;height:20px;font-size:12px;background:none;border:none;color:#9ca3af;cursor:pointer;" aria-label="Close Auto-Cycle popover">✕</button>
+        </div>
+
+        <!-- 1. Auto-Cycle State -->
+        <div class="autocycle-row">
+          <span class="autocycle-row-label">Auto-Cycle</span>
+          <div class="autocycle-pills" data-cycle-setting="enabled">
+            <button type="button" class="autocycle-pill" data-val="off">Off</button>
+            <button type="button" class="autocycle-pill active" data-val="on">On</button>
+          </div>
+        </div>
+
+        <!-- 2. Sync Mode (Timer vs Beats) -->
+        <div class="autocycle-row">
+          <span class="autocycle-row-label">Sync</span>
+          <div class="autocycle-pills" data-cycle-setting="sync">
+            <button type="button" class="autocycle-pill active" data-val="timer">Timer</button>
+            <button type="button" class="autocycle-pill" data-val="beats">Beats</button>
+          </div>
+        </div>
+
+        <!-- 3. Timer Interval -->
+        <div class="autocycle-row" id="autoCycleTimerRow">
+          <span class="autocycle-row-label">Interval</span>
+          <div class="autocycle-pills" data-cycle-setting="timerInterval">
+            <button type="button" class="autocycle-pill" data-val="15s">15s</button>
+            <button type="button" class="autocycle-pill active" data-val="30s">30s</button>
+            <button type="button" class="autocycle-pill" data-val="1m">1m</button>
+            <button type="button" class="autocycle-pill" data-val="2m">2m</button>
+          </div>
+        </div>
+
+        <!-- 3b. Beats Interval -->
+        <div class="autocycle-row" id="autoCycleBeatsRow" style="display:none;">
+          <span class="autocycle-row-label">Interval</span>
+          <div class="autocycle-pills" data-cycle-setting="beatsInterval">
+            <button type="button" class="autocycle-pill" data-val="16">16</button>
+            <button type="button" class="autocycle-pill active" data-val="32">32</button>
+            <button type="button" class="autocycle-pill" data-val="64">64</button>
+            <button type="button" class="autocycle-pill" data-val="128">128</button>
+          </div>
+        </div>
+
+        <!-- 4. Preset Pool -->
+        <div class="autocycle-row">
+          <span class="autocycle-row-label">Pool</span>
+          <div class="autocycle-pills" data-cycle-setting="pool">
+            <button type="button" class="autocycle-pill active" data-val="all">All</button>
+            <button type="button" class="autocycle-pill" data-val="favorites">Favorites</button>
+          </div>
+        </div>
+
+        <!-- 5. Themes Shuffle -->
+        <div class="autocycle-row">
+          <span class="autocycle-row-label">Themes</span>
+          <div class="autocycle-pills" data-cycle-setting="themes">
+            <button type="button" class="autocycle-pill" data-val="keep">Keep</button>
+            <button type="button" class="autocycle-pill active" data-val="shuffle">Shuffle</button>
+          </div>
+        </div>
+
+        <!-- 6. Parameters Shuffle -->
+        <div class="autocycle-row">
+          <span class="autocycle-row-label">Parameters</span>
+          <div class="autocycle-pills" data-cycle-setting="parameters">
+            <button type="button" class="autocycle-pill" data-val="keep">Keep</button>
+            <button type="button" class="autocycle-pill active" data-val="shuffle">Shuffle</button>
+          </div>
+        </div>
+
+        <!-- 7. Effects (Shaders) Shuffle -->
+        <div class="autocycle-row">
+          <span class="autocycle-row-label">Effects</span>
+          <div class="autocycle-pills" data-cycle-setting="effects">
+            <button type="button" class="autocycle-pill" data-val="keep">Keep</button>
+            <button type="button" class="autocycle-pill active" data-val="shuffle">Shuffle</button>
+          </div>
+        </div>
+
+        <!-- 8. Camera Shuffle -->
+        <div class="autocycle-row">
+          <span class="autocycle-row-label">Camera</span>
+          <div class="autocycle-pills" data-cycle-setting="camera">
+            <button type="button" class="autocycle-pill" data-val="keep">Keep</button>
+            <button type="button" class="autocycle-pill active" data-val="shuffle">Shuffle</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -979,6 +1072,7 @@
     <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
       <span>Camera & Views</span>
       <div style="display:flex;align-items:center;gap:6px;">
+        <button type="button" class="btn-pill" id="saveCamBtn" style="font-size:10px;padding:3px 8px;border-radius:12px;cursor:pointer;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);color:#22c55e;" title="Save camera settings for this preset">💾 Save</button>
         <button type="button" class="btn-pill btn-pill-dice" id="randomizeAllCamBtn" title="Randomize camera optics">🎲 Cam</button>
         <button type="button" class="btn-pill" id="resetCamBtn" style="font-size:10px;padding:3px 8px;border-radius:12px;cursor:pointer;" title="Reset camera optics">↺ Reset</button>
         <button class="btn-icon close-drawer-btn closeCameraBtn" style="width:28px;height:28px;" aria-label="Close camera panel">✕</button>
@@ -1052,10 +1146,154 @@
         </div>
       </div>
 
+      <!-- 1b. Camera Position & Coordinate Controls (Orbit, Tilt, Distance, Height) -->
+      <div class="camera-group camera-coords" style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+        <span style="font-size:12px;font-weight:600;display:block;margin-bottom:8px;">Camera Position</span>
+
+        <!-- Orbit Angle Slider & Margins -->
+        <div class="control-row fx-control-row" data-fx-id="camOrbit" style="margin-top:8px;">
+          <label for="camOrbitSlider" class="control-label">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button type="button" class="fx-lock-btn" data-fx="camOrbit" title="Lock orbit angle">🔓</button>
+              <button type="button" class="fx-rand-btn" data-fx="camOrbit" title="Randomize orbit angle">🎲</button>
+              <button type="button" class="fx-gear-btn" data-fx="camOrbit" title="Configure margin bounds">⚙️</button>
+              <span>Orbit Angle</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <label for="camOrbitValInput" class="u-sr-only">Orbit Angle Numeric Value</label>
+              <input id="camOrbitValInput" type="number" class="ui-val-input fx-main-val-input" data-fx-target="camOrbit" min="-180" max="180" step="1" value="0" aria-label="Orbit Angle Numeric Value" title="Direct Orbit Angle in degrees">
+              <span id="camOrbitVal" style="display:none;">0°</span>
+            </div>
+          </label>
+          <div class="fx-margin-drawer" id="camOrbit_margin_drawer">
+            <div class="fx-margin-header">
+              <label for="camOrbit_margin_min" class="fx-margin-label">Margin:</label>
+              <input id="camOrbit_margin_min" type="number" class="ui-val-input fx-bound-input-min" min="-180" max="180" step="1" value="-180" aria-label="Orbit Minimum Margin" title="Min margin">
+              <span class="fx-margin-dash">—</span>
+              <label for="camOrbit_margin_max" class="u-sr-only">Orbit Maximum Margin</label>
+              <input id="camOrbit_margin_max" type="number" class="ui-val-input fx-bound-input-max" min="-180" max="180" step="1" value="180" aria-label="Orbit Maximum Margin" title="Max margin">
+              <span class="fx-margin-readout" style="display:none;">Margin: -180° — 180°</span>
+            </div>
+            <div class="fx-margin-sliders">
+              <label for="camOrbit_bound_min" class="u-sr-only">Orbit Minimum Margin Slider</label>
+              <input id="camOrbit_bound_min" type="range" class="fx-bound-min" min="-180" max="180" step="1" value="-180" aria-label="Orbit Minimum Margin Slider" title="Min">
+              <label for="camOrbit_bound_max" class="u-sr-only">Orbit Maximum Margin Slider</label>
+              <input id="camOrbit_bound_max" type="range" class="fx-bound-max" min="-180" max="180" step="1" value="180" aria-label="Orbit Maximum Margin Slider" title="Max">
+            </div>
+          </div>
+          <input class="ui-slider" type="range" id="camOrbitSlider" min="-180" max="180" step="1" value="0" aria-label="Orbit Angle">
+        </div>
+
+        <!-- Tilt Angle Slider & Margins -->
+        <div class="control-row fx-control-row" data-fx-id="camTilt" style="margin-top:10px;">
+          <label for="camTiltSlider" class="control-label">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button type="button" class="fx-lock-btn" data-fx="camTilt" title="Lock tilt angle">🔓</button>
+              <button type="button" class="fx-rand-btn" data-fx="camTilt" title="Randomize tilt angle">🎲</button>
+              <button type="button" class="fx-gear-btn" data-fx="camTilt" title="Configure margin bounds">⚙️</button>
+              <span>Tilt Angle</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <label for="camTiltValInput" class="u-sr-only">Tilt Angle Numeric Value</label>
+              <input id="camTiltValInput" type="number" class="ui-val-input fx-main-val-input" data-fx-target="camTilt" min="-85" max="85" step="1" value="0" aria-label="Tilt Angle Numeric Value" title="Direct Tilt Angle in degrees">
+              <span id="camTiltVal" style="display:none;">0°</span>
+            </div>
+          </label>
+          <div class="fx-margin-drawer" id="camTilt_margin_drawer">
+            <div class="fx-margin-header">
+              <label for="camTilt_margin_min" class="fx-margin-label">Margin:</label>
+              <input id="camTilt_margin_min" type="number" class="ui-val-input fx-bound-input-min" min="-85" max="85" step="1" value="-85" aria-label="Tilt Minimum Margin" title="Min margin">
+              <span class="fx-margin-dash">—</span>
+              <label for="camTilt_margin_max" class="u-sr-only">Tilt Maximum Margin</label>
+              <input id="camTilt_margin_max" type="number" class="ui-val-input fx-bound-input-max" min="-85" max="85" step="1" value="85" aria-label="Tilt Maximum Margin" title="Max margin">
+              <span class="fx-margin-readout" style="display:none;">Margin: -85° — 85°</span>
+            </div>
+            <div class="fx-margin-sliders">
+              <label for="camTilt_bound_min" class="u-sr-only">Tilt Minimum Margin Slider</label>
+              <input id="camTilt_bound_min" type="range" class="fx-bound-min" min="-85" max="85" step="1" value="-85" aria-label="Tilt Minimum Margin Slider" title="Min">
+              <label for="camTilt_bound_max" class="u-sr-only">Tilt Maximum Margin Slider</label>
+              <input id="camTilt_bound_max" type="range" class="fx-bound-max" min="-85" max="85" step="1" value="85" aria-label="Tilt Maximum Margin Slider" title="Max">
+            </div>
+          </div>
+          <input class="ui-slider" type="range" id="camTiltSlider" min="-85" max="85" step="1" value="0" aria-label="Tilt Angle">
+        </div>
+
+        <!-- Distance Slider & Margins -->
+        <div class="control-row fx-control-row" data-fx-id="camDist" style="margin-top:10px;">
+          <label for="camDistSlider" class="control-label">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button type="button" class="fx-lock-btn" data-fx="camDist" title="Lock camera distance">🔓</button>
+              <button type="button" class="fx-rand-btn" data-fx="camDist" title="Randomize camera distance">🎲</button>
+              <button type="button" class="fx-gear-btn" data-fx="camDist" title="Configure margin bounds">⚙️</button>
+              <span>Distance</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <label for="camDistValInput" class="u-sr-only">Camera Distance Numeric Value</label>
+              <input id="camDistValInput" type="number" class="ui-val-input fx-main-val-input" data-fx-target="camDist" min="1" max="50" step="0.5" value="12" aria-label="Camera Distance Numeric Value" title="Direct Camera Distance in units">
+              <span id="camDistVal" style="display:none;">12.0m</span>
+            </div>
+          </label>
+          <div class="fx-margin-drawer" id="camDist_margin_drawer">
+            <div class="fx-margin-header">
+              <label for="camDist_margin_min" class="fx-margin-label">Margin:</label>
+              <input id="camDist_margin_min" type="number" class="ui-val-input fx-bound-input-min" min="1" max="50" step="0.5" value="2" aria-label="Distance Minimum Margin" title="Min margin">
+              <span class="fx-margin-dash">—</span>
+              <label for="camDist_margin_max" class="u-sr-only">Distance Maximum Margin</label>
+              <input id="camDist_margin_max" type="number" class="ui-val-input fx-bound-input-max" min="1" max="50" step="0.5" value="40" aria-label="Distance Maximum Margin" title="Max margin">
+              <span class="fx-margin-readout" style="display:none;">Margin: 2.0m — 40.0m</span>
+            </div>
+            <div class="fx-margin-sliders">
+              <label for="camDist_bound_min" class="u-sr-only">Distance Minimum Margin Slider</label>
+              <input id="camDist_bound_min" type="range" class="fx-bound-min" min="1" max="50" step="0.5" value="2" aria-label="Distance Minimum Margin Slider" title="Min">
+              <label for="camDist_bound_max" class="u-sr-only">Distance Maximum Margin Slider</label>
+              <input id="camDist_bound_max" type="range" class="fx-bound-max" min="1" max="50" step="0.5" value="40" aria-label="Distance Maximum Margin Slider" title="Max">
+            </div>
+          </div>
+          <input class="ui-slider" type="range" id="camDistSlider" min="1" max="50" step="0.5" value="12" aria-label="Camera Distance">
+        </div>
+
+        <!-- Height / Elevation Slider & Margins -->
+        <div class="control-row fx-control-row" data-fx-id="camHeight" style="margin-top:10px;">
+          <label for="camHeightSlider" class="control-label">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button type="button" class="fx-lock-btn" data-fx="camHeight" title="Lock camera elevation">🔓</button>
+              <button type="button" class="fx-rand-btn" data-fx="camHeight" title="Randomize camera elevation">🎲</button>
+              <button type="button" class="fx-gear-btn" data-fx="camHeight" title="Configure margin bounds">⚙️</button>
+              <span>Height (Elevation)</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <label for="camHeightValInput" class="u-sr-only">Camera Height Numeric Value</label>
+              <input id="camHeightValInput" type="number" class="ui-val-input fx-main-val-input" data-fx-target="camHeight" min="-20" max="20" step="0.5" value="0" aria-label="Camera Height Numeric Value" title="Direct Camera Elevation">
+              <span id="camHeightVal" style="display:none;">0.0m</span>
+            </div>
+          </label>
+          <div class="fx-margin-drawer" id="camHeight_margin_drawer">
+            <div class="fx-margin-header">
+              <label for="camHeight_margin_min" class="fx-margin-label">Margin:</label>
+              <input id="camHeight_margin_min" type="number" class="ui-val-input fx-bound-input-min" min="-20" max="20" step="0.5" value="-10" aria-label="Height Minimum Margin" title="Min margin">
+              <span class="fx-margin-dash">—</span>
+              <label for="camHeight_margin_max" class="u-sr-only">Height Maximum Margin</label>
+              <input id="camHeight_margin_max" type="number" class="ui-val-input fx-bound-input-max" min="-20" max="20" step="0.5" value="10" aria-label="Height Maximum Margin" title="Max margin">
+              <span class="fx-margin-readout" style="display:none;">Margin: -10.0m — 10.0m</span>
+            </div>
+            <div class="fx-margin-sliders">
+              <label for="camHeight_bound_min" class="u-sr-only">Height Minimum Margin Slider</label>
+              <input id="camHeight_bound_min" type="range" class="fx-bound-min" min="-20" max="20" step="0.5" value="-10" aria-label="Height Minimum Margin Slider" title="Min">
+              <label for="camHeight_bound_max" class="u-sr-only">Height Maximum Margin Slider</label>
+              <input id="camHeight_bound_max" type="range" class="fx-bound-max" min="-20" max="20" step="0.5" value="10" aria-label="Height Maximum Margin Slider" title="Max">
+            </div>
+          </div>
+          <input class="ui-slider" type="range" id="camHeightSlider" min="-20" max="20" step="0.5" value="0" aria-label="Camera Height">
+        </div>
+      </div>
+
       <!-- 2. Auto-Rotate & Direction Controls with Speed Margin Bounds -->
       <div class="camera-group camera-spin" style="margin-top:16px;">
         <div class="control-row">
-          <label for="autoRotateToggle" class="control-label"><span>Auto-Rotate</span></label>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="btn-icon" id="randAutoRotateBtn" style="font-size:12px;background:none;border:none;cursor:pointer;padding:0 2px;" title="Randomize auto-rotate">🎲</button>
+            <label for="autoRotateToggle" class="control-label" style="margin-bottom:0;"><span>Auto-Rotate</span></label>
+          </div>
           <div style="display:flex;align-items:center;gap:10px;">
             <input type="checkbox" id="autoRotateToggle" data-alias="camAutoOrbitToggle" checked style="accent-color:var(--primary);width:16px;height:16px;" aria-label="Auto-Rotate Toggle">
           </div>

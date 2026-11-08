@@ -504,6 +504,9 @@ function renderTuningActions(
         : p.defaultValue;
     }
     saveTuning(preset.id, values);
+    if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+      window.dispatchEvent(new CustomEvent('visualizor:save_camera', { detail: { presetId: preset.id } }));
+    }
 
     saveBtn.innerHTML = `
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -541,6 +544,9 @@ function renderTuningActions(
       }
     }
     clearSavedTuning(preset.id);
+    if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+      window.dispatchEvent(new CustomEvent('visualizor:reset_camera', { detail: { presetId: preset.id } }));
+    }
 
     params.forEach(p => {
       const slider = content.querySelector(`#tuning_${p.id}_slider`) as HTMLInputElement | null;
