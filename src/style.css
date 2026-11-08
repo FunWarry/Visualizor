@@ -2717,11 +2717,53 @@ body.ui-hidden .sidebar-pill,
 .fx-margin-drawer.open {
   display: block;
 }
+.fx-margin-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  font-size: 11px;
+}
+.fx-margin-header .fx-margin-label {
+  color: var(--primary);
+  font-weight: 600;
+}
+.fx-margin-header .fx-margin-dash {
+  color: var(--text-muted);
+}
 .fx-margin-readout {
   display: block;
   margin-bottom: 4px;
   color: var(--primary);
   font-weight: 500;
+}
+.ui-val-input {
+  width: 52px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 4px;
+  color: var(--primary);
+  font-size: 11px;
+  font-family: inherit;
+  font-weight: 600;
+  padding: 1px 4px;
+  text-align: right;
+  -moz-appearance: textfield;
+  transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
+}
+.ui-val-input::-webkit-outer-spin-button,
+.ui-val-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.ui-val-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 6px var(--primary-glow);
+  background: rgba(0, 0, 0, 0.4);
+}
+.ui-val-input:hover {
+  border-color: rgba(255, 255, 255, 0.25);
 }
 .fx-margin-sliders {
   display: flex;

@@ -5,6 +5,11 @@ export interface RandomizeBounds {
   maxPercent: number;
 }
 
+export interface ValueBounds {
+  minVal: number;
+  maxVal: number;
+}
+
 const STORAGE_PREFIX_TUNING = 'visualizor_tuning_';
 const STORAGE_PREFIX_PARAM_LOCKS = 'visualizor_param_locks_';
 const STORAGE_KEY_LOCKED_PRESETS = 'visualizor_locked_presets';
@@ -223,12 +228,49 @@ export function getParamRandomizeBounds(presetId: string, paramId: string): Rand
 }
 
 /**
- * Sets the independent randomization bounds for a specific parameter.
+ * Sets the independent randomization bounds for a specific parameter (percentage compatibility).
  */
 export function setParamRandomizeBounds(presetId: string, paramId: string, minPercent: number, maxPercent: number): void {
   const boundedMin = Math.max(0, Math.min(100, Math.min(minPercent, maxPercent)));
   const boundedMax = Math.max(0, Math.min(100, Math.max(minPercent, maxPercent)));
   setStorageItem(`${STORAGE_PREFIX_PARAM_BOUNDS}${presetId}_${paramId}`, JSON.stringify({ minPercent: boundedMin, maxPercent: boundedMax }));
+}
+
+/**
+ * Gets the independent randomization bounds in raw parameter values.
+ */
+export function getParamValueBounds(presetId: string, p: ParameterDefinition): ValueBounds {
+  const raw = getStorageItem(`${STORAGE_PREFIX_PARAM_BOUNDS}${presetId}_${p.id}`);
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (typeof parsed?.minVal === 'number' && typeof parsed?.maxVal === 'number') {
+        return {
+          minVal: Math.max(p.min, Math.min(p.max, parsed.minVal)),
+          maxVal: Math.max(p.min, Math.min(p.max, parsed.maxVal))
+        };
+      }
+      if (typeof parsed?.minPercent === 'number' && typeof parsed?.maxPercent === 'number') {
+        const range = p.max - p.min;
+        return {
+          minVal: Number((p.min + (parsed.minPercent / 100) * range).toFixed(4)),
+          maxVal: Number((p.min + (parsed.maxPercent / 100) * range).toFixed(4))
+        };
+      }
+    } catch {
+      // Fallback
+    }
+  }
+  return { minVal: p.min, maxVal: p.max };
+}
+
+/**
+ * Sets the independent randomization bounds in raw parameter values.
+ */
+export function setParamValueBounds(presetId: string, paramId: string, minVal: number, maxVal: number): void {
+  const boundedMin = Math.min(minVal, maxVal);
+  const boundedMax = Math.max(minVal, maxVal);
+  setStorageItem(`${STORAGE_PREFIX_PARAM_BOUNDS}${presetId}_${paramId}`, JSON.stringify({ minVal: boundedMin, maxVal: boundedMax }));
 }
 
 /**
@@ -246,7 +288,7 @@ export function setFxParamLocked(fxId: string, locked: boolean): void {
 }
 
 /**
- * Gets the independent randomization bounds for a shader or camera parameter.
+ * Gets the independent randomization bounds for a shader or camera parameter (percentage compatibility).
  */
 export function getFxParamRandomizeBounds(paramId: string): RandomizeBounds {
   const raw = getStorageItem(STORAGE_PREFIX_FX_BOUNDS + paramId);
@@ -267,7 +309,7 @@ export function getFxParamRandomizeBounds(paramId: string): RandomizeBounds {
 }
 
 /**
- * Sets the independent randomization bounds for a shader or camera parameter.
+ * Sets the independent randomization bounds for a shader or camera parameter (percentage compatibility).
  */
 export function setFxParamRandomizeBounds(paramId: string, minPercent: number, maxPercent: number): void {
   const boundedMin = Math.max(0, Math.min(100, Math.min(minPercent, maxPercent)));
@@ -276,15 +318,51 @@ export function setFxParamRandomizeBounds(paramId: string, minPercent: number, m
 }
 
 /**
- * Computes a random parameter value within configured bounds.
+ * Gets the independent randomization bounds in raw slider values for a shader or camera parameter.
  */
-export function computeRandomFxValue(min: number, max: number, step: number, minPercent: number, maxPercent: number): number {
-  const normMin = minPercent / 100;
-  const normMax = maxPercent / 100;
-  const range = max - min;
-  const randFactor = normMin + Math.random() * (normMax - normMin);
-  const rawVal = min + randFactor * range;
-  const snapped = Math.round((rawVal - min) / step) * step + min;
+export function getFxParamValueBounds(paramId: string, min: number, max: number): ValueBounds {
+  const raw = getStorageItem(STORAGE_PREFIX_FX_BOUNDS + paramId);
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (typeof parsed?.minVal === 'number' && typeof parsed?.maxVal === 'number') {
+        return {
+          minVal: Math.max(min, Math.min(max, parsed.minVal)),
+          maxVal: Math.max(min, Math.min(max, parsed.maxVal))
+        };
+      }
+      if (typeof parsed?.minPercent === 'number' && typeof parsed?.maxPercent === 'number') {
+        const range = max - min;
+        return {
+          minVal: Number((min + (parsed.minPercent / 100) * range).toFixed(2)),
+          maxVal: Number((min + (parsed.maxPercent / 100) * range).toFixed(2))
+        };
+      }
+    } catch {
+      // Fallback
+    }
+  }
+  return { minVal: min, maxVal: max };
+}
+
+/**
+ * Sets the independent randomization bounds in raw slider values for a shader or camera parameter.
+ */
+export function setFxParamValueBounds(paramId: string, minVal: number, maxVal: number): void {
+  const boundedMin = Math.min(minVal, maxVal);
+  const boundedMax = Math.max(minVal, maxVal);
+  setStorageItem(`${STORAGE_PREFIX_FX_BOUNDS}${paramId}`, JSON.stringify({ minVal: boundedMin, maxVal: boundedMax }));
+}
+
+/**
+ * Computes a random parameter value within configured raw value bounds.
+ */
+export function computeRandomFxValue(min: number, max: number, step: number, minVal: number, maxVal: number): number {
+  const boundedMin = Math.max(min, Math.min(max, Math.min(minVal, maxVal)));
+  const boundedMax = Math.max(min, Math.min(max, Math.max(minVal, maxVal)));
+  const range = boundedMax - boundedMin;
+  const randVal = boundedMin + Math.random() * range;
+  const snapped = Math.round((randVal - min) / step) * step + min;
   return Math.max(min, Math.min(max, Number(snapped.toFixed(2))));
 }
 
@@ -303,13 +381,12 @@ export function setAutoRandomizeEnabled(enabled: boolean): void {
   setStorageItem(STORAGE_KEY_AUTO_RANDOMIZE, String(enabled));
 }
 
-function computeRandomParamValue(p: ParameterDefinition, minPercent: number, maxPercent: number): number {
-  const normMin = minPercent / 100;
-  const normMax = maxPercent / 100;
-  const range = p.max - p.min;
-  const randFactor = normMin + Math.random() * (normMax - normMin);
-  const rawVal = p.min + randFactor * range;
-  const snapped = Math.round((rawVal - p.min) / p.step) * p.step + p.min;
+function computeRandomParamValue(p: ParameterDefinition, minVal: number, maxVal: number): number {
+  const boundedMin = Math.max(p.min, Math.min(p.max, Math.min(minVal, maxVal)));
+  const boundedMax = Math.max(p.min, Math.min(p.max, Math.max(minVal, maxVal)));
+  const range = boundedMax - boundedMin;
+  const randVal = boundedMin + Math.random() * range;
+  const snapped = Math.round((randVal - p.min) / p.step) * p.step + p.min;
   return Math.max(p.min, Math.min(p.max, Number(snapped.toFixed(4))));
 }
 
@@ -331,10 +408,10 @@ export function randomizeSingleParameter(
       ? (preset.getCustomParameterValue(paramId) ?? p.defaultValue)
       : p.defaultValue;
   }
-  const bounds = getParamRandomizeBounds(preset.id, paramId);
-  const minP = overrideMin ?? bounds.minPercent;
-  const maxP = overrideMax ?? bounds.maxPercent;
-  const newVal = computeRandomParamValue(p, minP, maxP);
+  const bounds = getParamValueBounds(preset.id, p);
+  const minVal = overrideMin ?? bounds.minVal;
+  const maxVal = overrideMax ?? bounds.maxVal;
+  const newVal = computeRandomParamValue(p, minVal, maxVal);
   preset.setCustomParameter?.(paramId, newVal);
   return newVal;
 }
@@ -361,10 +438,10 @@ export function randomizePreset(
         : p.defaultValue;
       result[p.id] = current;
     } else {
-      const paramBounds = getParamRandomizeBounds(preset.id, p.id);
-      const minP = overrideMin ?? paramBounds.minPercent;
-      const maxP = overrideMax ?? paramBounds.maxPercent;
-      const newVal = computeRandomParamValue(p, minP, maxP);
+      const bounds = getParamValueBounds(preset.id, p);
+      const minVal = overrideMin ?? bounds.minVal;
+      const maxVal = overrideMax ?? bounds.maxVal;
+      const newVal = computeRandomParamValue(p, minVal, maxVal);
       preset.setCustomParameter?.(p.id, newVal);
       result[p.id] = newVal;
     }

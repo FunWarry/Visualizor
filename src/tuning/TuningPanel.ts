@@ -9,8 +9,8 @@ import {
   setParamLocked,
   getRandomizeBounds,
   setRandomizeBounds,
-  getParamRandomizeBounds,
-  setParamRandomizeBounds,
+  getParamValueBounds,
+  setParamValueBounds,
   randomizeSingleParameter,
   isAutoRandomizeEnabled,
   setAutoRandomizeEnabled,
@@ -98,47 +98,104 @@ function createParamMarginDrawer(preset: VisualizerPreset, p: ParameterDefinitio
   drawer.id = `tuning_${p.id}_margin_drawer`;
   drawer.style.cssText = 'display:none;margin-top:4px;padding:6px 8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:6px;font-size:10px;';
 
-  const bounds = getParamRandomizeBounds(preset.id, p.id);
-  let minP = bounds.minPercent;
-  let maxP = bounds.maxPercent;
+  const bounds = getParamValueBounds(preset.id, p);
+  let minVal = bounds.minVal;
+  let maxVal = bounds.maxVal;
+
+  const header = document.createElement('div');
+  header.className = 'fx-margin-header';
+
+  const label = document.createElement('span');
+  label.className = 'fx-margin-label';
+  label.textContent = 'Margin:';
+
+  const minInput = document.createElement('input');
+  minInput.type = 'number';
+  minInput.className = 'ui-val-input tuning-bound-input-min';
+  minInput.min = p.min.toString();
+  minInput.max = p.max.toString();
+  minInput.step = p.step.toString();
+  minInput.value = minVal.toString();
+  minInput.title = `Min margin for ${p.name}`;
+
+  const dash = document.createElement('span');
+  dash.className = 'fx-margin-dash';
+  dash.textContent = '—';
+
+  const maxInput = document.createElement('input');
+  maxInput.type = 'number';
+  maxInput.className = 'ui-val-input tuning-bound-input-max';
+  maxInput.min = p.min.toString();
+  maxInput.max = p.max.toString();
+  maxInput.step = p.step.toString();
+  maxInput.value = maxVal.toString();
+  maxInput.title = `Max margin for ${p.name}`;
 
   const readout = document.createElement('span');
   readout.className = 'tuning-range-readout';
-  readout.textContent = `Margin: ${minP}% — ${maxP}%`;
-  readout.style.cssText = 'display:block;margin-bottom:4px;color:var(--primary);';
+  readout.textContent = `Margin: ${minVal} — ${maxVal}`;
+  readout.style.display = 'none';
+
+  header.appendChild(label);
+  header.appendChild(minInput);
+  header.appendChild(dash);
+  header.appendChild(maxInput);
+  header.appendChild(readout);
 
   const slidersRow = document.createElement('div');
-  slidersRow.style.cssText = 'display:flex;gap:6px;';
+  slidersRow.className = 'fx-margin-sliders';
 
   const minSlider = document.createElement('input');
   minSlider.type = 'range';
   minSlider.className = BOUND_SLIDER_CLASS;
-  minSlider.min = '0';
-  minSlider.max = '100';
-  minSlider.value = minP.toString();
-  minSlider.title = 'Min Margin (%)';
+  minSlider.min = p.min.toString();
+  minSlider.max = p.max.toString();
+  minSlider.step = p.step.toString();
+  minSlider.value = minVal.toString();
+  minSlider.title = 'Min Margin';
 
   const maxSlider = document.createElement('input');
   maxSlider.type = 'range';
   maxSlider.className = BOUND_SLIDER_CLASS;
-  maxSlider.min = '0';
-  maxSlider.max = '100';
-  maxSlider.value = maxP.toString();
-  maxSlider.title = 'Max Margin (%)';
+  maxSlider.min = p.min.toString();
+  maxSlider.max = p.max.toString();
+  maxSlider.step = p.step.toString();
+  maxSlider.value = maxVal.toString();
+  maxSlider.title = 'Max Margin';
 
-  const onUpdateBounds = () => {
-    minP = Math.min(Number(minSlider.value), Number(maxSlider.value));
-    maxP = Math.max(Number(minSlider.value), Number(maxSlider.value));
-    readout.textContent = `Margin: ${minP}% — ${maxP}%`;
-    setParamRandomizeBounds(preset.id, p.id, minP, maxP);
+  const syncBounds = (newMin: number, newMax: number) => {
+    minVal = Math.min(newMin, newMax);
+    maxVal = Math.max(newMin, newMax);
+    if (document.activeElement !== minInput) minInput.value = minVal.toString();
+    if (document.activeElement !== maxInput) maxInput.value = maxVal.toString();
+    minSlider.value = minVal.toString();
+    maxSlider.value = maxVal.toString();
+    readout.textContent = `Margin: ${minVal} — ${maxVal}`;
+    setParamValueBounds(preset.id, p.id, minVal, maxVal);
   };
 
-  minSlider.addEventListener('input', onUpdateBounds);
-  maxSlider.addEventListener('input', onUpdateBounds);
+  minSlider.addEventListener('input', () => {
+    syncBounds(Number(minSlider.value), Number(maxSlider.value));
+  });
+  maxSlider.addEventListener('input', () => {
+    syncBounds(Number(minSlider.value), Number(maxSlider.value));
+  });
+
+  const onInputsChange = () => {
+    let vMin = Number(minInput.value);
+    let vMax = Number(maxInput.value);
+    if (isNaN(vMin)) vMin = p.min;
+    if (isNaN(vMax)) vMax = p.max;
+    vMin = Math.max(p.min, Math.min(p.max, vMin));
+    vMax = Math.max(p.min, Math.min(p.max, vMax));
+    syncBounds(vMin, vMax);
+  };
+  minInput.addEventListener('input', onInputsChange);
+  maxInput.addEventListener('input', onInputsChange);
 
   slidersRow.appendChild(minSlider);
   slidersRow.appendChild(maxSlider);
-  drawer.appendChild(readout);
+  drawer.appendChild(header);
   drawer.appendChild(slidersRow);
   return drawer;
 }
@@ -215,13 +272,30 @@ function renderParameterRow(
   leftWrap.appendChild(gearBtn);
   leftWrap.appendChild(nameSpan);
 
+  const rightWrap = document.createElement('div');
+  rightWrap.style.cssText = 'display:flex;align-items:center;gap:6px;';
+
+  const valInput = document.createElement('input');
+  valInput.type = 'number';
+  valInput.className = 'ui-val-input tuning-param-val-input';
+  valInput.id = `tuning_${p.id}_input`;
+  valInput.min = p.min.toString();
+  valInput.max = p.max.toString();
+  valInput.step = p.step.toString();
+  valInput.value = currentVal.toString();
+  valInput.title = `Direct value for ${p.name}`;
+
   const valSpan = document.createElement('span');
   valSpan.id = `tuning_${p.id}_val`;
   valSpan.className = 'tuning-val-readout';
   valSpan.textContent = formatParamValue(currentVal, p.step);
+  valSpan.style.display = 'none';
+
+  rightWrap.appendChild(valInput);
+  rightWrap.appendChild(valSpan);
 
   label.appendChild(leftWrap);
-  label.appendChild(valSpan);
+  label.appendChild(rightWrap);
 
   const slider = document.createElement('input');
   slider.type = 'range';
@@ -247,6 +321,20 @@ function renderParameterRow(
       ? (preset.getCustomParameterValue(p.id) ?? numVal)
       : numVal;
     valSpan.textContent = formatParamValue(updatedVal, p.step);
+    if (document.activeElement !== valInput) {
+      valInput.value = updatedVal.toString();
+    }
+  });
+
+  valInput.addEventListener('input', () => {
+    let numVal = Number(valInput.value);
+    if (isNaN(numVal)) return;
+    numVal = Math.max(p.min, Math.min(p.max, numVal));
+    if (typeof preset.setCustomParameter === 'function') {
+      preset.setCustomParameter(p.id, numVal);
+    }
+    slider.value = numVal.toString();
+    valSpan.textContent = formatParamValue(numVal, p.step);
   });
 
   randParamBtn.addEventListener('click', (e) => {
@@ -255,6 +343,7 @@ function renderParameterRow(
     const newVal = randomizeSingleParameter(preset, p.id);
     if (newVal !== undefined) {
       slider.value = newVal.toString();
+      valInput.value = newVal.toString();
       valSpan.textContent = formatParamValue(newVal, p.step);
     }
   });
@@ -295,9 +384,11 @@ function renderRandomizeCard(
     const newVals = randomizePreset(preset, minP, maxP);
     for (const [id, val] of Object.entries(newVals)) {
       const slider = content.querySelector(`#tuning_${id}_slider`) as HTMLInputElement | null;
+      const valInput = content.querySelector(`#tuning_${id}_input`) as HTMLInputElement | null;
       const valSpan = content.querySelector(`#tuning_${id}_val`) as HTMLElement | null;
       const p = params.find(param => param.id === id);
       if (slider) slider.value = val.toString();
+      if (valInput) valInput.value = val.toString();
       if (valSpan && p) valSpan.textContent = formatParamValue(val, p.step);
     }
   });
@@ -436,8 +527,10 @@ function renderTuningActions(
 
     params.forEach(p => {
       const slider = content.querySelector(`#tuning_${p.id}_slider`) as HTMLInputElement | null;
+      const valInput = content.querySelector(`#tuning_${p.id}_input`) as HTMLInputElement | null;
       const valSpan = content.querySelector(`#tuning_${p.id}_val`) as HTMLElement | null;
       if (slider) slider.value = p.defaultValue.toString();
+      if (valInput) valInput.value = p.defaultValue.toString();
       if (valSpan) valSpan.textContent = formatParamValue(p.defaultValue, p.step);
     });
 

@@ -27,8 +27,8 @@ import {
   hasSavedTuning,
   isFxParamLocked,
   setFxParamLocked,
-  getFxParamRandomizeBounds,
-  setFxParamRandomizeBounds,
+  getFxParamValueBounds,
+  setFxParamValueBounds,
   computeRandomFxValue
 } from './tuning/PresetTuningManager';
 import { TextAnchor, TextAnimationMode } from './overlay/types';
@@ -2009,6 +2009,10 @@ function applyFxValue(
 ): void {
   slider.value = val.toString();
   if (valEl) valEl.textContent = fx.format(val);
+  const mainInput = document.querySelector(`.fx-main-val-input[data-fx-target="${fx.id}"]`) as HTMLInputElement | null;
+  if (mainInput && document.activeElement !== mainInput) {
+    mainInput.value = val.toString();
+  }
   fx.apply(val);
   updateChipsForFx(fx, val);
   syncFilterCardState(fx.id, val > 0);
@@ -2020,8 +2024,8 @@ function randomizeFxControl(
   valEl: HTMLElement | null
 ): void {
   if (isFxParamLocked(fx.id)) return;
-  const bounds = getFxParamRandomizeBounds(fx.id);
-  const clamped = computeRandomFxValue(fx.min, fx.max, fx.step, bounds.minPercent, bounds.maxPercent);
+  const bounds = getFxParamValueBounds(fx.id, fx.min, fx.max);
+  const clamped = computeRandomFxValue(fx.min, fx.max, fx.step, bounds.minVal, bounds.maxVal);
   applyFxValue(fx, slider, valEl, clamped);
 }
 
@@ -2033,28 +2037,98 @@ function bindFxSliderMargins(fx: FxControlDef, row: Element | null): void {
   const readout = drawer.querySelector('.fx-margin-readout');
   const minSlider = drawer.querySelector('.fx-bound-min') as HTMLInputElement | null;
   const maxSlider = drawer.querySelector('.fx-bound-max') as HTMLInputElement | null;
+  const minInput = drawer.querySelector('.fx-bound-input-min') as HTMLInputElement | null;
+  const maxInput = drawer.querySelector('.fx-bound-input-max') as HTMLInputElement | null;
 
-  const currentBounds = getFxParamRandomizeBounds(fx.id);
-  if (minSlider) minSlider.value = currentBounds.minPercent.toString();
-  if (maxSlider) maxSlider.value = currentBounds.maxPercent.toString();
-  if (readout) readout.textContent = `Margin: ${currentBounds.minPercent}% — ${currentBounds.maxPercent}%`;
+  const currentBounds = getFxParamValueBounds(fx.id, fx.min, fx.max);
+  let minVal = currentBounds.minVal;
+  let maxVal = currentBounds.maxVal;
 
-  const onBoundsInput = () => {
-    if (!minSlider || !maxSlider) return;
-    const minP = Math.min(Number(minSlider.value), Number(maxSlider.value));
-    const maxP = Math.max(Number(minSlider.value), Number(maxSlider.value));
-    if (readout) readout.textContent = `Margin: ${minP}% — ${maxP}%`;
-    setFxParamRandomizeBounds(fx.id, minP, maxP);
+  const updateUiBounds = () => {
+    if (minSlider) {
+      minSlider.min = fx.min.toString();
+      minSlider.max = fx.max.toString();
+      minSlider.step = fx.step.toString();
+      minSlider.value = minVal.toString();
+    }
+    if (maxSlider) {
+      maxSlider.min = fx.min.toString();
+      maxSlider.max = fx.max.toString();
+      maxSlider.step = fx.step.toString();
+      maxSlider.value = maxVal.toString();
+    }
+    if (minInput && document.activeElement !== minInput) {
+      minInput.min = fx.min.toString();
+      minInput.max = fx.max.toString();
+      minInput.step = fx.step.toString();
+      minInput.value = minVal.toString();
+    }
+    if (maxInput && document.activeElement !== maxInput) {
+      maxInput.min = fx.min.toString();
+      maxInput.max = fx.max.toString();
+      maxInput.step = fx.step.toString();
+      maxInput.value = maxVal.toString();
+    }
+    if (readout) {
+      readout.textContent = `Margin: ${minVal} — ${maxVal}`;
+    }
   };
 
-  minSlider?.addEventListener('input', onBoundsInput);
-  maxSlider?.addEventListener('input', onBoundsInput);
+  updateUiBounds();
+
+  const syncAndSave = (newMin: number, newMax: number) => {
+    minVal = Math.min(newMin, newMax);
+    maxVal = Math.max(newMin, newMax);
+    updateUiBounds();
+    setFxParamValueBounds(fx.id, minVal, maxVal);
+  };
+
+  minSlider?.addEventListener('input', () => {
+    if (!minSlider || !maxSlider) return;
+    syncAndSave(Number(minSlider.value), Number(maxSlider.value));
+  });
+  maxSlider?.addEventListener('input', () => {
+    if (!minSlider || !maxSlider) return;
+    syncAndSave(Number(minSlider.value), Number(maxSlider.value));
+  });
+
+  const onInputChange = () => {
+    let vMin = Number(minInput?.value ?? fx.min);
+    let vMax = Number(maxInput?.value ?? fx.max);
+    if (isNaN(vMin)) vMin = fx.min;
+    if (isNaN(vMax)) vMax = fx.max;
+    vMin = Math.max(fx.min, Math.min(fx.max, vMin));
+    vMax = Math.max(fx.min, Math.min(fx.max, vMax));
+    syncAndSave(vMin, vMax);
+  };
+  minInput?.addEventListener('input', onInputChange);
+  maxInput?.addEventListener('input', onInputChange);
 
   gearBtn?.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
     const isOpen = drawer.classList.toggle('open');
     gearBtn.classList.toggle('active', isOpen);
+  });
+}
+
+function bindFxMainInput(
+  fx: FxControlDef,
+  slider: HTMLInputElement,
+  valEl: HTMLElement | null,
+  row: Element | null
+): void {
+  const mainInput = (row ?? document).querySelector(`.fx-main-val-input[data-fx-target="${fx.id}"]`) as HTMLInputElement | null;
+  if (!mainInput) return;
+  mainInput.min = fx.min.toString();
+  mainInput.max = fx.max.toString();
+  mainInput.step = fx.step.toString();
+  mainInput.value = slider.value;
+  mainInput.addEventListener('input', () => {
+    let numVal = Number.parseFloat(mainInput.value);
+    if (isNaN(numVal)) return;
+    numVal = Math.max(fx.min, Math.min(fx.max, numVal));
+    applyFxValue(fx, slider, valEl, numVal);
   });
 }
 
@@ -2105,6 +2179,7 @@ function bindFxSlider(fx: FxControlDef): void {
     });
   }
 
+  bindFxMainInput(fx, slider, valEl, row);
   bindFxSliderMargins(fx, row);
 }
 
