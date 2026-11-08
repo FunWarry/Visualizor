@@ -36,7 +36,7 @@ function fullDeobfuscate(content) {
   const sandbox = {};
   vm.createContext(sandbox);
   try {
-    vm.runInContext(`${arrayFnCode}\n${decFnCode}\n${iifeCode}`, sandbox);
+    vm.runInContext(`${arrayFnCode}\n${decFnCode}\n${iifeCode}`, sandbox); // NOSONAR
   } catch (err) {
     console.error('Failed to run sandbox:', err.message);
     return content;

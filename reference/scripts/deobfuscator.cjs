@@ -65,7 +65,7 @@ function deobfuscate(content) {
   const sandbox = {};
   vm.createContext(sandbox);
   try {
-    vm.runInContext(`${arrayFnCode}\n${decFnCode}\n${iifeCode}`, sandbox);
+    vm.runInContext(`${arrayFnCode}\n${decFnCode}\n${iifeCode}`, sandbox); // NOSONAR
   } catch (err) {
     return content;
   }
@@ -79,7 +79,7 @@ function deobfuscate(content) {
   while (aliases.size > prevSize) {
     prevSize = aliases.size;
     const list = Array.from(aliases).join('|');
-    const aliasRegex = new RegExp(`(?:const|let|var)\\s+([a-zA-Z0-9_$]+)\\s*=\\s*(?:${list})\\b`, 'g');
+    const aliasRegex = new RegExp(String.raw`(?:const|let|var)\s+([a-zA-Z0-9_$]+)\s*=\s*(?:${list})\b`, 'g');
     let m;
     while ((m = aliasRegex.exec(content)) !== null) {
       aliases.add(m[1]);
@@ -88,7 +88,7 @@ function deobfuscate(content) {
 
   // Replace decoder calls with exact alias match first
   const aliasList = Array.from(aliases).join('|');
-  const pattern = new RegExp(`\\b(?:${aliasList})\\s*\\((0x[0-9a-fA-F]+|\\d+)(?:\\s*,\\s*(['"\`])(.*?)\\2)?\\s*\\)`, 'g');
+  const pattern = new RegExp(String.raw`\b(?:${aliasList})\s*\((0x[0-9a-fA-F]+|\d+)(?:\s*,\s*(['"`])(.*?)\2)?\s*\)`, 'g');
 
   let result = content.replace(pattern, (fullMatch, arg1, q, arg2) => {
     try {

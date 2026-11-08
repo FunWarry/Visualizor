@@ -362,7 +362,7 @@
     <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
       <span>Effects</span>
       <div style="display:flex;align-items:center;gap:6px;">
-        <button type="button" class="btn-pill" id="randomizeAllFxBtn" style="font-size:10px;padding:3px 8px;background:rgba(255,92,0,0.35);border-color:rgba(255,92,0,0.6);color:#ffffff;border-radius:12px;cursor:pointer;" title="Randomize unlocked effects">🎲 FX</button>
+        <button type="button" class="btn-pill btn-pill-dice" id="randomizeAllFxBtn" title="Randomize unlocked effects">🎲 FX</button>
         <button type="button" class="btn-pill" id="resetFxBtn" style="font-size:10px;padding:3px 8px;border-radius:12px;cursor:pointer;" title="Reset effects to defaults">↺ Reset</button>
         <button class="btn-icon closeFxBtn close-drawer-btn" style="width:28px;height:28px;" aria-label="Close effects panel">✕</button>
       </div>
@@ -597,7 +597,7 @@
     <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
       <span>Camera</span>
       <div style="display:flex;align-items:center;gap:6px;">
-        <button type="button" class="btn-pill" id="randomizeAllCamBtn" style="font-size:10px;padding:3px 8px;background:rgba(255,92,0,0.35);border-color:rgba(255,92,0,0.6);color:#ffffff;border-radius:12px;cursor:pointer;" title="Randomize camera optics">🎲 Cam</button>
+        <button type="button" class="btn-pill btn-pill-dice" id="randomizeAllCamBtn" title="Randomize camera optics">🎲 Cam</button>
         <button type="button" class="btn-pill" id="resetCamBtn" style="font-size:10px;padding:3px 8px;border-radius:12px;cursor:pointer;" title="Reset camera optics">↺ Reset</button>
         <button class="btn-icon close-drawer-btn closeCameraBtn" style="width:28px;height:28px;" aria-label="Close camera panel">✕</button>
       </div>
@@ -1939,7 +1939,7 @@
   </div>
 
   <!-- Keyboard Shortcuts Modal -->
-  <div class="modal-overlay" id="shortcutsModal" role="dialog" aria-modal="true" aria-labelledby="shortcutsTitle">
+  <dialog class="modal-overlay" id="shortcutsModal" role="dialog" aria-modal="true" aria-labelledby="shortcutsTitle">
     <div class="modal-content glass-panel">
       <div class="panel-header" style="padding:0 0 12px 0;border-bottom:1px solid var(--border);margin-bottom:16px;">
         <span id="shortcutsTitle" style="font-size:16px;font-weight:700;color:#fff;">Keyboard Shortcuts</span>
@@ -1954,7 +1954,7 @@
         <span>Toggle Shortcuts Help</span><kbd class="key-badge">?</kbd>
       </div>
     </div>
-  </div>
+  </dialog>
 
   <!-- Floating trigger to unhide UI when #app has .ui-hidden -->
   <button class="sidebar-pill" type="button" id="showUiBtn" aria-label="Show UI" title="Show UI (H)">
