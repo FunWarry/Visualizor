@@ -98,7 +98,7 @@ export class MilkDropPreset extends BasePreset {
     for (let i = 0; i < wavePointsCount; i++) {
       wavePos[i * 3] = (i / wavePointsCount - 0.5) * 22;
       wavePos[i * 3 + 1] = 0;
-      wavePos[i * 3 + 2] = -2;
+      wavePos[i * 3 + 2] = 0;
     }
     waveGeom.setAttribute('position', new THREE.BufferAttribute(wavePos, 3));
 
@@ -106,32 +106,35 @@ export class MilkDropPreset extends BasePreset {
       color: new THREE.Color(ctx.theme.accent),
       linewidth: 3,
       transparent: true,
-      opacity: 0.85
+      opacity: 0.9,
+      blending: THREE.AdditiveBlending
     });
-
     this.waveformWave = new THREE.Line(waveGeom, this.waveMaterial);
+    this.waveformWave.position.z = -1;
     this.group.add(this.waveformWave);
   }
 
   public update(_ctx: PresetContext, audio: AudioFeatures, time: number, _delta: number): void {
-    const speed = this.paramStore.getValue('speed') ?? 1.0;
-    const reactivity = this.paramStore.getValue('reactivity') ?? 1.0;
-
-    this.material.uniforms.uTime.value = time * speed;
-    this.material.uniforms.uBass.value = audio.bass * reactivity;
-    this.material.uniforms.uMid.value = audio.mid * reactivity;
-    this.material.uniforms.uTreble.value = audio.treble * reactivity;
+    this.material.uniforms.uTime.value = time;
+    this.material.uniforms.uBass.value = audio.bass;
+    this.material.uniforms.uMid.value = audio.mid;
+    this.material.uniforms.uTreble.value = audio.treble;
     this.material.uniforms.uBeat.value = audio.beat ? 1.0 : 0.0;
 
+    // Real-time oscilloscope line displacement
     const pos = (this.waveformWave.geometry as THREE.BufferGeometry).attributes.position.array as Float32Array;
+    const count = pos.length / 3;
     const waveData = audio.timeDomainData;
-    const step = Math.floor(waveData.length / 256);
 
-    for (let i = 0; i < 256; i++) {
-      const sample = (waveData[i * step] / 128.0) - 1.0;
-      pos[i * 3 + 1] = sample * (2.5 + audio.bass * 2.0 * reactivity);
+    for (let i = 0; i < count; i++) {
+      const sample = waveData && waveData.length > 0
+        ? (waveData[Math.floor((i / count) * waveData.length)] - 128) / 128
+        : Math.sin(i * 0.1 + time * 10);
+      pos[i * 3 + 1] = sample * (1.5 + audio.bass * 2.5);
     }
-    this.waveformWave.geometry.attributes.position.needsUpdate = true;
+    (this.waveformWave.geometry as THREE.BufferGeometry).attributes.position.needsUpdate = true;
+
+    this.waveMaterial.opacity = 0.6 + audio.treble * 0.4;
   }
 
   public override onThemeChange(theme: VisualizerTheme): void {
@@ -142,13 +145,9 @@ export class MilkDropPreset extends BasePreset {
   }
 
   protected override onDispose(): void {
-    if (this.mesh) {
-      this.mesh.geometry.dispose();
-      this.material?.dispose();
-    }
-    if (this.waveformWave) {
-      this.waveformWave.geometry.dispose();
-      this.waveMaterial?.dispose();
-    }
+    this.mesh.geometry.dispose();
+    this.material.dispose();
+    this.waveformWave.geometry.dispose();
+    this.waveMaterial.dispose();
   }
 }

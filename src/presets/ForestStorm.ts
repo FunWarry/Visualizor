@@ -7,7 +7,7 @@ export class ForestStormPreset extends BasePreset {
   public override readonly id = 'forest';
   public override readonly name = 'Forest';
   public override readonly category = 'Organic & Nature' as const;
-  public override readonly description = 'Cathedral tree canopy dome with god rays.';
+  public override readonly description = 'Cathedral tree canopy dome with volumetric god rays and breeze audio sway.';
   public override cameraConfig = {
     position: [0, 0, 11] as [number, number, number],
     target: [0, 0, 0] as [number, number, number],
@@ -65,8 +65,8 @@ export class ForestStormPreset extends BasePreset {
     // Volumetric sunlight god rays descending through canopy
     const rayPoints: number[] = [];
     for (let r = 0; r < 24; r++) {
-      const topX = (Math.random() - 0.5) * 6;
-      const topZ = (Math.random() - 0.5) * 6;
+      const topX = (Math.sin(r * 1.3) * 0.5) * 6;
+      const topZ = (Math.cos(r * 1.7) * 0.5) * 6;
       rayPoints.push(topX, 6.0, topZ, topX * 1.6, 0.0, topZ * 1.6);
     }
     const rayGeom = new THREE.BufferGeometry();
@@ -98,13 +98,9 @@ export class ForestStormPreset extends BasePreset {
   }
 
   protected override onDispose(): void {
-    if (this.treeLines) {
-      this.treeLines.geometry.dispose();
-      this.lineMaterial?.dispose();
-    }
-    if (this.godRays) {
-      this.godRays.geometry.dispose();
-      this.rayMaterial?.dispose();
-    }
+    this.treeLines.geometry.dispose();
+    this.lineMaterial.dispose();
+    this.godRays.geometry.dispose();
+    this.rayMaterial.dispose();
   }
 }
