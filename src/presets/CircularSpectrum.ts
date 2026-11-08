@@ -61,6 +61,9 @@ export class CircularSpectrumPreset extends BasePreset {
   private readonly ringMaterials: THREE.LineBasicMaterial[] = [];
   private readonly numRings = 16;
   private readonly ringSegments = 128;
+  private readonly ringSpeeds = new Float32Array(16);
+  private readonly ringRotations = new Float32Array(16);
+  private readonly ringHarmonics = new Int32Array(16);
 
   // 2. Cosmic Composition Group (added directly to ctx.scene alongside this.group)
   private readonly coreGroup: THREE.Group = new THREE.Group();
@@ -179,10 +182,11 @@ export class CircularSpectrumPreset extends BasePreset {
 
     for (let i = 0; i < this.numRings; i++) {
       const geo = new THREE.BufferGeometry();
-      const positions = new Float32Array(this.ringSegments * 3);
+      // Use ringSegments + 1 points to close the line seamlessly
+      const positions = new Float32Array((this.ringSegments + 1) * 3);
       const radius = 5.0 + i * 1.1;
 
-      for (let j = 0; j < this.ringSegments; j++) {
+      for (let j = 0; j <= this.ringSegments; j++) {
         const theta = (j / this.ringSegments) * Math.PI * 2;
         positions[j * 3] = Math.cos(theta) * radius;
         positions[j * 3 + 1] = 0;
@@ -196,12 +200,18 @@ export class CircularSpectrumPreset extends BasePreset {
       const mat = new THREE.LineBasicMaterial({
         color,
         transparent: true,
-        opacity: 0.15 + (i / this.numRings) * 0.15,
+        opacity: 0.2 + (i / this.numRings) * 0.2,
         blending: THREE.AdditiveBlending
       });
       this.ringMaterials.push(mat);
 
-      const ring = new THREE.Line(geo, mat);
+      // Alternating orbital velocities and harmonic wave frequencies
+      const dir = i % 2 === 0 ? 1 : -1;
+      this.ringSpeeds[i] = dir * (0.5 + (this.numRings - i) * 0.05);
+      this.ringHarmonics[i] = 2 + (i % 4);
+
+      // LineLoop guarantees a closed continuous loop without any gap
+      const ring = new THREE.LineLoop(geo, mat);
       this.rings.push(ring);
       this.group.add(ring);
     }
@@ -898,10 +908,9 @@ export class CircularSpectrumPreset extends BasePreset {
     audio: AudioFeatures
   ): void {
     const activeCount = Math.max(1, Math.min(this.numRings, Math.round(densityParam)));
-    for (let i = 0; i < this.numRings; i++) {
-      this.rings[i].visible = i < activeCount;
-    }
     this.group.rotation.z += (audio.beat ? 0.02 : 0.005) * speedParam;
+
+    this.updateResonanceRings(activeCount, time, speedParam, deformParam);
 
     if (this.core?.material) {
       const u = (this.core.material as THREE.ShaderMaterial).uniforms;
@@ -930,6 +939,43 @@ export class CircularSpectrumPreset extends BasePreset {
       this.outerRing.scale.setScalar(1.0 + this.smoothTreble * 0.2);
       (this.outerRing.material as THREE.MeshBasicMaterial).opacity = 0.15 + this.smoothTreble * 0.5;
       this.outerRing.rotation.z = time * 0.02 * speedParam;
+    }
+  }
+
+  private updateResonanceRings(
+    activeCount: number,
+    time: number,
+    speedParam: number,
+    deformParam: number
+  ): void {
+    for (let i = 0; i < this.numRings; i++) {
+      const ring = this.rings[i];
+      const isVisible = i < activeCount;
+      ring.visible = isVisible;
+      if (!isVisible) continue;
+
+      const radius = 5.0 + i * 1.1;
+      const bandEnergy = i < 5 ? this.smoothBass : (i < 10 ? this.smoothMid : this.smoothTreble);
+
+      // Differential orbital rotation with alternating directions
+      this.ringRotations[i] += this.ringSpeeds[i] * 0.012 * speedParam * (1.0 + bandEnergy * 0.8);
+      ring.rotation.y = this.ringRotations[i];
+
+      // Audio-reactive harmonic wave undulations along the circumference
+      const harmonics = this.ringHarmonics[i];
+      const waveAmp = (0.04 + bandEnergy * 0.28) * deformParam;
+      const phase = time * (1.2 + (i % 3) * 0.4) * (i % 2 === 0 ? 1 : -1);
+
+      const pos = ring.geometry.attributes.position.array as Float32Array;
+      for (let j = 0; j <= this.ringSegments; j++) {
+        const theta = (j / this.ringSegments) * Math.PI * 2;
+        const ripple = Math.sin(theta * harmonics + phase) * waveAmp;
+        const r = radius + ripple;
+        pos[j * 3] = Math.cos(theta) * r;
+        pos[j * 3 + 1] = Math.sin(theta * (harmonics + 1) + phase) * (waveAmp * 0.4);
+        pos[j * 3 + 2] = Math.sin(theta) * r;
+      }
+      ring.geometry.attributes.position.needsUpdate = true;
     }
   }
 
