@@ -408,9 +408,19 @@ export function randomizeSingleParameter(
       ? (preset.getCustomParameterValue(paramId) ?? p.defaultValue)
       : p.defaultValue;
   }
-  const bounds = getParamValueBounds(preset.id, p);
-  const minVal = overrideMin ?? bounds.minVal;
-  const maxVal = overrideMax ?? bounds.maxVal;
+  const hasCustom = getStorageItem(`${STORAGE_PREFIX_PARAM_BOUNDS}${preset.id}_${p.id}`) !== null;
+  let minVal: number;
+  let maxVal: number;
+  if (hasCustom) {
+    const bounds = getParamValueBounds(preset.id, p);
+    minVal = overrideMin ?? bounds.minVal;
+    maxVal = overrideMax ?? bounds.maxVal;
+  } else {
+    const globalBounds = getRandomizeBounds(preset.id);
+    const pRange = p.max - p.min;
+    minVal = overrideMin ?? (p.min + (globalBounds.minPercent / 100) * pRange);
+    maxVal = overrideMax ?? (p.min + (globalBounds.maxPercent / 100) * pRange);
+  }
   const newVal = computeRandomParamValue(p, minVal, maxVal);
   preset.setCustomParameter?.(paramId, newVal);
   return newVal;
@@ -422,14 +432,18 @@ export function randomizeSingleParameter(
  */
 export function randomizePreset(
   preset: VisualizerPreset,
-  overrideMin?: number,
-  overrideMax?: number
+  overrideMinPercent?: number,
+  overrideMaxPercent?: number
 ): Record<string, number> {
   const result: Record<string, number> = {};
   if (!preset || typeof preset.getCustomParameters !== 'function') return result;
 
   const params = preset.getCustomParameters();
   if (!params || params.length === 0) return result;
+
+  const globalBounds = getRandomizeBounds(preset.id);
+  const minP = typeof overrideMinPercent === 'number' ? overrideMinPercent : globalBounds.minPercent;
+  const maxP = typeof overrideMaxPercent === 'number' ? overrideMaxPercent : globalBounds.maxPercent;
 
   for (const p of params) {
     if (isParamLocked(preset.id, p.id)) {
@@ -438,9 +452,20 @@ export function randomizePreset(
         : p.defaultValue;
       result[p.id] = current;
     } else {
-      const bounds = getParamValueBounds(preset.id, p);
-      const minVal = overrideMin ?? bounds.minVal;
-      const maxVal = overrideMax ?? bounds.maxVal;
+      const hasCustom = getStorageItem(`${STORAGE_PREFIX_PARAM_BOUNDS}${preset.id}_${p.id}`) !== null;
+      let minVal: number;
+      let maxVal: number;
+
+      if (hasCustom) {
+        const bounds = getParamValueBounds(preset.id, p);
+        minVal = bounds.minVal;
+        maxVal = bounds.maxVal;
+      } else {
+        const pRange = p.max - p.min;
+        minVal = p.min + (Math.min(minP, maxP) / 100) * pRange;
+        maxVal = p.min + (Math.max(minP, maxP) / 100) * pRange;
+      }
+
       const newVal = computeRandomParamValue(p, minVal, maxVal);
       preset.setCustomParameter?.(p.id, newVal);
       result[p.id] = newVal;
