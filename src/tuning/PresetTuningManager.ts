@@ -8,7 +8,20 @@ export interface RandomizeBounds {
 export interface ValueBounds {
   minVal: number;
   maxVal: number;
+  targetVal?: number;
+  weight?: number; // 0 to 100 (%)
 }
+
+export const DEFAULT_FX_BIAS: Record<string, { targetVal: number; weight: number }> = {
+  kaleido: { targetVal: 0, weight: 75 },
+  mirror: { targetVal: 0, weight: 70 },
+  pixel: { targetVal: 0, weight: 70 },
+  drip: { targetVal: 0, weight: 65 },
+  edge: { targetVal: 0, weight: 65 },
+  bend: { targetVal: 0, weight: 60 },
+  scan: { targetVal: 0, weight: 50 },
+  phosphor: { targetVal: 0, weight: 50 }
+};
 
 const STORAGE_PREFIX_TUNING = 'visualizor_tuning_';
 const STORAGE_PREFIX_PARAM_LOCKS = 'visualizor_param_locks_';
@@ -318,49 +331,110 @@ export function setFxParamRandomizeBounds(paramId: string, minPercent: number, m
 }
 
 /**
- * Gets the independent randomization bounds in raw slider values for a shader or camera parameter.
+ * Gets the independent randomization bounds in raw slider values for a shader or camera parameter,
+ * including optional target bias value and probability weight.
  */
 export function getFxParamValueBounds(paramId: string, min: number, max: number): ValueBounds {
+  const defaultBias = DEFAULT_FX_BIAS[paramId];
+  const fallbackTarget = defaultBias?.targetVal ?? min;
+  const fallbackWeight = defaultBias?.weight ?? 0;
+
   const raw = getStorageItem(STORAGE_PREFIX_FX_BOUNDS + paramId);
   if (raw) {
     try {
       const parsed = JSON.parse(raw);
       if (typeof parsed?.minVal === 'number' && typeof parsed?.maxVal === 'number') {
+        const boundedMin = Math.max(min, Math.min(max, parsed.minVal));
+        const boundedMax = Math.max(min, Math.min(max, parsed.maxVal));
+        const targetVal = typeof parsed?.targetVal === 'number'
+          ? Math.max(boundedMin, Math.min(boundedMax, parsed.targetVal))
+          : Math.max(boundedMin, Math.min(boundedMax, fallbackTarget));
+        const weight = typeof parsed?.weight === 'number'
+          ? Math.max(0, Math.min(100, parsed.weight))
+          : fallbackWeight;
+
         return {
-          minVal: Math.max(min, Math.min(max, parsed.minVal)),
-          maxVal: Math.max(min, Math.min(max, parsed.maxVal))
+          minVal: boundedMin,
+          maxVal: boundedMax,
+          targetVal,
+          weight
         };
       }
       if (typeof parsed?.minPercent === 'number' && typeof parsed?.maxPercent === 'number') {
         const range = max - min;
+        const boundedMin = Number((min + (parsed.minPercent / 100) * range).toFixed(2));
+        const boundedMax = Number((min + (parsed.maxPercent / 100) * range).toFixed(2));
         return {
-          minVal: Number((min + (parsed.minPercent / 100) * range).toFixed(2)),
-          maxVal: Number((min + (parsed.maxPercent / 100) * range).toFixed(2))
+          minVal: boundedMin,
+          maxVal: boundedMax,
+          targetVal: Math.max(boundedMin, Math.min(boundedMax, fallbackTarget)),
+          weight: fallbackWeight
         };
       }
     } catch {
       // Fallback
     }
   }
-  return { minVal: min, maxVal: max };
+  return {
+    minVal: min,
+    maxVal: max,
+    targetVal: Math.max(min, Math.min(max, fallbackTarget)),
+    weight: fallbackWeight
+  };
 }
 
 /**
- * Sets the independent randomization bounds in raw slider values for a shader or camera parameter.
+ * Sets the independent randomization bounds in raw slider values for a shader or camera parameter,
+ * including optional target bias value and probability weight (0-100%).
  */
-export function setFxParamValueBounds(paramId: string, minVal: number, maxVal: number): void {
+export function setFxParamValueBounds(
+  paramId: string,
+  minVal: number,
+  maxVal: number,
+  targetVal?: number,
+  weight?: number
+): void {
   const boundedMin = Math.min(minVal, maxVal);
   const boundedMax = Math.max(minVal, maxVal);
-  setStorageItem(`${STORAGE_PREFIX_FX_BOUNDS}${paramId}`, JSON.stringify({ minVal: boundedMin, maxVal: boundedMax }));
+  const payload: ValueBounds = {
+    minVal: boundedMin,
+    maxVal: boundedMax
+  };
+  if (typeof targetVal === 'number') {
+    payload.targetVal = Math.max(boundedMin, Math.min(boundedMax, targetVal));
+  }
+  if (typeof weight === 'number') {
+    payload.weight = Math.max(0, Math.min(100, weight));
+  }
+  setStorageItem(`${STORAGE_PREFIX_FX_BOUNDS}${paramId}`, JSON.stringify(payload));
 }
 
 /**
- * Computes a random parameter value within configured raw value bounds.
+ * Computes a random parameter value within configured raw value bounds,
+ * taking into account target bias probability weighting.
  */
-export function computeRandomFxValue(min: number, max: number, step: number, minVal: number, maxVal: number): number {
+export function computeRandomFxValue(
+  min: number,
+  max: number,
+  step: number,
+  minVal: number,
+  maxVal: number,
+  targetVal?: number,
+  weight: number = 0
+): number {
   const boundedMin = Math.max(min, Math.min(max, Math.min(minVal, maxVal)));
   const boundedMax = Math.max(min, Math.min(max, Math.max(minVal, maxVal)));
   const range = boundedMax - boundedMin;
+  if (range <= 0) return boundedMin;
+
+  if (typeof targetVal === 'number' && weight > 0) {
+    const clampedTarget = Math.max(boundedMin, Math.min(boundedMax, targetVal));
+    const roll = Math.random() * 100;
+    if (roll < weight) {
+      return Number(clampedTarget.toFixed(2));
+    }
+  }
+
   const randVal = boundedMin + Math.random() * range;
   const snapped = Math.round((randVal - min) / step) * step + min;
   return Math.max(min, Math.min(max, Number(snapped.toFixed(2))));

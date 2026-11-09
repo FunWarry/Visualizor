@@ -2915,6 +2915,57 @@ body.ui-hidden .sidebar-pill,
   accent-color: var(--primary);
 }
 
+.fx-bias-section {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.12);
+}
+.fx-bias-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 11px;
+}
+.fx-bias-title {
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.fx-bias-readout {
+  color: var(--text-main);
+  font-weight: 600;
+  font-size: 10px;
+}
+.fx-bias-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.fx-bias-sublabel {
+  color: var(--text-muted);
+  font-size: 10px;
+  white-space: nowrap;
+}
+.fx-bias-target {
+  width: 46px;
+}
+.fx-bias-slider {
+  flex: 1;
+  height: 4px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+.fx-bias-percent {
+  color: var(--primary);
+  font-size: 10px;
+  min-width: 32px;
+  text-align: right;
+  font-weight: 600;
+}
+
 .filters-grid-3x3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

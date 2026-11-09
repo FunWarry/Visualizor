@@ -1077,7 +1077,7 @@ function randomizeAllCameraOptics(): void {
   const randomVp = viewpoints[Math.floor(Math.random() * viewpoints.length)];
   renderEngine.setViewpoint(randomVp);
   const bounds = getFxParamValueBounds('camSpeed', 0, 1);
-  const spd = bounds.minVal + Math.random() * (bounds.maxVal - bounds.minVal);
+  const spd = computeRandomFxValue(0, 1, 0.05, bounds.minVal, bounds.maxVal, bounds.targetVal, bounds.weight);
   const dir: 1 | -1 = Math.random() > 0.5 ? 1 : -1;
   renderEngine.setAutoRotate(true, spd, dir);
   syncCameraUI();
@@ -1656,7 +1656,7 @@ const randAutoRotateBtn = document.getElementById('randAutoRotateBtn');
 randAutoRotateBtn?.addEventListener('click', () => {
   const newEnabled = Math.random() > 0.25;
   const bounds = getFxParamValueBounds('camSpeed', 0, 1);
-  const speed = bounds.minVal + Math.random() * (bounds.maxVal - bounds.minVal);
+  const speed = computeRandomFxValue(0, 1, 0.05, bounds.minVal, bounds.maxVal, bounds.targetVal, bounds.weight);
   const dir: 1 | -1 = Math.random() > 0.5 ? 1 : -1;
   renderEngine.setAutoRotate(newEnabled, speed, dir);
   syncCameraUI();
@@ -2510,8 +2510,103 @@ function randomizeFxControl(
 ): void {
   if (isFxParamLocked(fx.id)) return;
   const bounds = getFxParamValueBounds(fx.id, fx.min, fx.max);
-  const clamped = computeRandomFxValue(fx.min, fx.max, fx.step, bounds.minVal, bounds.maxVal);
+  const clamped = computeRandomFxValue(
+    fx.min,
+    fx.max,
+    fx.step,
+    bounds.minVal,
+    bounds.maxVal,
+    bounds.targetVal,
+    bounds.weight
+  );
   applyFxValue(fx, slider, valEl, clamped);
+}
+
+function formatBiasLabel(fxId: string, targetVal: number, weight: number): string {
+  if (weight === 0) return 'Aléatoire uniforme (0%)';
+  if (weight === 100) return `100% forcé (${targetVal})`;
+  const isOffCandidate = targetVal === 0 && (
+    fxId === 'kaleido' || fxId === 'mirror' || fxId === 'bend' ||
+    fxId === 'pixel' || fxId === 'drip' || fxId === 'edge' ||
+    fxId === 'scan' || fxId === 'phosphor'
+  );
+  const label = isOffCandidate ? 'Off' : targetVal.toString();
+  return `${weight}% de chance sur ${label}`;
+}
+
+function setupFxDrawerBias(
+  fx: FxControlDef,
+  drawer: HTMLElement,
+  initialTarget: number,
+  initialWeight: number,
+  getBounds: () => { minVal: number; maxVal: number },
+  onSave: (target: number, weight: number) => void
+): { update: (target: number, weight: number) => void } {
+  let biasSection = drawer.querySelector('.fx-bias-section') as HTMLElement | null;
+  if (!biasSection) {
+    biasSection = document.createElement('div');
+    biasSection.className = 'fx-bias-section';
+    biasSection.innerHTML = `
+      <div class="fx-bias-header">
+        <span class="fx-bias-title">🎯 Cible & Chance</span>
+        <span class="fx-bias-readout"></span>
+      </div>
+      <div class="fx-bias-controls">
+        <label class="fx-bias-sublabel" for="${fx.id}_bias_target">Cible:</label>
+        <input id="${fx.id}_bias_target" type="number" class="ui-val-input fx-bias-target" min="${fx.min}" max="${fx.max}" step="${fx.step}" value="${initialTarget}" title="Valeur cible privilégiée" aria-label="${fx.id} target value">
+        <label class="fx-bias-sublabel" for="${fx.id}_bias_weight">Chance:</label>
+        <input id="${fx.id}_bias_weight" type="range" class="fx-bias-slider" min="0" max="100" step="5" value="${initialWeight}" title="Probabilité de tomber sur la cible (0% = uniforme)" aria-label="${fx.id} bias weight">
+        <span class="fx-bias-percent">${initialWeight}%</span>
+      </div>
+    `;
+    drawer.appendChild(biasSection);
+  }
+
+  const biasReadout = biasSection.querySelector('.fx-bias-readout') as HTMLElement | null;
+  const targetInput = biasSection.querySelector('.fx-bias-target') as HTMLInputElement | null;
+  const weightSlider = biasSection.querySelector('.fx-bias-slider') as HTMLInputElement | null;
+  const weightPercent = biasSection.querySelector('.fx-bias-percent') as HTMLElement | null;
+
+  let currentTarget = initialTarget;
+  let currentWeight = initialWeight;
+
+  const update = (t: number, w: number) => {
+    currentTarget = t;
+    currentWeight = w;
+    const { minVal, maxVal } = getBounds();
+    if (weightSlider) weightSlider.value = w.toString();
+    if (weightPercent) weightPercent.textContent = `${w}%`;
+    if (targetInput && document.activeElement !== targetInput) {
+      targetInput.min = minVal.toString();
+      targetInput.max = maxVal.toString();
+      targetInput.step = fx.step.toString();
+      targetInput.value = t.toString();
+    }
+    if (biasReadout) {
+      biasReadout.textContent = formatBiasLabel(fx.id, t, w);
+    }
+  };
+
+  update(initialTarget, initialWeight);
+
+  weightSlider?.addEventListener('input', () => {
+    const w = Number(weightSlider.value);
+    currentWeight = w;
+    update(currentTarget, w);
+    onSave(currentTarget, w);
+  });
+
+  targetInput?.addEventListener('input', () => {
+    let t = Number(targetInput.value);
+    if (Number.isNaN(t)) t = fx.min;
+    const { minVal, maxVal } = getBounds();
+    t = Math.max(minVal, Math.min(maxVal, t));
+    currentTarget = t;
+    update(t, currentWeight);
+    onSave(t, currentWeight);
+  });
+
+  return { update };
 }
 
 function bindFxSliderMargins(fx: FxControlDef, row: Element | null): void {
@@ -2528,6 +2623,8 @@ function bindFxSliderMargins(fx: FxControlDef, row: Element | null): void {
   const currentBounds = getFxParamValueBounds(fx.id, fx.min, fx.max);
   let minVal = currentBounds.minVal;
   let maxVal = currentBounds.maxVal;
+  let targetVal = currentBounds.targetVal ?? fx.min;
+  let weight = currentBounds.weight ?? 0;
 
   const updateUiBounds = () => {
     if (minSlider) {
@@ -2561,11 +2658,26 @@ function bindFxSliderMargins(fx: FxControlDef, row: Element | null): void {
 
   updateUiBounds();
 
+  const biasControls = setupFxDrawerBias(
+    fx,
+    drawer,
+    targetVal,
+    weight,
+    () => ({ minVal, maxVal }),
+    (newTarget, newWeight) => {
+      targetVal = newTarget;
+      weight = newWeight;
+      setFxParamValueBounds(fx.id, minVal, maxVal, targetVal, weight);
+    }
+  );
+
   const syncAndSave = (newMin: number, newMax: number) => {
     minVal = Math.min(newMin, newMax);
     maxVal = Math.max(newMin, newMax);
+    targetVal = Math.max(minVal, Math.min(maxVal, targetVal));
     updateUiBounds();
-    setFxParamValueBounds(fx.id, minVal, maxVal);
+    biasControls.update(targetVal, weight);
+    setFxParamValueBounds(fx.id, minVal, maxVal, targetVal, weight);
   };
 
   minSlider?.addEventListener('input', () => {
