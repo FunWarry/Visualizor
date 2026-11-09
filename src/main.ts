@@ -1085,10 +1085,11 @@ function randomizeAllCameraOptics(): void {
 
 function shuffleThemesIfEnabled(): void {
   if (autoCycleConfig.themes !== 'shuffle') return;
-  const allThemeKeys = Object.keys(THEMES);
-  if (allThemeKeys.length > 0) {
-    const nextThemeKey = allThemeKeys[Math.floor(Math.random() * allThemeKeys.length)];
-    renderEngine.setTheme(getTheme(nextThemeKey));
+  const candidates = THEMES.filter(t => t.id !== currentBaseTheme.id);
+  const pool = candidates.length > 0 ? candidates : THEMES;
+  const randTheme = pool[Math.floor(Math.random() * pool.length)];
+  if (randTheme) {
+    applyAppTheme(randTheme);
   }
 }
 
