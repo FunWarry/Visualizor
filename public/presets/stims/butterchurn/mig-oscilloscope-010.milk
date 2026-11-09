@@ -1,0 +1,64 @@
+[preset00]
+fRating=0.000000
+fGammaAdj=1.000000
+fDecay=1.000000
+fVideoEchoZoom=0.999609
+nWaveMode=7.000000
+fWaveAlpha=4.000000
+fWaveScale=1.868658
+fWaveSmoothing=0.500000
+fWarpScale=3.138000
+fZoom=1.000300
+fCY=0.110000
+fDY=-0.001000
+fWarp=0.024300
+fSx=1.001992
+fSy=1.004987
+fWaveR=0.800000
+fWaveG=0.770000
+fWaveB=0.700000
+fWaveX=0.650000
+fMotionVectorsA=0.000000
+wavecode_0_enabled=0.000000
+wavecode_1_enabled=0.000000
+wavecode_2_enabled=0.000000
+wavecode_3_enabled=0.000000
+shapecode_0_enabled=0.000000
+shapecode_1_enabled=0.000000
+shapecode_2_enabled=0.000000
+shapecode_3_enabled=0.000000
+per_frame_init_1=du = 0;
+per_frame_init_2=dv = 0;
+per_frame_init_3=q = 0;
+per_frame_1=wave_r = wave_r + 0.25 * (0.6 * sin(10.937 * time) + 0.4 * sin(1.47 * time));
+per_frame_2=wave_g = wave_g + 0.3 * (0.6 * sin(11.344 * time) + 0.4 * sin(1.041 * time));
+per_frame_3=wave_b = wave_b + 0.25 * (0.6 * sin(21.251 * time) + 0.4 * sin(1.355 * time));
+per_frame_4=rot = rot + 0.004 * (0.6 * sin(0.381 * time) + 0.4 * sin(0.579 * time));
+per_frame_5=cx = cx + 0.11 * (0.6 * sin(0.374 * time) + 0.4 * sin(0.294 * time));
+per_frame_6=cy = cy + 0.11 * (0.6 * sin(0.393 * time) + 0.4 * sin(0.223 * time));
+per_frame_7=decay = decay - 0.01 * equal(mod(frame, 6), 0);
+per_pixel_1=du = 2 * (x - cx);
+per_pixel_2=dv = 2 * (y - cy);
+per_pixel_3=q = 0.01 * pow(du * du + dv * dv, 1.5);
+per_pixel_4=dx = q * du;
+per_pixel_5=dy = q * dv;
+
+[warp_shader]
+shader_body { 
+  vec2 tmpvar_1;
+  tmpvar_1 = normalize((uv - 0.5));
+  vec4 tmpvar_2;
+  tmpvar_2.w = 1.0;
+  tmpvar_2.xyz = (((
+    ((texture (sampler_main, (uv + (texsize.zw * 
+      (tmpvar_1 * -4.5)
+    ))) * 0.19) + (texture (sampler_main, (uv + (texsize.zw * 
+      (tmpvar_1 * -1.5)
+    ))) * 0.31))
+   + 
+    (texture (sampler_main, (uv + (texsize.zw * (tmpvar_1 * 1.5)))) * 0.31)
+  ) + (texture (sampler_main, 
+    (uv + (texsize.zw * (tmpvar_1 * 4.5)))
+  ) * 0.19)) - 0.006).xyz;
+  ret = tmpvar_2.xyz;
+ }

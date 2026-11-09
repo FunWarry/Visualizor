@@ -1,0 +1,75 @@
+[preset00]
+fRating=0.000000
+fGammaAdj=1.994000
+fDecay=0.970000
+nWaveMode=1.000000
+bAdditiveWaves=1.000000
+fWaveAlpha=4.499998
+fWaveScale=1.524161
+fWaveSmoothing=0.900000
+fWarpAnimSpeed=0.334695
+fWarpScale=3.928016
+fZoomExponent=2.100000
+fZoom=0.961000
+fRot=0.220000
+fWarp=1.771011
+fWaveR=0.650000
+fWaveG=0.650000
+fWaveB=0.080000
+fOuterBorderSize=0.000000
+fOuterBorderA=0.500000
+fInnerBorderSize=0.028500
+fInnerBorderR=0.340000
+fInnerBorderG=0.340000
+fInnerBorderB=0.340000
+fInnerBorderA=0.100000
+fMotionVectorsA=0.000000
+wavecode_0_enabled=0.000000
+wavecode_1_enabled=0.000000
+wavecode_2_enabled=0.000000
+wavecode_3_enabled=0.000000
+shapecode_0_enabled=0.000000
+shapecode_1_enabled=0.000000
+shapecode_2_enabled=0.000000
+shapecode_3_enabled=0.000000
+per_frame_init_1=blah = 0;
+per_frame_1=wave_x = wave_x + 0.29 * (0.6 * sin(2.121 * time) + 0.4 * sin(1.621 * time));
+per_frame_2=wave_y = wave_y + 0.29 * (0.6 * sin(1.742 * time) + 0.4 * sin(2.322 * time));
+per_frame_3=wave_r = wave_r + 0.35 * (0.6 * sin(0.823 * time) + 0.4 * sin(0.916 * time));
+per_frame_4=wave_g = wave_g + 0.35 * (0.6 * sin(0.9 * time) + 0.4 * sin(1.023 * time));
+per_frame_5=wave_b = wave_b + 0.35 * (0.6 * sin(0.808 * time) + 0.4 * sin(0.949 * time));
+per_frame_6=blah = 0.5 / (wave_r + wave_g + wave_b);
+per_frame_7=wave_r = wave_r * blah;
+per_frame_8=wave_g = wave_g * blah;
+per_frame_9=wave_b = wave_b * blah;
+per_frame_10=rot = rot + 0.12 * (0.6 * sin(0.21 * time) + 0.4 * sin(0.339 * time));
+per_frame_11=cx = cx + 0.3 * (0.6 * sin(0.374 * time) + 0.14 * sin(0.194 * time));
+per_frame_12=cy = cy + 0.37 * (0.6 * sin(0.274 * time) + 0.1 * sin(0.394 * time));
+per_frame_13=ib_r = ib_r + 0.2 * sin(0.5413 * time);
+per_frame_14=ib_g = ib_g + 0.2 * sin(0.6459 * time);
+per_frame_15=ib_b = ib_b + 0.2 * sin(0.7354 * time);
+per_frame_16=blah = 3 * (0.4 / (ib_r + ib_g + ib_b));
+per_frame_17=ib_r = ib_r * blah;
+per_frame_18=ib_g = ib_g * blah;
+per_frame_19=ib_b = ib_b * blah;
+per_frame_20=dx = 0.01 * cos(0.27934 * time + 5);
+per_frame_21=dy = 0.01 * sin(0.23142 * time + 2);
+
+[warp_shader]
+shader_body { 
+  vec2 tmpvar_1;
+  tmpvar_1.x = (1.0 - uv.x);
+  tmpvar_1.y = uv.y;
+  vec4 tmpvar_2;
+  tmpvar_2.w = 1.0;
+  tmpvar_2.xyz = (max (texture (sampler_main, uv).xyz, texture (sampler_main, tmpvar_1).zyx) * 0.97);
+  ret = tmpvar_2.xyz;
+ }
+
+[comp_shader]
+shader_body { 
+  vec4 tmpvar_1;
+  tmpvar_1.w = 1.0;
+  tmpvar_1.xyz = ((texture (sampler_main, uv).xyz * 1.4) - 0.4);
+  ret = tmpvar_1.xyz;
+ }

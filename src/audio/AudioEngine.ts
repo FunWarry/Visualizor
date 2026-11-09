@@ -109,6 +109,7 @@ export class AudioEngine {
   private ctx: AudioContext | null = null;
   private analyser: AnalyserNode | null = null;
   private gainNode: GainNode | null = null;
+  private reactivityGainNode: GainNode | null = null;
   private streamDestination: MediaStreamAudioDestinationNode | null = null;
 
   // Audio Sources
@@ -187,17 +188,19 @@ export class AudioEngine {
       this.gainNode = this.ctx.createGain();
       this.gainNode.gain.setValueAtTime(this.volume, this.ctx.currentTime);
 
+      this.reactivityGainNode = this.ctx.createGain();
+      this.reactivityGainNode.gain.setValueAtTime(this.sensitivity, this.ctx.currentTime);
+
       this.streamDestination = this.ctx.createMediaStreamDestination();
 
-      // Audio routing:
-      // 1. Local playback (audio files and demo synth) routes through gainNode to speakers:
+      // Audio routing (Strictly decoupled Volume vs Visual Reactivity):
+      // 1. Local playback routes through gainNode ONLY to speakers and video recording stream:
       this.gainNode.connect(this.ctx.destination);
-      // 2. Local playback routes through gainNode to analyser for visualization:
-      this.gainNode.connect(this.analyser);
-      // 3. Analyser routes to streamDestination for video export recording:
-      this.analyser.connect(this.streamDestination);
-      // NOTE: Analyser does NOT connect to ctx.destination!
-      // This decouples analysis from speaker monitoring so screen audio and mic do not loop through speakers.
+      this.gainNode.connect(this.streamDestination);
+      // 2. Visual reactivity routes through reactivityGainNode ONLY to analyser:
+      this.reactivityGainNode.connect(this.analyser);
+      // NOTE: gainNode does NOT connect to analyser, and analyser does NOT connect to ctx.destination!
+      // Lowering or muting speaker volume never affects visual reactivity, and vice-versa.
 
       this.freqData = new Uint8Array(this.analyser.frequencyBinCount);
       this.timeData = new Uint8Array(this.analyser.frequencyBinCount);
@@ -205,6 +208,7 @@ export class AudioEngine {
       if (this.audioElement) {
         this.audioSourceNode = this.ctx.createMediaElementSource(this.audioElement);
         this.audioSourceNode.connect(this.gainNode);
+        this.audioSourceNode.connect(this.reactivityGainNode);
       }
     }
 
@@ -336,6 +340,21 @@ export class AudioEngine {
     }
   }
 
+  public setSensitivity(val: number) {
+    this.sensitivity = Math.max(0, Math.min(3, val));
+    if (this.reactivityGainNode && this.ctx) {
+      this.reactivityGainNode.gain.setValueAtTime(this.sensitivity, this.ctx.currentTime);
+    }
+  }
+
+  public getVolumeGainValue(): number {
+    return this.gainNode?.gain.value ?? this.volume;
+  }
+
+  public getReactivityGainValue(): number {
+    return this.reactivityGainNode?.gain.value ?? this.sensitivity;
+  }
+
   public setScreenAudioPassthrough(enabled: boolean): void {
     this.isScreenAudioPassthrough = enabled;
     if (this.screenPassthroughGain && this.ctx) {
@@ -363,7 +382,7 @@ export class AudioEngine {
         this.micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
         if (this.ctx && this.analyser) {
           this.micSourceNode = this.ctx.createMediaStreamSource(this.micStream);
-          this.micSourceNode.connect(this.analyser);
+          this.micSourceNode.connect(this.reactivityGainNode ?? this.analyser);
           this.isMicActive = true;
           this.currentTrackName = 'Live Microphone';
           this.currentArtistName = 'Real-time Audio Input';
@@ -414,8 +433,11 @@ export class AudioEngine {
 
       if (this.ctx && this.analyser) {
         this.screenSourceNode = this.ctx.createMediaStreamSource(this.screenStream);
-        // Connect directly to analyser for visualization & export (prevents speaker feedback loops)
-        this.screenSourceNode.connect(this.analyser);
+        // Connect to reactivityGainNode -> analyser for visualization (prevents speaker feedback loops)
+        this.screenSourceNode.connect(this.reactivityGainNode ?? this.analyser);
+        if (this.streamDestination) {
+          this.screenSourceNode.connect(this.streamDestination);
+        }
 
         // Optional passthrough gain (strictly muted 0.0 by default to prevent audio feedback loop)
         this.screenPassthroughGain = this.ctx.createGain();
@@ -495,6 +517,7 @@ export class AudioEngine {
         g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
         osc.connect(g);
         g.connect(this.gainNode);
+        if (this.reactivityGainNode) g.connect(this.reactivityGainNode);
         osc.start(t);
         osc.stop(t + 0.22);
       }
@@ -508,6 +531,7 @@ export class AudioEngine {
         g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
         osc.connect(g);
         g.connect(this.gainNode);
+        if (this.reactivityGainNode) g.connect(this.reactivityGainNode);
         osc.start(t);
         osc.stop(t + 0.15);
       }
@@ -521,6 +545,7 @@ export class AudioEngine {
       gPluck.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
       oscPluck.connect(gPluck);
       gPluck.connect(this.gainNode);
+      if (this.reactivityGainNode) gPluck.connect(this.reactivityGainNode);
       oscPluck.start(t);
       oscPluck.stop(t + 0.18);
 

@@ -1,0 +1,88 @@
+[preset00]
+fRating=1.000000
+fDecay=0.500000
+fVideoEchoZoom=1.000000
+fVideoEchoAlpha=0.500000
+nVideoEchoOrientation=3.000000
+nWaveMode=7.000000
+bSolarize=1.000000
+fWaveAlpha=0.001000
+fRot=-0.280000
+fWarp=0.010000
+fWaveR=0.000000
+fWaveG=0.400000
+fWaveB=0.000000
+fMotionVectorsA=0.000000
+wavecode_0_enabled=0.000000
+wavecode_1_enabled=0.000000
+wavecode_2_enabled=0.000000
+wavecode_3_enabled=0.000000
+shapecode_0_enabled=0.000000
+shapecode_1_enabled=0.000000
+shapecode_2_enabled=1.000000
+shapecode_2_y=0.550000
+shapecode_2_a2=1.000000
+shapecode_3_enabled=1.000000
+shapecode_3_a2=1.000000
+per_frame_init_1=basstime = 0;
+per_frame_init_2=q2 = 0;
+per_frame_init_3=q1 = 0;
+per_frame_1=wave_r = 0.5 + 0.5 * sin(2 * time);
+per_frame_2=wave_b = 0.5 + 0.5 * sin(5 * time);
+per_frame_3=basstime = basstime + 0.0003 * bass;
+per_frame_4=q2 = basstime;
+per_frame_5=q1 = 0.1 * basstime;
+per_pixel_1=warp = 1;
+per_pixel_2=zoom = 1;
+per_pixel_3=rot = 1;
+shape_2_per_frame1=r = 0.5 + 0.5 * sin(time);
+shape_2_per_frame2=g = 0.5 + 0.5 * sin(0.9 * time);
+shape_2_per_frame3=b = 0.5 + 0.5 * sin(0.8 * time);
+shape_2_per_frame4=r2 = 0.5 + 0.5 * sin(time);
+shape_2_per_frame5=g2 = 0.5 + 0.5 * sin(0.9 * time);
+shape_3_per_frame1=r = 0.5 + 0.5 * sin(time);
+shape_3_per_frame2=g = 0.5 + 0.5 * sin(0.9 * time);
+shape_3_per_frame3=b = 0.5 + 0.5 * sin(0.56 * time);
+shape_3_per_frame4=r2 = 0.5 + 0.5 * sin(time);
+shape_3_per_frame5=g2 = 0.5 + 0.5 * sin(0.9 * time);
+shape_3_per_frame6=b2 = 0.5 + 0.5 * sin(0.56 * time);
+
+[warp_shader]
+shader_body { 
+  float final_noise_1;
+  vec3 tmpvar_2;
+  tmpvar_2.xy = uv;
+  tmpvar_2.z = (q2 * 10.0);
+  final_noise_1 = ((texture (sampler_noisevol_lq, tmpvar_2) * 2.0) - 1.0).x;
+  final_noise_1 = ((final_noise_1 + 1.0) * 0.5);
+  mat2 tmpvar_3;
+  float tmpvar_4;
+  tmpvar_4 = cos(q1);
+  tmpvar_3[uint(0)].x = tmpvar_4;
+  float tmpvar_5;
+  tmpvar_5 = sin(q1);
+  tmpvar_3[uint(0)].y = -(tmpvar_5);
+  tmpvar_3[1u].x = tmpvar_5;
+  tmpvar_3[1u].y = tmpvar_4;
+  vec4 tmpvar_6;
+  tmpvar_6.w = 1.0;
+  tmpvar_6.xyz = texture (sampler_main, (((
+    ((uv - 0.5) * tmpvar_3)
+   * 
+    (1.0 - (rad * 0.05))
+  ) + 0.5) + ((final_noise_1 * 0.01) * rad))).xyz;
+  ret = tmpvar_6.xyz;
+ }
+
+[comp_shader]
+shader_body { 
+  vec3 ret_1;
+  ret_1 = (mix (texture (sampler_main, uv).xyz, texture (sampler_main, (
+    (0.5 - uv)
+   + 0.5)).xyz, vec3(0.5, 0.5, 0.5)) * 2.0);
+  ret_1 = ((ret_1 * (1.0 - ret_1)) * 4.0);
+  vec4 tmpvar_2;
+  tmpvar_2.w = 1.0;
+  tmpvar_2.xyz = ret_1;
+  ret = tmpvar_2.xyz;
+ }

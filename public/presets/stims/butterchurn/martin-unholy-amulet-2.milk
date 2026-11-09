@@ -1,0 +1,136 @@
+[preset00]
+fRating=0.000000
+fGammaAdj=1.980001
+fDecay=0.500000
+fVideoEchoZoom=0.999998
+fVideoEchoAlpha=0.500000
+nVideoEchoOrientation=3.000000
+bModWaveAlphaByVolume=1.000000
+bDarken=1.000000
+fWaveAlpha=0.001000
+fWaveScale=10.437056
+fWaveSmoothing=0.450000
+fWaveParam=0.080000
+fModWaveAlphaStart=0.000000
+fModWaveAlphaEnd=1.320000
+fWarpAnimSpeed=1.459500
+fWarpScale=2.006700
+fZoom=0.999900
+fWarp=0.010000
+fSx=0.999900
+fWaveR=0.000000
+fWaveG=0.990000
+fOuterBorderSize=0.000000
+fOuterBorderA=1.000000
+fInnerBorderSize=0.260000
+nMotionVectorsX=64.000000
+nMotionVectorsY=48.000000
+nMotionVectorsLoop=0.000000
+fMotionVectorsR=0.499900
+fMotionVectorsG=0.499900
+fMotionVectorsB=0.499900
+fMotionVectorsA=0.000000
+b1ed=0.000000
+wavecode_0_enabled=0.000000
+wavecode_1_enabled=0.000000
+wavecode_2_enabled=0.000000
+wavecode_3_enabled=0.000000
+shapecode_0_enabled=0.000000
+shapecode_1_enabled=0.000000
+shapecode_2_enabled=0.000000
+shapecode_3_enabled=0.000000
+per_frame_init_1=index2 = 0;
+per_frame_init_2=index4 = 0;
+per_frame_init_3=index = 0;
+per_frame_init_4=q22 = 0;
+per_frame_init_5=q21 = 0;
+per_frame_init_6=q1 = 0;
+per_frame_init_7=dec_med = 0;
+per_frame_init_8=q5 = 0;
+per_frame_init_9=index3 = 0;
+per_frame_init_10=rott = 0;
+per_frame_init_11=is_beat = 0;
+per_frame_init_12=q23 = 0;
+per_frame_init_13=k1 = 0;
+per_frame_init_14=q24 = 0;
+per_frame_init_15=dec_slow = 0;
+per_frame_init_16=q4 = 0;
+per_frame_init_17=q26 = 0;
+per_frame_init_18=p2 = 0;
+per_frame_init_19=avg = 0;
+per_frame_init_20=beat = 0;
+per_frame_init_21=p1 = 0;
+per_frame_init_22=peak = 0;
+per_frame_init_23=q2 = 0;
+per_frame_init_24=q27 = 0;
+per_frame_init_25=q3 = 0;
+per_frame_init_26=t0 = 0;
+per_frame_init_27=q28 = 0;
+per_frame_init_28=q20 = 0;
+per_frame_1=dec_med = pow(0.9, 30 / fps);
+per_frame_2=dec_slow = pow(0.99, 30 / fps);
+per_frame_3=beat = max(max(bass, mid), treb);
+per_frame_4=avg = avg * dec_slow + beat * (1 - dec_slow);
+per_frame_5=is_beat = above(beat, 0.5 + avg + peak) * above(time, t0 + 0.2);
+per_frame_6=t0 = is_beat * time + (1 - is_beat) * t0;
+per_frame_7=peak = is_beat * beat + (1 - is_beat) * peak * dec_med;
+per_frame_8=index = mod(index + is_beat, 8);
+per_frame_9=index2 = mod(index2 + is_beat * bnot(index), 4);
+per_frame_10=index3 = mod(index3 + is_beat * bnot(index) * bnot(index2), 3);
+per_frame_11=monitor = index4;
+per_frame_12=q20 = avg;
+per_frame_13=q21 = beat;
+per_frame_14=q22 = peak;
+per_frame_15=q23 = index;
+per_frame_16=q24 = is_beat;
+per_frame_17=q26 = bass + mid + treb;
+per_frame_18=k1 = is_beat * equal(index, 0);
+per_frame_19=p1 = k1 * (p1 + 1) + (1 - k1) * p1;
+per_frame_20=p2 = dec_med * p2 + (1 - dec_med) * p1;
+per_frame_21=rott = 3.14159265359 * p2 / 4;
+per_frame_22=q27 = 8 - index;
+per_frame_23=q28 = index2;
+per_frame_24=q1 = cos(rott);
+per_frame_25=q2 = sin(rott);
+per_frame_26=q3 = -q2;
+per_frame_27=q4 = q1;
+per_frame_28=q5 = q1 * bnot(index2);
+per_pixel_1=rot = 0.04 * q5 * sin(4 * q22 * rad);
+per_pixel_2=zoom = 1.008;
+
+[warp_shader]
+shader_body { 
+  vec3 tmpvar_1;
+  tmpvar_1 = ((texture (sampler_blur1, uv).xyz * scale1) + bias1);
+  vec3 theta_2;
+  theta_2 = ((0.474 * tmpvar_1) * (q21 * q21));
+  vec4 tmpvar_3;
+  tmpvar_3.w = 1.0;
+  tmpvar_3.xyz = ((dot (
+    (texture (sampler_main, uv).xyz + 0.015)
+  , vec3(0.32, 0.49, 0.29)) * (1.0 - 
+    (0.1 * abs((sin(theta_2) / cos(theta_2))))
+  )) - ((0.02 / 
+    (rad + 0.02)
+  ) * tmpvar_1));
+  ret = tmpvar_3.xyz;
+ }
+
+[comp_shader]
+shader_body { 
+  vec2 uv1_1;
+  vec2 tmpvar_2;
+  tmpvar_2.x = (texture (sampler_main, (uv - vec2(0.001, 0.0))).xyz - texture (sampler_main, (uv + vec2(0.001, 0.0))).xyz).x;
+  tmpvar_2.y = (texture (sampler_main, (uv - vec2(0.0, 0.001))).xyz - texture (sampler_main, (uv + vec2(0.0, 0.001))).xyz).x;
+  uv1_1 = ((0.3 * cos(
+    (((uv - 0.5) * aspect.xy) * 9.0)
+  )) - tmpvar_2);
+  vec4 tmpvar_3;
+  tmpvar_3.w = 1.0;
+  tmpvar_3.xyz = (((
+    (-0.5 * (texture (sampler_main, uv).xyz + ((texture (sampler_blur1, uv).xyz * scale1) + bias1)))
+   + 
+    clamp (((0.04 * bass_att) / sqrt(dot (uv1_1, uv1_1))), 0.0, 1.0)
+  ) + 0.2) * 2.0);
+  ret = tmpvar_3.xyz;
+ }

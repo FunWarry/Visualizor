@@ -41,10 +41,15 @@ import {
 } from './tuning/PresetTuningManager';
 import { TextAnchor, TextAnimationMode } from './overlay/types';
 import { MidiManager, initMidiPanel } from './midi';
+import { activePresetsManager, ACTIVE_PRESETS_STORAGE_KEY } from './presets/stims/ActivePresetsManager';
+import { StimsCatalogService } from './presets/stims/StimsCatalogService';
+import type { ActiveStimsPresetItem, StimsPreset } from './presets/stims/types';
+import { DiscoveryModeModal } from './ui/DiscoveryModeModal';
 
 // DOM Elements
 const canvas = document.getElementById('webgl-canvas') as HTMLCanvasElement;
 const milkdropCanvas = document.getElementById('milkdrop-canvas') as HTMLCanvasElement;
+const transitionCanvas = document.getElementById('transition-canvas') as HTMLCanvasElement | null;
 const framingGuide = document.getElementById('framingGuide') as HTMLElement;
 const playBtn = document.getElementById('playBtn') as HTMLButtonElement;
 const playIcon = document.getElementById('playIcon') as HTMLElement;
@@ -63,9 +68,12 @@ const curTime = document.getElementById('curTime') as HTMLElement;
 const totTime = document.getElementById('totTime') as HTMLElement;
 const trackTitle = document.getElementById('trackTitle') as HTMLElement;
 const volumeSlider = document.getElementById('volumeSlider') as HTMLInputElement;
+const dockReactivitySlider = document.getElementById('dockReactivitySlider') as HTMLInputElement | null;
+const dockReactivityVal = document.getElementById('dockReactivityVal');
 
 // Mode Switcher Elements
 const modeVisualizerBtn = document.getElementById('modeVisualizerBtn') as HTMLButtonElement;
+const modeDiscoveryBtn = document.getElementById('modeDiscoveryBtn') as HTMLButtonElement | null;
 const modeStudioBtn = document.getElementById('modeStudioBtn') as HTMLButtonElement;
 
 // BPM Elements
@@ -147,7 +155,6 @@ const repeatBtn = document.getElementById('repeatBtn') as HTMLButtonElement;
 // Presets Search & Filters
 const presetSearchInput = document.getElementById('presetSearchInput') as HTMLInputElement;
 const presetsCatalogView = document.getElementById('presetsCatalogView') as HTMLElement;
-const autoCycleBtn = document.getElementById('autoCycleBtn') as HTMLButtonElement;
 const shufflePresetBtn = document.getElementById('shufflePresetBtn') as HTMLButtonElement;
 const loopPresetBtn = document.getElementById('loopPresetBtn') as HTMLButtonElement;
 
@@ -174,7 +181,10 @@ const milkdropEngine = new MilkdropEngine(milkdropCanvas);
 const exportManager = new ExportManager(renderEngine, audioEngine);
 
 let isMilkdropInitialized = false;
-let currentFilter: 'all' | 'fav' | 'milkdrop' | VisualizerPreset['category'] = 'all';
+export type PresetFilter = 'all' | 'fav' | 'milkdrop' | 'stims' | VisualizerPreset['category'];
+let currentFilter: PresetFilter = 'all';
+export let activeCategory: PresetFilter = 'all';
+let activeStimsPresetId: string | null = null;
 let searchQuery = '';
 let autoCycleTimer: ReturnType<typeof setInterval> | null = null;
 let activePresetId = PRESETS[0].id;
@@ -794,7 +804,7 @@ export function updatePresetCategoryTabCounters(): void {
   }
 
   const favCount = Array.from(favoritePresets).filter(id =>
-    PRESETS.some(p => p.id === id) || id.startsWith('milkdrop_')
+    PRESETS.some(p => p.id === id) || id.startsWith('milkdrop_') || id.startsWith('stims_')
   ).length;
   const badgeFav = document.getElementById('badgeFav');
   if (badgeFav) {
@@ -807,7 +817,17 @@ export function updatePresetCategoryTabCounters(): void {
       badge.textContent = (counts[c.key] || 0).toString();
     }
   }
+
+  const badgeStims = document.getElementById('badgeStims') || document.querySelector('[data-category-badge="stims"]');
+  if (badgeStims) {
+    const stimsCount = activePresetsManager.getActivePresets().length;
+    badgeStims.textContent = stimsCount.toString();
+  }
 }
+
+const PRESET_FAV_BTN_SELECTOR = '.preset-fav-btn';
+const CATEGORY_HEADER_CLASS = 'category-header';
+const CARDS_GRID_3_CLASS = 'cards-grid-3';
 
 function createPresetCard(p: VisualizerPreset): HTMLElement {
   const isFav = favoritePresets.has(p.id);
@@ -841,7 +861,7 @@ function createPresetCard(p: VisualizerPreset): HTMLElement {
     }
   });
 
-  card.querySelector('.preset-fav-btn')?.addEventListener('click', (e) => {
+  card.querySelector(PRESET_FAV_BTN_SELECTOR)?.addEventListener('click', (e) => {
     e.stopPropagation();
     toggleFavorite(p.id);
   });
@@ -869,12 +889,12 @@ function renderCategoryPresets(cat: typeof CATEGORIES[0], q: string): void {
   if (catPresets.length === 0) return;
 
   const sectionHeader = document.createElement('div');
-  sectionHeader.className = 'category-header';
+  sectionHeader.className = CATEGORY_HEADER_CLASS;
   sectionHeader.innerHTML = `<span>${cat.name}</span><span>${catPresets.length}</span>`;
   presetsCatalogView.appendChild(sectionHeader);
 
   const grid = document.createElement('div');
-  grid.className = 'cards-grid-3';
+  grid.className = CARDS_GRID_3_CLASS;
 
   for (const p of catPresets) {
     grid.appendChild(createPresetCard(p));
@@ -896,12 +916,12 @@ function renderMilkdropSection(q: string): void {
 
   const displayList = milkdropNames.slice(0, 30);
   const sectionHeader = document.createElement('div');
-  sectionHeader.className = 'category-header';
+  sectionHeader.className = CATEGORY_HEADER_CLASS;
   sectionHeader.innerHTML = `<span>ProjectM & MilkDrop</span><span>${milkdropNames.length}</span>`;
   presetsCatalogView.appendChild(sectionHeader);
 
   const grid = document.createElement('div');
-  grid.className = 'cards-grid-3';
+  grid.className = CARDS_GRID_3_CLASS;
 
   for (const name of displayList) {
     const favKey = `milkdrop_${name}`;
@@ -916,7 +936,7 @@ function renderMilkdropSection(q: string): void {
       <div class="preset-badge-name" title="${name}">${name}</div>
     `;
 
-    card.querySelector('.preset-fav-btn')?.addEventListener('click', (e) => {
+    card.querySelector(PRESET_FAV_BTN_SELECTOR)?.addEventListener('click', (e) => {
       e.stopPropagation();
       toggleFavorite(favKey);
     });
@@ -931,6 +951,121 @@ function renderMilkdropSection(q: string): void {
   presetsCatalogView.appendChild(grid);
 }
 
+function createActiveStimsCard(item: ActiveStimsPresetItem): HTMLElement {
+  const favKey = `stims_${item.id}`;
+  const isFav = favoritePresets.has(favKey);
+  const isActive = milkdropEngine.isActive && activeStimsPresetId === item.id;
+
+  const card = document.createElement('div');
+  card.className = `preset-card-3 stims-card ${isActive ? 'active' : ''}`;
+  card.dataset.presetId = item.id;
+  card.dataset.stimsId = item.id;
+  card.dataset.category = item.category;
+  card.setAttribute('role', 'button');
+  card.setAttribute('tabindex', '0');
+
+  card.innerHTML = `
+    <span class="preset-active-indicator" title="Active"></span>
+    <button class="preset-card-remove-btn" aria-label="Remove preset" title="Remove preset">✕</button>
+    <button class="preset-card-play-btn" aria-label="Play preset" title="Play preset">▶</button>
+    <button class="preset-fav-btn ${isFav ? 'active' : ''}" aria-label="Favorite preset" title="Favorite">★</button>
+    <div class="preset-thumb-visual stims-thumb">✨</div>
+    <div class="preset-card-info">
+      <div class="preset-badge-name" title="${item.title}">${item.title}</div>
+      <div class="preset-author-label" title="${item.author}">by ${item.author}</div>
+      <span class="preset-cat-badge stims-cat-badge">${item.category}</span>
+    </div>
+  `;
+
+  card.querySelector('.preset-card-remove-btn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    activePresetsManager.removePreset(item.id);
+    if (activeStimsPresetId === item.id) {
+      activeStimsPresetId = null;
+    }
+    renderPresetsCatalog();
+  });
+
+  card.querySelector('.preset-card-play-btn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    selectStimsPreset(item);
+  });
+
+  card.querySelector(PRESET_FAV_BTN_SELECTOR)?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleFavorite(favKey);
+  });
+
+  card.addEventListener('click', () => {
+    selectStimsPreset(item);
+  });
+
+  card.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      selectStimsPreset(item);
+    }
+  });
+
+  return card;
+}
+
+function renderActiveStimsSection(q: string): void {
+  if (currentFilter === 'stims') {
+    const banner = document.createElement('div');
+    banner.className = 'stims-discovery-banner';
+    banner.innerHTML = `
+      <span class="stims-discovery-banner-text">✨ Explore 2,686+ Stims Presets</span>
+      <button type="button" class="stims-discovery-banner-btn" id="openDiscoveryBannerBtn">Open Discovery</button>
+    `;
+    banner.querySelector('#openDiscoveryBannerBtn')?.addEventListener('click', () => {
+      void openDiscoveryMode();
+    });
+    presetsCatalogView.appendChild(banner);
+  }
+
+  let stimsList = activePresetsManager.getActivePresets();
+  if (q) {
+    stimsList = stimsList.filter(p =>
+      p.title.toLowerCase().includes(q) ||
+      p.author.toLowerCase().includes(q) ||
+      p.category.toLowerCase().includes(q) ||
+      p.id.toLowerCase().includes(q)
+    );
+  }
+  if (currentFilter === 'fav') {
+    stimsList = stimsList.filter(p => favoritePresets.has(`stims_${p.id}`));
+  }
+
+  if (stimsList.length === 0) {
+    if (currentFilter === 'stims') {
+      const emptyNotice = document.createElement('div');
+      emptyNotice.className = 'stims-empty-notice';
+      emptyNotice.innerHTML = `
+        <div class="empty-notice-icon">✨</div>
+        <div class="empty-notice-title">No Active Stims Presets</div>
+        <div class="empty-notice-text">Explore presets in Discovery Mode and add them to your active collection.</div>
+      `;
+      presetsCatalogView.appendChild(emptyNotice);
+    }
+    return;
+  }
+
+  const sectionHeader = document.createElement('div');
+  sectionHeader.className = CATEGORY_HEADER_CLASS;
+  sectionHeader.innerHTML = `<span>Active Stims Presets</span><span>${stimsList.length}</span>`;
+  presetsCatalogView.appendChild(sectionHeader);
+
+  const grid = document.createElement('div');
+  grid.className = CARDS_GRID_3_CLASS;
+
+  for (const item of stimsList) {
+    grid.appendChild(createActiveStimsCard(item));
+  }
+
+  presetsCatalogView.appendChild(grid);
+}
+
 // Presets Catalog Renderer
 export function renderPresetsCatalog(): void {
   initMilkdropIfNeeded();
@@ -940,7 +1075,7 @@ export function renderPresetsCatalog(): void {
   const q = searchQuery.toLowerCase().trim();
 
   // 1. Render Three.js 3D Presets by Category
-  if (currentFilter !== 'milkdrop') {
+  if (currentFilter !== 'milkdrop' && currentFilter !== 'stims') {
     for (const cat of CATEGORIES) {
       if (currentFilter !== 'all' && currentFilter !== 'fav' && currentFilter !== cat.key) {
         continue;
@@ -953,6 +1088,11 @@ export function renderPresetsCatalog(): void {
   if (currentFilter === 'all' || currentFilter === 'milkdrop' || currentFilter === 'fav') {
     renderMilkdropSection(q);
   }
+
+  // 3. Render Active Stims Presets Section
+  if (currentFilter === 'all' || currentFilter === 'stims' || currentFilter === 'fav') {
+    renderActiveStimsSection(q);
+  }
 }
 
 function updateTuningButtonState(preset: VisualizerPreset | null) {
@@ -962,10 +1102,65 @@ function updateTuningButtonState(preset: VisualizerPreset | null) {
   });
 }
 
+// Smooth Scene Crossfade Transition (3D <-> 3D and 3D <-> MilkDrop)
+let transitionTimeout: ReturnType<typeof setTimeout> | null = null;
+let transitionRaf: number | null = null;
+
+export function triggerSceneTransition(): void {
+  if (!transitionCanvas) return;
+  const sourceCanvas = milkdropEngine.isActive ? milkdropCanvas : canvas;
+  if (!sourceCanvas) return;
+
+  try {
+    if (milkdropEngine.isActive) {
+      milkdropEngine.render();
+    } else {
+      renderEngine.render(audioEngine.getFeatures());
+    }
+
+    const w = sourceCanvas.width || window.innerWidth || 1920;
+    const h = sourceCanvas.height || window.innerHeight || 1080;
+    if (transitionCanvas.width !== w) transitionCanvas.width = w;
+    if (transitionCanvas.height !== h) transitionCanvas.height = h;
+
+    const ctx2d = transitionCanvas.getContext('2d') as CanvasRenderingContext2D | null;
+    if (ctx2d && typeof ctx2d.drawImage === 'function') {
+      ctx2d.clearRect(0, 0, w, h);
+      ctx2d.drawImage(sourceCanvas, 0, 0, w, h);
+    }
+
+    if (transitionTimeout) clearTimeout(transitionTimeout);
+    if (transitionRaf && typeof cancelAnimationFrame === 'function') {
+      cancelAnimationFrame(transitionRaf);
+    }
+
+    transitionCanvas.style.transition = 'none';
+    transitionCanvas.style.display = 'block';
+    transitionCanvas.style.opacity = '1';
+
+    if (typeof requestAnimationFrame === 'function') {
+      transitionRaf = requestAnimationFrame(() => {
+        transitionCanvas.style.transition = 'opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1)';
+        transitionCanvas.style.opacity = '0';
+      });
+    } else {
+      transitionCanvas.style.opacity = '0';
+    }
+
+    transitionTimeout = setTimeout(() => {
+      transitionCanvas.style.display = 'none';
+    }, 680);
+  } catch {
+    transitionCanvas.style.display = 'none';
+  }
+}
+
 function select3DPreset(p: VisualizerPreset) {
+  triggerSceneTransition();
   milkdropEngine.setActive(false);
   canvas.style.display = 'block';
   activePresetId = p.id;
+  activeStimsPresetId = null;
   applySavedTuning(p);
   renderEngine.setPreset(p);
   updateTuningButtonState(p);
@@ -975,10 +1170,26 @@ function select3DPreset(p: VisualizerPreset) {
 }
 
 function selectMilkdropPreset(name: string) {
+  triggerSceneTransition();
   initMilkdropIfNeeded();
   canvas.style.display = 'none';
+  activePresetId = '';
+  activeStimsPresetId = null;
   milkdropEngine.setActive(true);
   milkdropEngine.loadPreset(name, 2.0);
+  updateTuningButtonState(null);
+  renderTuningPanel(null);
+  renderPresetsCatalog();
+}
+
+export function selectStimsPreset(item: ActiveStimsPresetItem): void {
+  triggerSceneTransition();
+  initMilkdropIfNeeded();
+  canvas.style.display = 'none';
+  activePresetId = '';
+  activeStimsPresetId = item.id;
+  milkdropEngine.setActive(true);
+  milkdropEngine.loadPreset(item.id, 2.0);
   updateTuningButtonState(null);
   renderTuningPanel(null);
   renderPresetsCatalog();
@@ -1000,14 +1211,16 @@ presetSearchInput.addEventListener('input', () => {
   renderPresetsCatalog();
 });
 
-export function setFilter(f: 'all' | 'fav' | 'milkdrop' | VisualizerPreset['category']): void {
+export function setFilter(f: PresetFilter): void {
   currentFilter = f;
-  const pills = document.querySelectorAll('#presetCategoryTabs .filter-pill');
+  activeCategory = f;
+  const pills = document.querySelectorAll('#presetCategoryTabs .filter-pill, #presetCategoryTabs .filter-chip');
   pills.forEach(pill => {
-    const filterAttr = (pill as HTMLElement).dataset.filter;
+    const el = pill as HTMLElement;
+    const filterAttr = el.dataset.filter || el.dataset.category;
     const isMatching = filterAttr === f;
-    pill.classList.toggle('active', isMatching);
-    pill.setAttribute(ARIA_SELECTED, String(isMatching));
+    el.classList.toggle('active', isMatching);
+    el.setAttribute(ARIA_SELECTED, String(isMatching));
   });
   renderPresetsCatalog();
 }
@@ -1015,9 +1228,9 @@ export function setFilter(f: 'all' | 'fav' | 'milkdrop' | VisualizerPreset['cate
 const categoryTabsContainer = document.getElementById('presetCategoryTabs');
 if (categoryTabsContainer) {
   categoryTabsContainer.addEventListener('click', (e) => {
-    const target = (e.target as HTMLElement).closest('.filter-pill') as HTMLElement | null;
+    const target = (e.target as HTMLElement).closest('.filter-pill, .filter-chip') as HTMLElement | null;
     if (!target) return;
-    const filter = target.dataset.filter as 'all' | 'fav' | 'milkdrop' | VisualizerPreset['category'] | null;
+    const filter = (target.dataset.filter || target.dataset.category) as PresetFilter | null;
     if (filter) {
       setFilter(filter);
     }
@@ -1064,6 +1277,7 @@ function loadAutoCycleConfig(): AutoCycleConfig {
 
 let autoCycleConfig = loadAutoCycleConfig();
 let autoCycleBeatCounter = 0;
+let lastAutoCycleBeatTime = typeof performance !== 'undefined' ? performance.now() : Date.now();
 
 function syncAutoCyclePopoverUI(): void {
   const popover = document.getElementById('autoCyclePopover');
@@ -1073,7 +1287,9 @@ function syncAutoCyclePopoverUI(): void {
   pillGroups.forEach(group => {
     const settingKey = (group as HTMLElement).dataset.cycleSetting as keyof AutoCycleConfig | undefined;
     if (!settingKey) return;
-    const currentVal = String(autoCycleConfig[settingKey]);
+    const currentVal = settingKey === 'enabled'
+      ? (autoCycleConfig.enabled ? 'on' : 'off')
+      : String(autoCycleConfig[settingKey]);
     group.querySelectorAll('.autocycle-pill').forEach(pill => {
       const pillVal = (pill as HTMLElement).dataset.val;
       pill.classList.toggle('active', pillVal === currentVal);
@@ -1085,8 +1301,19 @@ function syncAutoCyclePopoverUI(): void {
   if (timerRow) timerRow.style.display = autoCycleConfig.sync === 'timer' ? 'flex' : 'none';
   if (beatsRow) beatsRow.style.display = autoCycleConfig.sync === 'beats' ? 'flex' : 'none';
 
+  const statusBadge = document.getElementById('autoCycleStatusBadge');
+  if (statusBadge) {
+    statusBadge.classList.toggle('active', autoCycleConfig.enabled);
+    if (!autoCycleConfig.enabled) {
+      statusBadge.textContent = 'Off';
+    } else if (autoCycleConfig.sync === 'beats') {
+      statusBadge.textContent = `● On (${autoCycleBeatCounter}/${autoCycleConfig.beatsInterval} Beats)`;
+    } else {
+      statusBadge.textContent = `● On (${autoCycleConfig.timerInterval})`;
+    }
+  }
+
   loopPresetBtn?.classList.toggle('cycle-active', autoCycleConfig.enabled);
-  autoCycleBtn?.classList.toggle('cycle-active', autoCycleConfig.enabled);
 }
 
 function randomizeAllFxShaders(): void {
@@ -1158,9 +1385,10 @@ function getAutoCycle3DCandidates(): VisualizerPreset[] {
 
 function getAutoCycleMilkdropCandidates(): string[] {
   initMilkdropIfNeeded();
-  let pool = milkdropEngine.presetNames.slice();
+  const stimsActiveIds = activePresetsManager.getActivePresets().map(p => p.id);
+  let pool = [...milkdropEngine.presetNames, ...stimsActiveIds];
   if (autoCycleConfig.pool === 'favorites') {
-    pool = pool.filter(name => favoritePresets.has(`milkdrop_${name}`));
+    pool = pool.filter(name => favoritePresets.has(`milkdrop_${name}`) || favoritePresets.has(`stims_${name}`));
   }
   if (milkdropEngine.isActive && milkdropEngine.currentPresetName) {
     const diff = pool.filter(name => name !== milkdropEngine.currentPresetName);
@@ -1224,11 +1452,16 @@ function executeAutoCycleStep(): void {
     }
     select3DPreset(chosen.preset);
   } else {
-    // MilkDrop preset
+    // MilkDrop / Stims preset
     if (autoCycleConfig.effects === 'shuffle') {
       randomizeAllFxShaders();
     }
-    selectMilkdropPreset(chosen.name);
+    const activeStims = activePresetsManager.getActivePresets().find(s => s.id === chosen.name);
+    if (activeStims) {
+      selectStimsPreset(activeStims);
+    } else {
+      selectMilkdropPreset(chosen.name);
+    }
   }
 }
 
@@ -1238,6 +1471,7 @@ function restartAutoCycleTimer(): void {
     autoCycleTimer = null;
   }
   autoCycleBeatCounter = 0;
+  lastAutoCycleBeatTime = typeof performance !== 'undefined' ? performance.now() : Date.now();
   if (!autoCycleConfig.enabled) {
     syncAutoCyclePopoverUI();
     return;
@@ -1284,10 +1518,6 @@ loopPresetBtn?.addEventListener('click', (e) => {
   toggleAutoCyclePopover(e);
 });
 
-autoCycleBtn?.addEventListener('click', (e) => {
-  toggleAutoCyclePopover(e);
-});
-
 document.getElementById('closeAutoCyclePopoverBtn')?.addEventListener('click', (e) => {
   e.stopPropagation();
   const popover = document.getElementById('autoCyclePopover');
@@ -1299,7 +1529,7 @@ document.addEventListener('click', (e) => {
   const popover = document.getElementById('autoCyclePopover');
   if (popover?.style.display !== 'block') return;
   const target = e.target as HTMLElement;
-  if (!popover.contains(target) && target !== loopPresetBtn && target !== autoCycleBtn) {
+  if (!popover.contains(target) && target !== loopPresetBtn) {
     popover.style.display = 'none';
   }
 });
@@ -1320,6 +1550,15 @@ autoCyclePopover?.addEventListener('click', (e) => {
     autoCycleConfig.enabled = val === 'on';
   } else if (settingKey === 'beatsInterval') {
     autoCycleConfig.beatsInterval = Number.parseInt(val, 10) as 16 | 32 | 64 | 128;
+    autoCycleConfig.sync = 'beats';
+    autoCycleConfig.enabled = true;
+  } else if (settingKey === 'timerInterval') {
+    autoCycleConfig.timerInterval = val as AutoCycleConfig['timerInterval'];
+    autoCycleConfig.sync = 'timer';
+    autoCycleConfig.enabled = true;
+  } else if (settingKey === 'sync') {
+    autoCycleConfig.sync = val as 'timer' | 'beats';
+    autoCycleConfig.enabled = true;
   } else {
     (autoCycleConfig as unknown as Record<string, unknown>)[settingKey] = val;
   }
@@ -1384,15 +1623,90 @@ function toggleHideUI() {
   document.body.classList.toggle('ui-hidden', isHidden);
 }
 
-// Topbar Mode Switcher: Visualizer vs Studio
+// Stims Discovery Mode Controller & Topbar Mode Switcher
+export const discoveryModal = new DiscoveryModeModal({
+  getSessionState: () => {
+    const active3D = PRESETS.find(p => p.id === activePresetId);
+    const overrides: Record<string, unknown> = {};
+    if (active3D?.getCustomParameters && active3D?.getCustomParameterValue) {
+      for (const param of active3D.getCustomParameters()) {
+        overrides[param.id] = active3D.getCustomParameterValue(param.id);
+      }
+    }
+    return {
+      activePresetId,
+      isMilkdropActive: milkdropEngine.isActive,
+      currentMilkdropPreset: milkdropEngine.isActive ? milkdropEngine.currentPresetName : null,
+      tuningOverrides: overrides
+    };
+  },
+  restoreSessionState: (snapshot) => {
+    if (snapshot.isMilkdropActive && snapshot.currentMilkdropPreset) {
+      selectMilkdropPreset(snapshot.currentMilkdropPreset);
+    } else {
+      const targetPreset = getPreset(snapshot.activePresetId || PRESETS[0].id);
+      select3DPreset(targetPreset);
+      if (targetPreset.setCustomParameter) {
+        for (const [k, v] of Object.entries(snapshot.tuningOverrides)) {
+          if (typeof v === 'number' || typeof v === 'string' || typeof v === 'boolean') {
+            targetPreset.setCustomParameter(k, v as number);
+          }
+        }
+        renderTuningPanel(targetPreset);
+      }
+    }
+  },
+  onPreviewPreset: (preset: StimsPreset) => {
+    triggerSceneTransition();
+    initMilkdropIfNeeded();
+    canvas.style.display = 'none';
+    milkdropEngine.setActive(true);
+    milkdropEngine.loadPreset(preset.id, 1.5);
+  },
+  onKeepPreset: (preset: StimsPreset) => {
+    activePresetsManager.addPreset(preset);
+    selectStimsPreset({
+      id: preset.id,
+      title: preset.title,
+      author: preset.author,
+      category: preset.category,
+      file: preset.file,
+      addedAt: Date.now()
+    });
+  },
+  onClose: () => {
+    modeDiscoveryBtn?.classList.remove('active');
+    modeVisualizerBtn?.classList.add('active');
+  }
+});
+
+export async function openDiscoveryMode(): Promise<void> {
+  modeVisualizerBtn?.classList.remove('active');
+  modeStudioBtn?.classList.remove('active');
+  modeDiscoveryBtn?.classList.add('active');
+  await discoveryModal.open();
+}
+
 modeVisualizerBtn.addEventListener('click', () => {
+  if (discoveryModal.isOpen()) {
+    discoveryModal.close({ restoreSession: true });
+  }
   modeVisualizerBtn.classList.add('active');
+  modeDiscoveryBtn?.classList.remove('active');
   modeStudioBtn.classList.remove('active');
   openDrawer('presets');
 });
 
+modeDiscoveryBtn?.addEventListener('click', () => {
+  void openDiscoveryMode();
+});
+
 modeStudioBtn.addEventListener('click', () => {
+  if (discoveryModal.isOpen()) {
+    discoveryModal.close({ restoreSession: true });
+  }
   modeStudioBtn.classList.add('active');
+  modeDiscoveryBtn?.classList.remove('active');
   modeVisualizerBtn.classList.remove('active');
   openDrawer('myCreations');
   select3DPreset(studioPreset);
@@ -2054,8 +2368,25 @@ function handleKeyboardHotkey(key: string, isShift: boolean): boolean {
       updatePlayButton();
       return true;
     case 'r':
-      pickRandomPreset();
+      if (discoveryModal.isOpen()) {
+        discoveryModal.pickRandomPreset();
+      } else {
+        pickRandomPreset();
+      }
       return true;
+    case 'd':
+      if (discoveryModal.isOpen()) {
+        discoveryModal.close({ restoreSession: true });
+      } else {
+        void openDiscoveryMode();
+      }
+      return true;
+    case 'escape':
+      if (discoveryModal.isOpen()) {
+        discoveryModal.close({ restoreSession: true });
+        return true;
+      }
+      return false;
     case 'b':
       bpmText.textContent = `${audioEngine.bpmDetector.tap()} BPM (Tap)`;
       bpmBtn.style.borderColor = 'var(--primary)';
@@ -3020,10 +3351,29 @@ function setupFxControls(): void {
 
 setupFxControls();
 
+export function applyVisualReactivity(val: number): void {
+  const clamped = Math.max(0, Math.min(2.5, val));
+  audioEngine.setSensitivity(clamped);
+  const pct = `${Math.round(clamped * 100)}%`;
+  if (sensSlider && document.activeElement !== sensSlider) {
+    sensSlider.value = clamped.toString();
+  }
+  const sensValEl = document.getElementById('sensVal');
+  if (sensValEl) sensValEl.textContent = pct;
+  if (dockReactivitySlider && document.activeElement !== dockReactivitySlider) {
+    dockReactivitySlider.value = clamped.toString();
+  }
+  if (dockReactivityVal) {
+    dockReactivityVal.textContent = pct;
+  }
+}
+
 sensSlider.addEventListener('input', () => {
-  const val = Number.parseFloat(sensSlider.value);
-  document.getElementById('sensVal')!.textContent = `${Math.round(val * 100)}%`;
-  audioEngine.sensitivity = val;
+  applyVisualReactivity(Number.parseFloat(sensSlider.value));
+});
+
+dockReactivitySlider?.addEventListener('input', () => {
+  applyVisualReactivity(Number.parseFloat(dockReactivitySlider.value));
 });
 
 // Web MIDI API Controller Setup (Ticket #45)
@@ -3039,8 +3389,7 @@ function updateSliderUi(slider: HTMLInputElement | null, val: number | string, t
 const MIDI_DISPATCH_TABLE: Record<string, (value: number) => void> = {
   audioSensitivity: (value) => {
     const sens = 0.5 + value * 2.0;
-    audioEngine.sensitivity = sens;
-    updateSliderUi(sensSlider, sens.toFixed(1), 'sensVal', `${Math.round(sens * 100)}%`);
+    applyVisualReactivity(sens);
   },
   sensitivity: (value) => MIDI_DISPATCH_TABLE.audioSensitivity(value),
 
@@ -3766,6 +4115,20 @@ window.addEventListener('resize', () => {
   milkdropEngine.resize(window.innerWidth, window.innerHeight);
 });
 
+// Active Stims Presets Manager initialization & reactive drawer listener
+activePresetsManager.init();
+activePresetsManager.onChanged(() => {
+  updatePresetCategoryTabCounters();
+  renderPresetsCatalog();
+});
+window.addEventListener('storage', (e) => {
+  if (e.key === ACTIVE_PRESETS_STORAGE_KEY) {
+    activePresetsManager.init();
+    updatePresetCategoryTabCounters();
+    renderPresetsCatalog();
+  }
+});
+
 // Initial catalog render
 renderPresetsCatalog();
 
@@ -3790,15 +4153,30 @@ function animate() {
     bpmIndicator.classList.remove('beat');
   }
 
-  // Auto-Cycle beat sync check
-  if (autoCycleConfig.enabled && autoCycleConfig.sync === 'beats' && features.beat) {
-    autoCycleBeatCounter++;
-    if (autoCycleBeatCounter >= autoCycleConfig.beatsInterval) {
-      autoCycleBeatCounter = 0;
-      executeAutoCycleStep();
+  // Auto-Cycle beat sync check (Hybrid transient beat + BPM clock so Beats interval always works)
+  if (autoCycleConfig.enabled && autoCycleConfig.sync === 'beats') {
+    const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    const activeBpm = Math.max(40, Math.min(240, features.bpm || 120));
+    const beatPeriodMs = (60 / activeBpm) * 1000;
+    const isTransientBeat = features.beat && (now - lastAutoCycleBeatTime >= 220);
+    const isClockBeat = (now - lastAutoCycleBeatTime) >= beatPeriodMs;
+
+    if (isTransientBeat || isClockBeat) {
+      lastAutoCycleBeatTime = now;
+      autoCycleBeatCounter++;
+      if (autoCycleBeatCounter >= autoCycleConfig.beatsInterval) {
+        autoCycleBeatCounter = 0;
+        executeAutoCycleStep();
+      }
+      const statusBadge = document.getElementById('autoCycleStatusBadge');
+      if (statusBadge) {
+        statusBadge.classList.add('active');
+        statusBadge.textContent = `● On (${autoCycleBeatCounter}/${autoCycleConfig.beatsInterval} Beats)`;
+      }
     }
   }
 }
 
 // Start loop
+void StimsCatalogService.getInstance().init({ eagerFullHydration: false });
 animate();

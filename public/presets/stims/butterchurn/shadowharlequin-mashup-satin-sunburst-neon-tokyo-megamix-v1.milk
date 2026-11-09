@@ -1,0 +1,73 @@
+[preset00]
+fRating=0.000000
+fGammaAdj=1.700001
+fDecay=0.990000
+fVideoEchoZoom=1.000000
+fVideoEchoAlpha=0.500000
+nVideoEchoOrientation=3.000000
+nWaveMode=2.000000
+bAdditiveWaves=1.000000
+bWaveDots=1.000000
+bWaveThick=1.000000
+bModWaveAlphaByVolume=1.000000
+bTexWrap=0.000000
+bDarkenCenter=1.000000
+fWaveAlpha=1.000000
+fWaveScale=0.591233
+fWaveSmoothing=0.000000
+fWaveParam=-0.261032
+fModWaveAlphaStart=0.500000
+fModWaveAlphaEnd=1.000000
+fZoomExponent=1.074097
+fShader=1.000000
+fWaveR=0.000000
+fWaveG=0.500000
+fWaveB=0.000000
+fWaveX=0.482812
+fWaveY=0.467471
+nMotionVectorsX=64.000000
+nMotionVectorsY=48.000000
+nMotionVectorsDx=-0.005893
+nMotionVectorsDy=-0.973957
+nMotionVectorsLoop=0.500000
+fMotionVectorsR=0.835033
+fMotionVectorsG=0.249397
+fMotionVectorsB=0.055806
+wavecode_0_enabled=0.000000
+wavecode_1_enabled=0.000000
+wavecode_2_enabled=0.000000
+wavecode_3_enabled=0.000000
+shapecode_0_enabled=0.000000
+shapecode_1_enabled=0.000000
+shapecode_2_enabled=0.000000
+shapecode_3_enabled=0.000000
+per_frame_init_1=ray = 0;
+per_frame_1=warp = 0;
+per_frame_2=wave_r = wave_r + 0.5 * sin(33 * treb_att) + 0.3 * bass_att;
+per_frame_3=wave_b = wave_b + 0.5 * sin(33 * treb_att) + 0.3 * mid_att;
+per_frame_4=rot = 0.4 * sin(time) * sin(0.1 * treb_att);
+per_frame_5=warp = 0.9 * sin(0.9 * treb_att);
+per_frame_6=mv_l = sin(treb_att);
+per_frame_7=mv_b = treb_att / 2.5;
+per_frame_8=mv_r = mid_att / 2.5;
+per_frame_9=decay = sin(bass_att);
+per_pixel_1=ray = pow(rad, 1.8) + 0.05;
+per_pixel_2=zoom = 1.4 * (ray / rad) + 0.3 * sin(5 * ang * bass) + 0.2 * bass;
+per_pixel_3=mv_r = treb_att / 2.5;
+per_pixel_4=mv_g = mid_att / 2.5;
+per_pixel_5=mv_a = bass_att;
+
+[comp_shader]
+shader_body { 
+  vec2 uv_1;
+  vec3 ret_2;
+  uv_1 = (0.05 + (0.9 * uv));
+  ret_2 = (abs((
+    ((texture (sampler_blur1, uv_1).xyz * scale1) + bias1)
+   - texture (sampler_main, uv_1).xyz)) * 6.0);
+  ret_2 = (ret_2 * 1.333);
+  vec4 tmpvar_3;
+  tmpvar_3.w = 1.0;
+  tmpvar_3.xyz = ret_2;
+  ret = tmpvar_3.xyz;
+ }

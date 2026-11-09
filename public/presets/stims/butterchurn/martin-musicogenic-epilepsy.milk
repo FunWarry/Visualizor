@@ -1,0 +1,263 @@
+[preset00]
+fRating=0.000000
+fGammaAdj=1.980001
+fDecay=0.500000
+fVideoEchoZoom=0.999998
+fVideoEchoAlpha=0.500000
+nVideoEchoOrientation=3.000000
+nWaveMode=5.000000
+bWaveDots=1.000000
+bWaveThick=1.000000
+bMaximizeWaveColor=0.000000
+bDarken=1.000000
+fWaveAlpha=0.001000
+fWaveScale=5.552000
+fWaveSmoothing=0.504000
+fWaveParam=-1.000000
+fModWaveAlphaStart=0.710000
+fModWaveAlphaEnd=1.300000
+fWarpAnimSpeed=0.442000
+fWarpScale=0.498000
+fZoom=0.999900
+fWarp=0.010000
+fSx=0.999900
+fWaveG=0.000000
+fWaveB=0.000000
+fOuterBorderSize=0.000000
+fOuterBorderR=1.000000
+fOuterBorderG=1.000000
+fOuterBorderB=1.000000
+fOuterBorderA=0.050000
+fInnerBorderSize=0.260000
+nMotionVectorsX=64.000000
+nMotionVectorsY=48.000000
+nMotionVectorsLoop=0.850000
+fMotionVectorsR=0.500000
+fMotionVectorsG=0.500000
+fMotionVectorsB=0.500000
+fMotionVectorsA=0.000000
+b1x=0.699900
+b1ed=0.000000
+wavecode_0_enabled=0.000000
+wavecode_1_enabled=0.000000
+wavecode_2_enabled=0.000000
+wavecode_3_enabled=0.000000
+shapecode_0_enabled=1.000000
+shapecode_0_textured=1.000000
+shapecode_0_rad=0.623916
+shapecode_0_tex_zoom=1.728368
+shapecode_0_g=1.000000
+shapecode_0_b=1.000000
+shapecode_0_a=0.900000
+shapecode_0_r2=1.000000
+shapecode_0_b2=1.000000
+shapecode_0_a2=0.900000
+shapecode_0_border_a=0.000000
+shapecode_1_enabled=0.000000
+shapecode_2_enabled=1.000000
+shapecode_2_sides=5.000000
+shapecode_2_additive=1.000000
+shapecode_2_x=0.900000
+shapecode_2_rad=0.226130
+shapecode_2_g=0.600000
+shapecode_2_g2=0.000000
+shapecode_2_border_a=0.000000
+shapecode_3_enabled=0.000000
+per_frame_init_1=index2 = 0;
+per_frame_init_2=pos = 0;
+per_frame_init_3=index = 0;
+per_frame_init_4=q18 = 0;
+per_frame_init_5=q22 = 0;
+per_frame_init_6=q21 = 0;
+per_frame_init_7=q29 = 0;
+per_frame_init_8=q1 = 0;
+per_frame_init_9=dec_med = 0;
+per_frame_init_10=rott = 0;
+per_frame_init_11=is_beat = 0;
+per_frame_init_12=q23 = 0;
+per_frame_init_13=k1 = 0;
+per_frame_init_14=q24 = 0;
+per_frame_init_15=t_rel = 0;
+per_frame_init_16=dec_slow = 0;
+per_frame_init_17=q10 = 0;
+per_frame_init_18=q4 = 0;
+per_frame_init_19=q26 = 0;
+per_frame_init_20=p2 = 0;
+per_frame_init_21=avg = 0;
+per_frame_init_22=rota = 0;
+per_frame_init_23=q19 = 0;
+per_frame_init_24=beat = 0;
+per_frame_init_25=p1 = 0;
+per_frame_init_26=peak = 0;
+per_frame_init_27=flash = 0;
+per_frame_init_28=q2 = 0;
+per_frame_init_29=q27 = 0;
+per_frame_init_30=q3 = 0;
+per_frame_init_31=t0 = 0;
+per_frame_init_32=q28 = 0;
+per_frame_init_33=q20 = 0;
+per_frame_1=dec_med = pow(0.9, 30 / fps);
+per_frame_2=dec_slow = pow(0.99, 30 / fps);
+per_frame_3=beat = max(max(bass, mid), treb);
+per_frame_4=avg = avg * dec_slow + beat * (1 - dec_slow);
+per_frame_5=is_beat = above(beat, 0.2 + avg + peak) * above(time, t0 + 0.2);
+per_frame_6=t0 = is_beat * time + (1 - is_beat) * t0;
+per_frame_7=peak = is_beat * beat + (1 - is_beat) * peak * dec_med;
+per_frame_8=index = mod(index + is_beat, 12);
+per_frame_9=index2 = mod(index2 + is_beat * bnot(index), 6);
+per_frame_10=q20 = avg;
+per_frame_11=q21 = beat;
+per_frame_12=q22 = peak + 0.5;
+per_frame_13=q23 = index;
+per_frame_14=q24 = is_beat;
+per_frame_15=q26 = bass_att + mid_att + treb + 1;
+per_frame_16=q26 = 3;
+per_frame_17=flash = flash * dec_med + q24 * (1 - dec_med);
+per_frame_18=q19 = flash;
+per_frame_19=k1 = is_beat * equal(index, 0);
+per_frame_20=p1 = k1 * (p1 + 1) + (1 - k1) * p1;
+per_frame_21=p2 = dec_med * p2 + (1 - dec_med) * p1;
+per_frame_22=rott = 3.1416 * p2 / 8;
+per_frame_23=q27 = index + 1;
+per_frame_24=pos = pos + q20 / 40;
+per_frame_25=q28 = index2 + 1;
+per_frame_26=q1 = cos(rott);
+per_frame_27=q2 = sin(rott);
+per_frame_28=q3 = -q2;
+per_frame_29=q4 = q1;
+per_frame_30=rota = q1;
+per_frame_31=q29 = 4 * q1;
+per_frame_32=zoom = 1;
+per_frame_33=warp = 0.01;
+per_frame_34=rot = 0 * q2 / 28;
+per_frame_35=t_rel = t_rel + (q20 + q22) / fps;
+per_frame_36=q18 = sin(t_rel * q27 / 23);
+per_frame_37=q19 = cos(t_rel * q27 / 12);
+per_frame_38=q10 = t_rel;
+per_pixel_1=rot = 0.1 * sin(time / 4) * (1 - rad);
+per_pixel_2=dx = 0;
+shape_2_per_frame1=x = 0.05 + randint(900) / 1000;
+shape_2_per_frame2=y = 0.05 + randint(900) / 1000;
+shape_2_per_frame3=ang = randint(320) / 100;
+
+[warp_shader]
+shader_body { 
+  vec4 tmpvar_1;
+  tmpvar_1.w = 1.0;
+  tmpvar_1.xyz = (texture (sampler_main, uv).xyz * 0.9);
+  ret = tmpvar_1.xyz;
+ }
+
+[comp_shader]
+vec2 xlat_mutablers;
+vec2 xlat_mutablers2;
+ shader_body { 
+  vec3 ret1_1;
+  vec2 tmpvar_2;
+  tmpvar_2.x = q18;
+  tmpvar_2.y = q19;
+  vec2 tmpvar_3;
+  tmpvar_3 = ((12.0 * (
+    (uv - 0.5)
+   + 
+    (0.2 * tmpvar_2)
+  )) * aspect.xy);
+  float tmpvar_4;
+  float tmpvar_5;
+  tmpvar_5 = (min (abs(
+    (tmpvar_3.y / tmpvar_3.x)
+  ), 1.0) / max (abs(
+    (tmpvar_3.y / tmpvar_3.x)
+  ), 1.0));
+  float tmpvar_6;
+  tmpvar_6 = (tmpvar_5 * tmpvar_5);
+  tmpvar_6 = (((
+    ((((
+      ((((-0.01213232 * tmpvar_6) + 0.05368138) * tmpvar_6) - 0.1173503)
+     * tmpvar_6) + 0.1938925) * tmpvar_6) - 0.3326756)
+   * tmpvar_6) + 0.9999793) * tmpvar_5);
+  tmpvar_6 = (tmpvar_6 + (float(
+    (abs((tmpvar_3.y / tmpvar_3.x)) > 1.0)
+  ) * (
+    (tmpvar_6 * -2.0)
+   + 1.570796)));
+  tmpvar_4 = (tmpvar_6 * sign((tmpvar_3.y / tmpvar_3.x)));
+  if ((abs(tmpvar_3.x) > (1e-08 * abs(tmpvar_3.y)))) {
+    if ((tmpvar_3.x < 0.0)) {
+      if ((tmpvar_3.y >= 0.0)) {
+        tmpvar_4 += 3.141593;
+      } else {
+        tmpvar_4 = (tmpvar_4 - 3.141593);
+      };
+    };
+  } else {
+    tmpvar_4 = (sign(tmpvar_3.y) * 1.570796);
+  };
+  float tmpvar_7;
+  tmpvar_7 = (time / 4.0);
+  xlat_mutablers.x = ((tmpvar_4 / q28) + tmpvar_7);
+  xlat_mutablers.y = ((0.2 / (0.1 + 
+    sqrt(dot (tmpvar_3, tmpvar_3))
+  )) + tmpvar_7);
+  vec4 tmpvar_8;
+  tmpvar_8 = texture (sampler_main, xlat_mutablers);
+  ret1_1 = tmpvar_8.xyz;
+  vec2 tmpvar_9;
+  tmpvar_9.y = 0.0;
+  tmpvar_9.x = texsize.z;
+  vec2 tmpvar_10;
+  tmpvar_10.x = 0.0;
+  tmpvar_10.y = texsize.w;
+  vec2 tmpvar_11;
+  tmpvar_11.x = (texture (sampler_main, (xlat_mutablers - tmpvar_9)).xyz - texture (sampler_main, (xlat_mutablers + tmpvar_9)).xyz).x;
+  tmpvar_11.y = (texture (sampler_main, (xlat_mutablers - tmpvar_10)).xyz - texture (sampler_main, (xlat_mutablers + tmpvar_10)).xyz).x;
+  float tmpvar_12;
+  float tmpvar_13;
+  tmpvar_13 = (min (abs(
+    (tmpvar_3.y / tmpvar_3.x)
+  ), 1.0) / max (abs(
+    (tmpvar_3.y / tmpvar_3.x)
+  ), 1.0));
+  float tmpvar_14;
+  tmpvar_14 = (tmpvar_13 * tmpvar_13);
+  tmpvar_14 = (((
+    ((((
+      ((((-0.01213232 * tmpvar_14) + 0.05368138) * tmpvar_14) - 0.1173503)
+     * tmpvar_14) + 0.1938925) * tmpvar_14) - 0.3326756)
+   * tmpvar_14) + 0.9999793) * tmpvar_13);
+  tmpvar_14 = (tmpvar_14 + (float(
+    (abs((tmpvar_3.y / tmpvar_3.x)) > 1.0)
+  ) * (
+    (tmpvar_14 * -2.0)
+   + 1.570796)));
+  tmpvar_12 = (tmpvar_14 * sign((tmpvar_3.y / tmpvar_3.x)));
+  if ((abs(tmpvar_3.x) > (1e-08 * abs(tmpvar_3.y)))) {
+    if ((tmpvar_3.x < 0.0)) {
+      if ((tmpvar_3.y >= 0.0)) {
+        tmpvar_12 += 3.141593;
+      } else {
+        tmpvar_12 = (tmpvar_12 - 3.141593);
+      };
+    };
+  } else {
+    tmpvar_12 = (sign(tmpvar_3.y) * 1.570796);
+  };
+  xlat_mutablers2.x = tmpvar_12;
+  xlat_mutablers2.y = (((
+    (0.1 * q27)
+   / 
+    ((abs((0.2 * q1)) + 0.1) + sqrt(dot (tmpvar_3, tmpvar_3)))
+  ) + time) + ((xlat_mutablers.x * 
+    sin((time / 14.0))
+  ) * 2.0));
+  xlat_mutablers2 = ((0.15 * cos(
+    ((xlat_mutablers2 * q27) * 3.0)
+  )) - (tmpvar_11 * 2.0));
+  ret1_1 = ((tmpvar_8.xyz + vec3(clamp (
+    ((0.01 * q26) / sqrt(dot (xlat_mutablers2, xlat_mutablers2)))
+  , 0.0, 1.0))) - 0.1);
+  vec4 tmpvar_15;
+  tmpvar_15.w = 1.0;
+  tmpvar_15.xyz = ret1_1;
+  ret = tmpvar_15.xyz;
+ }

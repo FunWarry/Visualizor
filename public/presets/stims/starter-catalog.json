@@ -1,0 +1,1255 @@
+{
+  "presets": [
+    {
+      "id": "shifter-glassworms-flare",
+      "title": "Shifter - Glassworms Flare",
+      "author": "Shifter",
+      "file": "/presets/stims/libraries/projectm-cream-of-the-crop/shifter-glassworms-flare.milk",
+      "tags": [
+        "collection:cream-of-the-crop",
+        "preset",
+        "category:particles",
+        "category:waveform",
+        "collection:audio-reactive"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.0077,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 1,
+          "measuredReactivity": 0.9999999999999974,
+          "motion": null,
+          "flashPenalty": 0.5,
+          "duplicatePenalty": 0,
+          "preview": 0.377
+        }
+      },
+      "sensoryProfile": {
+        "flashRiskLevel": "high",
+        "maxTransitionsPerSecondEstimate": 10,
+        "meanLuminance": 0.5558856756027887,
+        "measuredAt": "2026-10-14T03:22:49.716Z"
+      }
+    },
+    {
+      "id": "eos-glowsticks-v2-03-music",
+      "title": "Eo.S. - Glowsticks v2 03 Music",
+      "author": "Eo.S.",
+      "file": "/presets/stims/eos-glowsticks-v2-03-music.milk",
+      "tags": [
+        "collection:hall-of-fame",
+        "collection:classic-milkdrop",
+        "collection:rovastar-and-collaborators",
+        "popular",
+        "glowsticks",
+        "original-pack",
+        "preset",
+        "collection:audio-reactive",
+        "category:particles",
+        "category:waveform"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "near-exact",
+      "visualCertification": {
+        "status": "certified",
+        "measured": true,
+        "source": "reference-suite",
+        "fidelityClass": "near-exact",
+        "visualEvidenceTier": "visual",
+        "requiredBackend": "webgpu",
+        "actualBackend": "webgpu",
+        "reasons": []
+      },
+      "quality": {
+        "score": 0.8357,
+        "components": {
+          "fidelity": 1,
+          "evidence": 1,
+          "staticAudio": 1,
+          "measuredReactivity": 0.820097789061796,
+          "motion": 0.05711144271102454,
+          "flashPenalty": 0,
+          "duplicatePenalty": 0,
+          "preview": 0.311
+        }
+      },
+      "sensoryProfile": {
+        "flashRiskLevel": "none",
+        "maxTransitionsPerSecondEstimate": 0,
+        "meanLuminance": 0.004008969047218921,
+        "measuredAt": "2026-10-14T02:35:36.478Z"
+      }
+    },
+    {
+      "id": "rovastar-parallel-universe",
+      "title": "Rovastar - Parallel Universe",
+      "author": "Rovastar",
+      "file": "/presets/stims/rovastar-parallel-universe.milk",
+      "tags": [
+        "collection:hall-of-fame",
+        "collection:classic-milkdrop",
+        "collection:cream-of-the-crop",
+        "collection:rovastar-and-collaborators",
+        "popular",
+        "lasers",
+        "cream-of-the-crop",
+        "preset",
+        "collection:audio-reactive",
+        "category:waveform",
+        "category:particles"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.5084,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 1,
+          "measuredReactivity": 0.9413047014053231,
+          "motion": null,
+          "flashPenalty": 0,
+          "duplicatePenalty": 0,
+          "preview": 0.56
+        }
+      },
+      "sensoryProfile": {
+        "flashRiskLevel": "medium",
+        "maxTransitionsPerSecondEstimate": 2,
+        "meanLuminance": 0.1951461291187061,
+        "measuredAt": "2026-10-14T02:35:36.478Z"
+      }
+    },
+    {
+      "id": "eos-phat-cubetrace-v2",
+      "title": "Eo.S. + Phat - Cubetrace v2",
+      "author": "Eo.S. + Phat",
+      "file": "/presets/stims/eos-phat-cubetrace-v2.milk",
+      "tags": [
+        "collection:hall-of-fame",
+        "collection:classic-milkdrop",
+        "collection:cream-of-the-crop",
+        "collection:rovastar-and-collaborators",
+        "popular",
+        "geometry",
+        "cream-of-the-crop",
+        "preset",
+        "collection:audio-reactive",
+        "category:geometric",
+        "category:particles"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.5674,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 1,
+          "measuredReactivity": 0.9913234854204358,
+          "motion": null,
+          "flashPenalty": 0,
+          "duplicatePenalty": 0,
+          "preview": 1
+        }
+      },
+      "sensoryProfile": {
+        "flashRiskLevel": "none",
+        "maxTransitionsPerSecondEstimate": 0,
+        "meanLuminance": 0.11991689696139254,
+        "measuredAt": "2026-10-14T02:35:36.478Z"
+      }
+    },
+    {
+      "id": "krash-rovastar-cerebral-demons-stars",
+      "title": "Krash & Rovastar - Cerebral Demons (Stars Remix)",
+      "author": "Krash & Rovastar",
+      "file": "/presets/stims/krash-rovastar-cerebral-demons-stars.milk",
+      "tags": [
+        "collection:hall-of-fame",
+        "collection:classic-milkdrop",
+        "collection:cream-of-the-crop",
+        "collection:rovastar-and-collaborators",
+        "popular",
+        "comets",
+        "cream-of-the-crop",
+        "preset",
+        "collection:audio-reactive",
+        "category:waveform",
+        "category:particles"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.0674,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 1,
+          "measuredReactivity": 0.9913234854204399,
+          "motion": null,
+          "flashPenalty": 0.5,
+          "duplicatePenalty": 0,
+          "preview": 1
+        }
+      },
+      "sensoryProfile": {
+        "flashRiskLevel": "high",
+        "maxTransitionsPerSecondEstimate": 6,
+        "meanLuminance": 0.2161081136314744,
+        "maxLuminanceDelta": 0.46979980468749993,
+        "measuredAt": "2026-10-27T20:02:17.619Z"
+      }
+    },
+    {
+      "id": "aderrasi-potion-of-spirits",
+      "title": "Aderrasi - Potion of Spirits",
+      "author": "Aderrasi",
+      "file": "/presets/stims/libraries/projectm-cream-of-the-crop/aderrasi-potion-of-spirits.milk",
+      "tags": [
+        "collection:hall-of-fame",
+        "collection:classic-milkdrop",
+        "collection:cream-of-the-crop",
+        "preset",
+        "collection:audio-reactive",
+        "category:waveform",
+        "category:particles"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.4931,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 1,
+          "measuredReactivity": 0.8733758265416562,
+          "motion": null,
+          "flashPenalty": null,
+          "duplicatePenalty": 0,
+          "preview": 0.611
+        }
+      }
+    },
+    {
+      "id": "geiss-casino",
+      "title": "Geiss - Casino",
+      "author": "Geiss",
+      "file": "/presets/stims/libraries/projectm-cream-of-the-crop/geiss-casino.milk",
+      "tags": [
+        "collection:hall-of-fame",
+        "collection:classic-milkdrop",
+        "collection:cream-of-the-crop",
+        "geiss-original",
+        "preset",
+        "category:waveform",
+        "category:particles"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.5522,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 0.5,
+          "measuredReactivity": 0.9408086615319529,
+          "motion": null,
+          "flashPenalty": 0,
+          "duplicatePenalty": 0,
+          "preview": 1
+        }
+      },
+      "sensoryProfile": {
+        "flashRiskLevel": "none",
+        "maxTransitionsPerSecondEstimate": 0,
+        "meanLuminance": 0.1031968843235235,
+        "measuredAt": "2026-10-14T01:19:00.682Z"
+      }
+    },
+    {
+      "id": "shifter-snakeskin",
+      "title": "Shifter - Snakeskin",
+      "author": "Shifter",
+      "file": "/presets/stims/libraries/projectm-cream-of-the-crop/shifter-snakeskin.milk",
+      "tags": [
+        "collection:hall-of-fame",
+        "collection:classic-milkdrop",
+        "collection:cream-of-the-crop",
+        "preset",
+        "category:waveform",
+        "category:particles",
+        "collection:audio-reactive"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.515,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 1,
+          "measuredReactivity": 0.9999999999999972,
+          "motion": null,
+          "flashPenalty": null,
+          "duplicatePenalty": 0,
+          "preview": 0.45
+        }
+      }
+    },
+    {
+      "id": "shifter-swarm",
+      "title": "Shifter - Swarm",
+      "author": "Shifter",
+      "file": "/presets/stims/libraries/projectm-cream-of-the-crop/shifter-swarm.milk",
+      "tags": [
+        "collection:hall-of-fame",
+        "collection:classic-milkdrop",
+        "collection:cream-of-the-crop",
+        "preset",
+        "category:particles",
+        "category:waveform",
+        "collection:audio-reactive"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.5537,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 1,
+          "measuredReactivity": 0.9455354841976273,
+          "motion": null,
+          "flashPenalty": 0,
+          "duplicatePenalty": 0,
+          "preview": 1
+        }
+      },
+      "sensoryProfile": {
+        "flashRiskLevel": "medium",
+        "maxTransitionsPerSecondEstimate": 3,
+        "meanLuminance": 0.708655156391078,
+        "measuredAt": "2026-10-14T02:35:36.478Z"
+      }
+    },
+    {
+      "id": "shifter-curlique",
+      "title": "Shifter - Curlique",
+      "author": "Shifter",
+      "file": "/presets/stims/libraries/projectm-cream-of-the-crop/shifter-curlique.milk",
+      "tags": [
+        "collection:hall-of-fame",
+        "collection:classic-milkdrop",
+        "collection:cream-of-the-crop",
+        "preset",
+        "category:waveform",
+        "category:particles",
+        "collection:audio-reactive"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.57,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 1,
+          "measuredReactivity": 1,
+          "motion": null,
+          "flashPenalty": 0,
+          "duplicatePenalty": 0,
+          "preview": 1
+        }
+      },
+      "sensoryProfile": {
+        "flashRiskLevel": "none",
+        "maxTransitionsPerSecondEstimate": 0,
+        "meanLuminance": 0.10650361362600655,
+        "measuredAt": "2026-10-14T02:35:36.478Z"
+      }
+    },
+    {
+      "id": "rovastar-harlequins-liquid-dragon",
+      "title": "Rovastar - Harlequin's Liquid Dragon",
+      "author": "Rovastar",
+      "file": "/presets/stims/libraries/projectm-cream-of-the-crop/rovastar-harlequins-liquid-dragon.milk",
+      "tags": [
+        "collection:hall-of-fame",
+        "collection:classic-milkdrop",
+        "collection:cream-of-the-crop",
+        "collection:rovastar-and-collaborators",
+        "preset",
+        "collection:audio-reactive",
+        "category:particles",
+        "category:waveform"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.0338,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 1,
+          "measuredReactivity": 0.8793382950863673,
+          "motion": null,
+          "flashPenalty": 0.5,
+          "duplicatePenalty": 0,
+          "preview": 1
+        }
+      },
+      "sensoryProfile": {
+        "flashRiskLevel": "high",
+        "maxTransitionsPerSecondEstimate": 4,
+        "meanLuminance": 0.1391393532918929,
+        "maxLuminanceDelta": 0.44189453125,
+        "measuredAt": "2026-10-27T20:02:17.619Z"
+      }
+    },
+    {
+      "id": "eos-heater-core-c",
+      "title": "Eo.S. - Heater Core C",
+      "author": "Eo.S.",
+      "file": "/presets/stims/libraries/projectm-cream-of-the-crop/eos-heater-core-c.milk",
+      "tags": [
+        "collection:hall-of-fame",
+        "collection:classic-milkdrop",
+        "collection:cream-of-the-crop",
+        "collection:rovastar-and-collaborators",
+        "preset",
+        "collection:audio-reactive",
+        "category:geometric",
+        "category:waveform"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.4695,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 1,
+          "measuredReactivity": 0.9912873749225325,
+          "motion": null,
+          "flashPenalty": null,
+          "duplicatePenalty": 0,
+          "preview": 0.021
+        }
+      }
+    },
+    {
+      "id": "orb-radiation",
+      "title": "Orb - Radiation",
+      "author": "Orb",
+      "file": "/presets/stims/libraries/projectm-cream-of-the-crop/orb-radiation.milk",
+      "tags": [
+        "collection:hall-of-fame",
+        "collection:classic-milkdrop",
+        "collection:cream-of-the-crop",
+        "preset",
+        "collection:audio-reactive",
+        "category:particles",
+        "category:waveform"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.0049,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 1,
+          "measuredReactivity": 0.9851799184295131,
+          "motion": null,
+          "flashPenalty": 0.5,
+          "duplicatePenalty": 0,
+          "preview": 0.393
+        }
+      },
+      "sensoryProfile": {
+        "flashRiskLevel": "high",
+        "maxTransitionsPerSecondEstimate": 8,
+        "meanLuminance": 0.08976273184123265,
+        "maxLuminanceDelta": 0.2746826171875,
+        "measuredAt": "2026-10-27T20:02:17.619Z"
+      }
+    },
+    {
+      "id": "eos-apocalypse",
+      "title": "Eo.S. - Apocalypse",
+      "author": "Eo.S.",
+      "file": "/presets/stims/libraries/projectm-cream-of-the-crop/eos-apocalypse.milk",
+      "tags": [
+        "collection:cream-of-the-crop",
+        "geometry",
+        "preset",
+        "collection:audio-reactive",
+        "category:waveform",
+        "category:particles"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.4973,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 1,
+          "measuredReactivity": 0.9913234854204347,
+          "motion": null,
+          "flashPenalty": 0,
+          "duplicatePenalty": 0,
+          "preview": 0.299
+        }
+      },
+      "sensoryProfile": {
+        "flashRiskLevel": "none",
+        "maxTransitionsPerSecondEstimate": 0,
+        "meanLuminance": 0.03943474746770234,
+        "measuredAt": "2026-10-14T03:22:49.716Z"
+      }
+    },
+    {
+      "id": "dbleja-hovering-over-mars",
+      "title": "Dbleja - Hovering Over Mars",
+      "author": "Dbleja",
+      "file": "/presets/stims/libraries/projectm-cream-of-the-crop/dbleja-hovering-over-mars.milk",
+      "tags": [
+        "collection:cream-of-the-crop",
+        "preset",
+        "category:waveform",
+        "category:particles"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.4467,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 0,
+          "measuredReactivity": 0.9167559612895001,
+          "motion": null,
+          "flashPenalty": null,
+          "duplicatePenalty": 0,
+          "preview": 0.017
+        }
+      }
+    },
+    {
+      "id": "dbleja-hovering-over-pluto",
+      "title": "Dbleja - Hovering Over Pluto",
+      "author": "Dbleja",
+      "file": "/presets/stims/libraries/projectm-cream-of-the-crop/dbleja-hovering-over-pluto.milk",
+      "tags": [
+        "collection:cream-of-the-crop",
+        "preset",
+        "category:waveform",
+        "category:particles"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.4468,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 0,
+          "measuredReactivity": 0.9167559612895001,
+          "motion": null,
+          "flashPenalty": null,
+          "duplicatePenalty": 0,
+          "preview": 0.018
+        }
+      }
+    },
+    {
+      "id": "dbleja-inside-the-tree-blue-mix",
+      "title": "Dbleja - Inside The Tree (Blue Mix)",
+      "author": "Dbleja",
+      "file": "/presets/stims/libraries/projectm-cream-of-the-crop/dbleja-inside-the-tree-blue-mix.milk",
+      "tags": [
+        "collection:cream-of-the-crop",
+        "preset",
+        "category:waveform",
+        "category:particles"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.4541,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 0,
+          "measuredReactivity": 0.9167559612895001,
+          "motion": null,
+          "flashPenalty": null,
+          "duplicatePenalty": 0,
+          "preview": 0.091
+        }
+      }
+    },
+    {
+      "id": "eos-dark-side-of-the-moon-clean-mix",
+      "title": "Eo.S. - Dark Side of the Moon (Clean Mix)",
+      "author": "Eo.S.",
+      "file": "/presets/stims/libraries/projectm-cream-of-the-crop/eos-dark-side-of-the-moon-clean-mix.milk",
+      "tags": [
+        "collection:cream-of-the-crop",
+        "preset",
+        "collection:audio-reactive",
+        "category:waveform",
+        "category:particles"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.5529,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 1,
+          "measuredReactivity": 0.9430446118824816,
+          "motion": null,
+          "flashPenalty": 0,
+          "duplicatePenalty": 0,
+          "preview": 1
+        }
+      },
+      "sensoryProfile": {
+        "flashRiskLevel": "none",
+        "maxTransitionsPerSecondEstimate": 0,
+        "meanLuminance": 0.05222838431687885,
+        "measuredAt": "2026-10-14T03:22:49.716Z"
+      }
+    },
+    {
+      "id": "eos-ether-posession-phat-edit-v3",
+      "title": "Eo.S. - Ether Possession (Phat Edit v3)",
+      "author": "Eo.S. + Phat",
+      "file": "/presets/stims/libraries/projectm-cream-of-the-crop/eos-ether-posession-phat-edit-v3.milk",
+      "tags": [
+        "collection:cream-of-the-crop",
+        "preset",
+        "ambient",
+        "collection:audio-reactive",
+        "category:waveform",
+        "category:particles"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.4655,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 1,
+          "measuredReactivity": 0.9430446118824816,
+          "motion": null,
+          "flashPenalty": 0,
+          "duplicatePenalty": 0,
+          "preview": 0.126
+        }
+      },
+      "sensoryProfile": {
+        "flashRiskLevel": "none",
+        "maxTransitionsPerSecondEstimate": 0,
+        "meanLuminance": 0.0025275705626703975,
+        "measuredAt": "2026-10-14T06:37:19.441Z"
+      }
+    },
+    {
+      "id": "eos-ether",
+      "title": "Eo.S. - Ether",
+      "author": "Eo.S.",
+      "file": "/presets/stims/libraries/projectm-cream-of-the-crop/eos-ether.milk",
+      "tags": [
+        "collection:cream-of-the-crop",
+        "preset",
+        "ambient",
+        "category:waveform",
+        "category:particles"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.516,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 0.5,
+          "measuredReactivity": 0.820097789061796,
+          "motion": null,
+          "flashPenalty": 0,
+          "duplicatePenalty": 0,
+          "preview": 1
+        }
+      },
+      "sensoryProfile": {
+        "flashRiskLevel": "none",
+        "maxTransitionsPerSecondEstimate": 0,
+        "meanLuminance": 0.035455940431594335,
+        "measuredAt": "2026-10-14T03:22:49.716Z"
+      }
+    },
+    {
+      "id": "eos-matrix-cube-c",
+      "title": "Eo.S. - Matrix Cube C",
+      "author": "Eo.S.",
+      "file": "/presets/stims/libraries/projectm-cream-of-the-crop/eos-matrix-cube-c.milk",
+      "tags": [
+        "collection:cream-of-the-crop",
+        "preset",
+        "geometry",
+        "collection:audio-reactive",
+        "category:geometric",
+        "category:fractal"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.5016,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 1,
+          "measuredReactivity": 0.9912873749225325,
+          "motion": null,
+          "flashPenalty": null,
+          "duplicatePenalty": 0,
+          "preview": 0.342
+        }
+      }
+    },
+    {
+      "id": "eos-phat-cat-scan-nirvana",
+      "title": "Eo.S. + Phat - CAT Scan (Nirvana)",
+      "author": "Eo.S. + Phat",
+      "file": "/presets/stims/libraries/projectm-cream-of-the-crop/eos-phat-cat-scan-nirvana.milk",
+      "tags": [
+        "collection:cream-of-the-crop",
+        "preset",
+        "collection:audio-reactive",
+        "category:waveform",
+        "category:particles"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.0674,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 1,
+          "measuredReactivity": 0.9913234854204362,
+          "motion": null,
+          "flashPenalty": 0.5,
+          "duplicatePenalty": 0,
+          "preview": 1
+        }
+      },
+      "sensoryProfile": {
+        "flashRiskLevel": "high",
+        "maxTransitionsPerSecondEstimate": 11,
+        "meanLuminance": 0.45439832742157965,
+        "maxLuminanceDelta": 0.39926757812499997,
+        "measuredAt": "2026-10-27T20:02:17.619Z"
+      }
+    },
+    {
+      "id": "eos-phat-dark-heart",
+      "title": "Eo.S. + Phat - Dark Heart",
+      "author": "Eo.S. + Phat",
+      "file": "/presets/stims/libraries/projectm-cream-of-the-crop/eos-phat-dark-heart.milk",
+      "tags": [
+        "collection:cream-of-the-crop",
+        "preset",
+        "collection:audio-reactive",
+        "category:waveform",
+        "category:particles"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.4974,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 1,
+          "measuredReactivity": 0.9430446118824816,
+          "motion": null,
+          "flashPenalty": 0,
+          "duplicatePenalty": 0,
+          "preview": 0.445
+        }
+      },
+      "sensoryProfile": {
+        "flashRiskLevel": "none",
+        "maxTransitionsPerSecondEstimate": 0,
+        "meanLuminance": 0.015521644314687753,
+        "measuredAt": "2026-10-14T03:22:49.716Z"
+      }
+    },
+    {
+      "id": "eos-phat-linear-clouds-v2",
+      "title": "Eo.S. + Phat - Linear Clouds v2",
+      "author": "Eo.S. + Phat",
+      "file": "/presets/stims/libraries/projectm-cream-of-the-crop/eos-phat-linear-clouds-v2.milk",
+      "tags": [
+        "collection:cream-of-the-crop",
+        "preset",
+        "collection:audio-reactive",
+        "category:particles",
+        "category:waveform"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.5583,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 1,
+          "measuredReactivity": 0.992026393126689,
+          "motion": null,
+          "flashPenalty": 0,
+          "duplicatePenalty": 0,
+          "preview": 0.907
+        }
+      },
+      "sensoryProfile": {
+        "flashRiskLevel": "none",
+        "maxTransitionsPerSecondEstimate": 0,
+        "meanLuminance": 0.10842440861150651,
+        "measuredAt": "2026-10-14T03:22:49.716Z"
+      }
+    },
+    {
+      "id": "eos-phat-magnetosphere-13-pulsar",
+      "title": "Eo.S. + Phat - Magnetosphere 13 Pulsar",
+      "author": "Eo.S. + Phat",
+      "file": "/presets/stims/libraries/projectm-cream-of-the-crop/eos-phat-magnetosphere-13-pulsar.milk",
+      "tags": [
+        "collection:cream-of-the-crop",
+        "preset",
+        "collection:audio-reactive",
+        "category:waveform",
+        "category:particles"
+      ],
+      "preview": true,
+      "supports": {
+        "webgl": true,
+        "webgpu": true
+      },
+      "expectedFidelityClass": "partial",
+      "visualCertification": {
+        "status": "uncertified",
+        "measured": false,
+        "source": "inferred",
+        "fidelityClass": "partial",
+        "visualEvidenceTier": "runtime",
+        "requiredBackend": "webgpu",
+        "actualBackend": null,
+        "reasons": [
+          "No measured WebGPU reference capture is recorded yet."
+        ]
+      },
+      "quality": {
+        "score": 0.5061,
+        "components": {
+          "fidelity": 0.2,
+          "evidence": 0.5,
+          "staticAudio": 1,
+          "measuredReactivity": 0.9430446118824816,
+          "motion": null,
+          "flashPenalty": 0,
+          "duplicatePenalty": 0,
+          "preview": 0.532
+        }
+      },
+      "sensoryProfile": {
+        "flashRiskLevel": "none",
+        "maxTransitionsPerSecondEstimate": 0,
+        "meanLuminance": 0.03847972115739466,
+        "measuredAt": "2026-10-14T03:22:49.716Z"
+      }
+    }
+  ]
+}

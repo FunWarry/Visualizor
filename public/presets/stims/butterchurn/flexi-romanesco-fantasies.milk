@@ -1,0 +1,142 @@
+[preset00]
+fRating=0.000000
+fGammaAdj=1.000000
+bWaveThick=1.000000
+bMaximizeWaveColor=0.000000
+bTexWrap=0.000000
+fWaveAlpha=0.004000
+fWaveScale=0.037000
+fWaveSmoothing=0.000000
+fWaveParam=-0.440000
+fModWaveAlphaStart=1.000000
+fModWaveAlphaEnd=1.000000
+fWarpAnimSpeed=0.377000
+fWarpScale=0.749000
+fZoomExponent=1.503740
+fWarp=0.312180
+fWaveY=0.040000
+fOuterBorderSize=0.005000
+fOuterBorderA=1.000000
+fInnerBorderSize=0.000000
+fInnerBorderR=1.000000
+fInnerBorderG=0.000000
+fInnerBorderB=0.750000
+fInnerBorderA=1.000000
+nMotionVectorsX=64.000000
+nMotionVectorsY=48.000000
+nMotionVectorsLoop=0.000000
+fMotionVectorsB=0.000000
+fMotionVectorsA=0.000000
+wavecode_0_enabled=0.000000
+wavecode_1_enabled=0.000000
+wavecode_2_enabled=0.000000
+wavecode_3_enabled=0.000000
+shapecode_0_enabled=0.000000
+shapecode_1_enabled=1.000000
+shapecode_1_sides=100.000000
+shapecode_1_additive=1.000000
+shapecode_1_thickoutline=1.000000
+shapecode_1_textured=1.000000
+shapecode_1_x=0.740000
+shapecode_1_y=0.270000
+shapecode_1_rad=0.649270
+shapecode_1_ang=3.832740
+shapecode_1_tex_zoom=0.819480
+shapecode_1_g=1.000000
+shapecode_1_g2=0.000000
+shapecode_1_a2=1.000000
+shapecode_1_border_a=0.000000
+shapecode_2_enabled=0.000000
+shapecode_3_enabled=1.000000
+shapecode_3_sides=100.000000
+shapecode_3_thickoutline=1.000000
+shapecode_3_rad=0.166100
+shapecode_3_tex_zoom=0.734580
+shapecode_3_r=0.000000
+shapecode_3_g=1.000000
+shapecode_3_g2=0.000000
+shapecode_3_border_a=0.000000
+per_frame_init_1=w = 0;
+per_frame_init_2=q12 = 0;
+per_frame_init_3=q18 = 0;
+per_frame_init_4=q13 = 0;
+per_frame_init_5=q15 = 0;
+per_frame_init_6=dt = 0;
+per_frame_init_7=dm = 0;
+per_frame_init_8=mm = 0;
+per_frame_init_9=tt = 0;
+per_frame_init_10=q11 = 0;
+per_frame_init_11=q16 = 0;
+per_frame_init_12=db = 0;
+per_frame_init_13=q17 = 0;
+per_frame_init_14=bb = 0;
+per_frame_init_15=q14 = 0;
+per_frame_1=warp = 0;
+per_frame_2=zoom = 1;
+per_frame_3=db = 0.98 * db + 0.1 * bass;
+per_frame_4=bb = bb + 0.1 * db;
+per_frame_5=dt = 0.98 * dt + 0.1 * treb;
+per_frame_6=tt = tt + 0.1 * dt;
+per_frame_7=dm = 0.98 * dm + 0.1 * mid;
+per_frame_8=mm = mm + 0.1 * dm;
+per_frame_9=w = 0.1 * (bb - tt);
+per_frame_10=q11 = sin(w);
+per_frame_11=q12 = cos(w);
+per_frame_12=q13 = 0.5 + 0.25 * sin(0.1 * (bb - mm));
+per_frame_13=q14 = 0.5 + 0.25 * sin(0.1 * (tt - mm));
+per_frame_14=q15 = 4;
+per_frame_15=q16 = 0.06;
+per_frame_16=q17 = sin(-w);
+per_frame_17=q18 = cos(-w);
+shape_1_init1=vx = 0;
+shape_3_init1=vx = 0;
+
+[warp_shader]
+shader_body { 
+  vec3 ret_1;
+  vec2 tmpvar_2;
+  tmpvar_2 = ((uv - 0.5) * vec2(1.8, 1.8));
+  vec2 tmpvar_3;
+  tmpvar_3.x = ((tmpvar_2.x * tmpvar_2.x) - (tmpvar_2.y * tmpvar_2.y));
+  tmpvar_3.y = ((2.0 * tmpvar_2.x) * tmpvar_2.y);
+  ret_1.y = (texture (sampler_fc_main, (tmpvar_3 + vec2(0.5, 0.71))).y + 0.0038);
+  vec4 tmpvar_4;
+  tmpvar_4.w = 1.0;
+  tmpvar_4.xyz = ret_1;
+  ret = tmpvar_4.xyz;
+ }
+
+[comp_shader]
+shader_body { 
+  vec2 uv_rr_1;
+  vec2 uv_r_2;
+  vec2 tmpvar_3;
+  tmpvar_3.x = q13;
+  tmpvar_3.y = q14;
+  vec2 tmpvar_4;
+  tmpvar_4 = ((uv - tmpvar_3) * aspect.xy);
+  vec2 tmpvar_5;
+  tmpvar_5.x = ((q12 * tmpvar_4.x) - (q11 * tmpvar_4.y));
+  tmpvar_5.y = ((q11 * tmpvar_4.x) + (q12 * tmpvar_4.y));
+  uv_r_2 = (q15 * tmpvar_5);
+  uv_r_2 = (tmpvar_3 + (uv_r_2 * aspect.zw));
+  uv_r_2 = (1.0 - abs((
+    (fract((uv_r_2 * 0.5)) * 2.0)
+   - 1.0)));
+  vec2 tmpvar_6;
+  tmpvar_6 = ((uv_r_2 - tmpvar_3) * aspect.xy);
+  vec2 tmpvar_7;
+  tmpvar_7.x = ((q18 * tmpvar_6.x) - (q17 * tmpvar_6.y));
+  tmpvar_7.y = ((q17 * tmpvar_6.x) + (q18 * tmpvar_6.y));
+  uv_rr_1 = (q15 * tmpvar_7);
+  uv_rr_1 = (tmpvar_3 + ((
+    (uv_rr_1 - tmpvar_3)
+   * aspect.zw) * q16));
+  uv_rr_1 = (1.0 - abs((
+    (fract((uv_rr_1 * 0.5)) * 2.0)
+   - 1.0)));
+  vec4 tmpvar_8;
+  tmpvar_8.w = 1.0;
+  tmpvar_8.xyz = texture (sampler_main, uv_rr_1).xyz;
+  ret = tmpvar_8.xyz;
+ }

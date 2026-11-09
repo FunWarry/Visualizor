@@ -74,10 +74,84 @@ export class MilkdropEngine {
     }
   }
 
-  public loadPreset(name: string, blendTime = 2.0) {
-    if (!this.visualizer || !this.presets[name]) return;
+  public loadPreset(name: string, blendTime = 2.0): boolean {
+    if (!name || typeof name !== 'string') return false;
+
+    const resolvedKey = this.resolvePresetKey(name);
+    const presetObj = this.presets[name] ?? (resolvedKey ? this.presets[resolvedKey] : undefined);
+
     this.currentPresetName = name;
-    this.visualizer.loadPreset(this.presets[name], blendTime);
+
+    if (!this.visualizer || !presetObj) {
+      return Boolean(presetObj);
+    }
+
+    try {
+      this.visualizer.loadPreset(presetObj, blendTime);
+      return true;
+    } catch (err) {
+      console.warn('MilkdropEngine loadPreset fallback note:', err);
+      // Fallback to first safe preset if custom/resolved preset failed compilation
+      if (this.presetNames.length > 0) {
+        try {
+          const safeKey = this.presetNames[0];
+          this.visualizer.loadPreset(this.presets[safeKey], blendTime);
+          return true;
+        } catch {
+          // Ignore secondary fallback error
+        }
+      }
+      return false;
+    }
+  }
+
+  public registerCustomPreset(id: string, presetObj: unknown): void {
+    if (!id || !presetObj || typeof presetObj !== 'object') return;
+    this.presets[id] = presetObj;
+    if (!this.presetNames.includes(id)) {
+      this.presetNames.push(id);
+    }
+  }
+
+  public resolvePresetKey(nameOrId: string): string {
+    if (!nameOrId) return this.presetNames[0] || '';
+    if (this.presets[nameOrId]) return nameOrId;
+    if (this.presetNames.length === 0) return '';
+
+    const normalizedTarget = nameOrId.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const targetTokens = normalizedTarget.split(/\s+/).filter(t => t.length > 2);
+
+    let bestKey = '';
+    let bestScore = 0;
+
+    for (const key of this.presetNames) {
+      const normKey = key.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+      if (normKey === normalizedTarget || normKey.includes(normalizedTarget)) {
+        return key;
+      }
+      let score = 0;
+      for (const token of targetTokens) {
+        if (normKey.includes(token)) {
+          score += token.length;
+        }
+      }
+      if (score > bestScore) {
+        bestScore = score;
+        bestKey = key;
+      }
+    }
+
+    if (bestKey && bestScore >= 4) {
+      return bestKey;
+    }
+
+    // Deterministic hash fallback into available Butterchurn presets so Stims IDs always render live shaders
+    let hash = 0;
+    for (let i = 0; i < nameOrId.length; i++) {
+      hash = ((hash << 5) - hash + (nameOrId.codePointAt(i) ?? 0)) | 0;
+    }
+    const idx = Math.abs(hash) % this.presetNames.length;
+    return this.presetNames[idx];
   }
 
   public loadCustomPreset(presetObj: unknown, blendTime = 2.0) {

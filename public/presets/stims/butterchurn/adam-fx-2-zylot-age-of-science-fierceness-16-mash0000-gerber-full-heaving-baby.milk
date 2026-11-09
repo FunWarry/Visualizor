@@ -1,0 +1,154 @@
+[preset00]
+fRating=1.000000
+nWaveMode=1.000000
+fWaveAlpha=0.001000
+fWaveScale=0.133000
+fWaveParam=-0.380000
+fWarpScale=1.331000
+fZoom=0.999510
+fWarp=0.010000
+fWaveR=0.500000
+fWaveG=0.500000
+fWaveB=0.500000
+fOuterBorderSize=0.000000
+fOuterBorderR=0.010000
+fOuterBorderA=1.000000
+fInnerBorderSize=0.000000
+fInnerBorderA=1.000000
+fMotionVectorsA=0.000000
+wavecode_0_enabled=1.000000
+wavecode_0_thick=1.000000
+wavecode_1_enabled=1.000000
+wavecode_1_thick=1.000000
+wavecode_2_enabled=1.000000
+wavecode_2_thick=1.000000
+wavecode_3_enabled=1.000000
+wavecode_3_thick=1.000000
+shapecode_0_enabled=0.000000
+shapecode_1_enabled=0.000000
+shapecode_2_enabled=0.000000
+shapecode_3_enabled=0.000000
+per_frame_init_1=xpos = 0;
+per_frame_init_2=star = 0;
+per_frame_init_3=cdelay1 = 0;
+per_frame_init_4=cdelay2 = 0;
+per_frame_init_5=b1a = 0;
+per_frame_init_6=q1 = 0;
+per_frame_init_7=q5 = 0;
+per_frame_init_8=counter2 = 0;
+per_frame_init_9=ib_bb = 0;
+per_frame_init_10=musictime = 0;
+per_frame_init_11=ib_rr = 0;
+per_frame_init_12=q4 = 0;
+per_frame_init_13=ypos = 0;
+per_frame_init_14=colorcounter = 0;
+per_frame_init_15=zm = 0;
+per_frame_init_16=rd = 0;
+per_frame_init_17=b1b = 0;
+per_frame_init_18=ib_gg = 0;
+per_frame_init_19=ag = 0;
+per_frame_init_20=q2 = 0;
+per_frame_init_21=counter1 = 0;
+per_frame_init_22=q3 = 0;
+per_frame_init_23=b1 = 0;
+per_frame_1=wave_a = 0;
+per_frame_2=counter1 = if(0.00001 < abs(equal(counter2, 1)), if(0.00001 < abs(equal(counter1, 1)), 0, counter1 + 0.2), 1);
+per_frame_3=counter2 = if(0.00001 < abs(equal(counter1, 1)), if(0.00001 < abs(equal(counter2, 1)), 0, counter2 + 0.2), 1);
+per_frame_4=cdelay1 = if(0.00001 < abs(equal(cdelay2, 1)), 1, if(0.00001 < abs(equal(mod(colorcounter, 2), 1)), if(0.00001 < abs(equal(counter1, 1)), 2, 0), if(0.00001 < abs(equal(counter2, 1)), 2, 0)));
+per_frame_5=cdelay2 = if(0.00001 < abs(equal(cdelay1, 2)), 1, 0);
+per_frame_6=colorcounter = if(0.00001 < abs(above(colorcounter, 7)), 0, if(0.00001 < abs(equal(cdelay1, 1)), colorcounter + 1, colorcounter));
+per_frame_7=ib_rr = 0.5 * if(0.00001 < abs(equal(colorcounter, 1)), 1, if(0.00001 < abs(equal(colorcounter, 2)), 1, if(0.00001 < abs(equal(colorcounter, 3)), 1, if(0.00001 < abs(equal(colorcounter, 4)), sin(counter2 + 2.1), if(0.00001 < abs(equal(colorcounter, 5)), 0, if(0.00001 < abs(equal(colorcounter, 6)), 0, sin(counter1)))))));
+per_frame_8=ib_gg = 0.5 * if(0.00001 < abs(equal(colorcounter, 1)), 0, if(0.00001 < abs(equal(colorcounter, 2)), sin(0.5 * counter2), if(0.00001 < abs(equal(colorcounter, 3)), sin(0.4 * (counter1 + 1.75)), if(0.00001 < abs(equal(colorcounter, 4)), 1, if(0.00001 < abs(equal(colorcounter, 5)), 1, if(0.00001 < abs(equal(colorcounter, 6)), sin(counter2 + 2), 0))))));
+per_frame_9=ib_bb = if(0.00001 < abs(equal(colorcounter, 1)), sin(counter1 + 2.1), if(0.00001 < abs(equal(colorcounter, 2)), 0, if(0.00001 < abs(equal(colorcounter, 3)), 0, if(0.00001 < abs(equal(colorcounter, 4)), 0, if(0.00001 < abs(equal(colorcounter, 5)), sin(counter1), exec2(equal(colorcounter, 6), 1))))));
+per_frame_10=ib_r = tan(24 * time);
+per_frame_11=ib_r = min(ib_r, 1);
+per_frame_12=ib_r = max(ib_r, 0);
+per_frame_13=ib_g = tan(24 * time + 3.14);
+per_frame_14=ib_g = min(ib_g, 1);
+per_frame_15=ib_g = max(ib_g, 0);
+per_frame_16=ib_b = tan(24 * time + 6.28);
+per_frame_17=ib_b = min(ib_b, 1);
+per_frame_18=ib_b = max(ib_b, 0);
+per_frame_19=ob_r = ib_r - 0.5;
+per_frame_20=ob_g = ib_g - 0.5;
+per_frame_21=ob_b = ib_b - 0.5;
+per_frame_22=q1 = ib_rr;
+per_frame_23=q2 = 1 - ib_gg;
+per_frame_24=q3 = ib_bb;
+per_frame_25=decay = 1;
+per_frame_26=musictime = musictime + mid * mid * mid * 0.01 * (75 / fps);
+per_frame_27=xpos = 0.5 * sin(0.6 * musictime);
+per_frame_28=ypos = 0.5 * sin(0.4 * musictime);
+per_frame_29=q4 = xpos;
+per_frame_30=q5 = ypos;
+per_pixel_1=zoom = 0.91;
+per_pixel_2=cx = 0.5 + q4;
+per_pixel_3=cy = 0.5 - q5;
+per_pixel_4=rd = sqrt(sqr(2 * (x - 0.5 - q4)) + sqr(1.5 * (y - 0.5 + q5)));
+per_pixel_5=zm = 1;
+per_pixel_6=ag = atan((y - 0.5 + q5) / (x - 0.5 - q4));
+per_pixel_7=star = sin(ag / 5) * (2 - rd) + 0.1 * pow(0.5 * tan(200.96 * rd) + 0.5, 2) + rd / 3;
+per_pixel_8=star = min(star, 8);
+per_pixel_9=star = max(star, -8);
+per_pixel_10=zm = zm + star / 20;
+per_pixel_11=sx = zm;
+per_pixel_12=sy = zm;
+per_pixel_13=rot = 0.1 * (above(rd, 0.7) / (rd + 7)) * bass_att / rd;
+per_pixel_14=dx = 0.005 * sin(50 * x) * bass * ag;
+per_pixel_15=dy = 0.005 * cos(50 * y) * bass * ag;
+per_pixel_16=b1a = 0.13 * mid;
+per_pixel_17=b1b = 0.12 * (bass + mid + treb);
+per_pixel_18=b1 = 1.1 * b1b * rd * rd * rd * rd;
+per_pixel_19=zoom = 0.97 + 0.1 * b1;
+wave_0_per_frame1=r = 0.8 + 0.2 * sin(1.444 * time);
+wave_0_per_frame2=g = 0.8 + 0.2 * sin(1.2233 * time);
+wave_0_per_frame3=b = 0.8 + 0.2 * sin(1.332211 * time);
+wave_0_per_point1=x = 0.5 + 3 * sin(20 * sample) * value1;
+wave_0_per_point2=y = 0.5 + 3 * cos(20 * sample) * value2;
+wave_1_init1=tme = 0;
+wave_1_init2=tme = 0;
+wave_1_per_point1=tme = tme + 0.5 * bass;
+wave_1_per_point2=x = 0.5 + 0.24 * sin(6.2831852 * sample);
+wave_1_per_point3=y = 0.5 + 0.24 * cos(6.2831852 * sample);
+wave_1_per_point4=r = sin(20 * sample + 0.0002 * tme);
+wave_1_per_point5=g = 0;
+wave_1_per_point6=b = 0;
+wave_1_per_point7=a = 0.5 + sin(20 * sample + 0.0002 * tme);
+wave_1_per_point8=a = if(0.00001 < abs(below(a, 0)), 0, a);
+wave_2_init1=tme = 0;
+wave_2_init2=tme = 0;
+wave_2_per_point1=tme = tme + 0.5 * treb;
+wave_2_per_point2=x = 0.5 + 0.241 * sin(6.2831852 * sample);
+wave_2_per_point3=y = 0.5 + 0.241 * cos(6.2831852 * sample);
+wave_2_per_point4=r = 0;
+wave_2_per_point5=g = sin(20 * sample + 0.0002 * tme);
+wave_2_per_point6=b = 0;
+wave_2_per_point7=a = 0.5 + sin(20 * sample + 0.0002 * tme);
+wave_2_per_point8=a = if(0.00001 < abs(below(a, 0)), 0, a);
+wave_3_init1=tme = 0;
+wave_3_per_point1=tme = tme + 0.5 * mid;
+wave_3_per_point2=x = 0.5 + 0.242 * sin(6.2831852 * sample);
+wave_3_per_point3=y = 0.5 + 0.242 * cos(6.2831852 * sample);
+wave_3_per_point4=r = 0;
+wave_3_per_point5=g = 0;
+wave_3_per_point6=b = sin(20 * sample + 0.0002 * tme);
+wave_3_per_point7=a = 0.5 + sin(20 * sample + 0.0002 * tme);
+wave_3_per_point8=a = if(0.00001 < abs(below(a, 0)), 0, a);
+
+[comp_shader]
+uniform sampler2D sampler_smalltiled_electric_nebula;
+ shader_body { 
+  vec4 tmpvar_1;
+  tmpvar_1 = texture (sampler_main, uv);
+  vec2 tmpvar_2;
+  tmpvar_2.x = ((uv.x + 0.5) + q1);
+  tmpvar_2.y = ((uv.y + 0.5) + q2);
+  vec4 tmpvar_3;
+  tmpvar_3.w = 1.0;
+  tmpvar_3.xyz = mix ((texture (sampler_smalltiled_electric_nebula, (
+    (tmpvar_2 * texsize.xy)
+   * texsize_smalltiled_electric_nebula.zw)).xyz * (
+    ((bass + mid) + treb)
+   * 0.5)), tmpvar_1.xyz, (tmpvar_1.xyz * 2.5));
+  ret = tmpvar_3.xyz;
+ }

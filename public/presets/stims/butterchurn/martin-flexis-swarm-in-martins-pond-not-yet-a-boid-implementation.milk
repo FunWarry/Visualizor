@@ -1,0 +1,313 @@
+[preset00]
+fRating=3.000000
+fGammaAdj=1.000000
+bWaveThick=1.000000
+bTexWrap=0.000000
+fWaveAlpha=0.004000
+fWaveScale=0.037000
+fWaveSmoothing=0.000000
+fWaveParam=-0.440000
+fModWaveAlphaStart=1.000000
+fModWaveAlphaEnd=1.000000
+fWarpAnimSpeed=0.803000
+fWarpScale=1.220000
+fZoomExponent=1.503740
+fWarp=0.312180
+fWaveY=0.040000
+fOuterBorderSize=0.000000
+fOuterBorderA=1.000000
+fInnerBorderSize=0.000000
+fInnerBorderR=1.000000
+fInnerBorderG=0.000000
+fInnerBorderB=0.750000
+fInnerBorderA=1.000000
+nMotionVectorsX=64.000000
+nMotionVectorsY=48.000000
+nMotionVectorsLoop=0.000000
+fMotionVectorsB=0.000000
+fMotionVectorsA=0.000000
+b1ed=0.000000
+wavecode_0_enabled=0.000000
+wavecode_1_enabled=0.000000
+wavecode_2_enabled=0.000000
+wavecode_3_enabled=0.000000
+shapecode_0_enabled=0.000000
+shapecode_1_enabled=0.000000
+shapecode_2_enabled=0.000000
+shapecode_3_enabled=1.000000
+shapecode_3_sides=3.000000
+shapecode_3_additive=1.000000
+shapecode_3_num_inst=400.000000
+shapecode_3_rad=0.162830
+shapecode_3_tex_zoom=0.734580
+shapecode_3_g=1.000000
+shapecode_3_b=1.000000
+shapecode_3_g2=0.000000
+shapecode_3_border_a=0.000000
+per_frame_init_1=fric = 0;
+per_frame_init_2=d = 0;
+per_frame_init_3=nliststart = 0;
+per_frame_init_4=w = 0;
+per_frame_init_5=random = 0;
+per_frame_init_6=index2 = 0;
+per_frame_init_7=index = 0;
+per_frame_init_8=w2 = 0;
+per_frame_init_9=rotatefactor = 0;
+per_frame_init_10=ref_ang = 0;
+per_frame_init_11=smaller = 0;
+per_frame_init_12=dt = 0;
+per_frame_init_13=q1 = 0;
+per_frame_init_14=j = 0;
+per_frame_init_15=v = 0;
+per_frame_init_16=bend_force = 0;
+per_frame_init_17=count = 0;
+per_frame_init_18=shock = 0;
+per_frame_init_19=nn = 0;
+per_frame_init_20=vrr = 0;
+per_frame_init_21=check = 0;
+per_frame_init_22=gravity = 0;
+per_frame_init_23=vr2 = 0;
+per_frame_init_24=direction = 0;
+per_frame_init_25=bouncefactor = 0;
+per_frame_init_26=smallestfind = 0;
+per_frame_init_27=distance = 0;
+per_frame_init_28=bend = 0;
+per_frame_init_29=bounce = 0;
+per_frame_init_30=vr = 0;
+per_frame_init_31=vv1 = 0;
+per_frame_init_32=vv2 = 0;
+per_frame_init_33=vrr2 = 0;
+per_frame_init_34=w1 = 0;
+per_frame_init_35=attributes = 0;
+per_frame_init_36=i = 0;
+per_frame_init_37=m2 = 0;
+per_frame_init_38=hit = 0;
+per_frame_init_39=q2 = 0;
+per_frame_init_40=m1 = 0;
+per_frame_init_41=h = 0;
+per_frame_init_42=v1 = 0;
+per_frame_init_43=q3 = 0;
+per_frame_init_44=acceleration = 0;
+per_frame_init_45=findindex = 0;
+per_frame_init_46=friction = 0;
+per_frame_init_47=pi2 = 0;
+per_frame_init_48=sample = 0;
+per_frame_init_49=v2 = 0;
+per_frame_init_50=dampening = 0;
+per_frame_init_51=i = 0;
+per_frame_init_52=b = i;
+per_frame_init_53=while(1048576 > b, gmegabuf(floor(i)) = 0; i = i + 1; b = b + 1;);
+per_frame_init_54=count = 50;
+per_frame_init_55=attributes = 32;
+per_frame_init_56=nliststart = 24;
+per_frame_init_57=minradius = 0.01;
+per_frame_init_58=maxradius = 0.0333;
+per_frame_init_59=v = 0;
+per_frame_init_60=index = 0;
+per_frame_init_61=b = index;
+per_frame_init_62=while(b < count, gmegabuf(floor(index * attributes)) = randint(1000) / 1000; gmegabuf(floor(index * attributes + 1)) = randint(1000) / 1000; gmegabuf(floor(index * attributes + 2)) = v * (randint(1000) / 1000 - 0.5); gmegabuf(floor(index * attributes + 3)) = v * (randint(1000) / 1000 - 0.5); gmegabuf(floor(index * attributes + 4)) = minradius + (maxradius - minradius) * (index + 1) / count; gmegabuf(floor(index * attributes + 5)) = randint(1000) / 1000; gmegabuf(floor(index * attributes + 6)) = randint(1000) / 1000; gmegabuf(floor(index * attributes + 7)) = randint(1000) / 1000; gmegabuf(floor(index * attributes + 8)) = pow(gmegabuf(floor(index * attributes + 4)), 3); gmegabuf(floor(index * attributes + 9)) = 4 * asin(1) * randint(1000) / 1000; gmegabuf(floor(index * attributes + 10)) = 0; gmegabuf(floor(index * attributes + 13)) = index / count; index = index + 1; b = b + 1;);
+per_frame_init_63=q30 = nliststart;
+per_frame_init_64=q31 = count;
+per_frame_init_65=q32 = attributes;
+per_frame_1=random = randint(1000) / 1000;
+per_frame_2=dt = 1 / fps;
+per_frame_3=bend_force = 0.92 * bend_force - 4 * bend * dt + 2 * (random - 0.5) * dt;
+per_frame_4=bend = bend + 60 * bend_force * dt;
+per_frame_5=q3 = 4 * bend;
+per_frame_6=monitor = bend;
+per_frame_7=warp = 0;
+per_frame_8=zoom = 1;
+per_frame_9=gravity = 0 * dt;
+per_frame_10=dampening = 0;
+per_frame_11=friction = 2048 * dt;
+per_frame_12=shock = 0.002;
+per_frame_13=pi2 = asin(1);
+per_frame_14=nn = 3;
+per_frame_15=check = 2;
+per_frame_16=bouncefactor = 0.1;
+per_frame_17=rotatefactor = 0;
+per_frame_18=h = 0.5 * (aspecty - 1);
+per_frame_19=w = 0.5 * (aspectx - 1);
+per_frame_20=index = 0;
+per_frame_21=index2 = 0;
+per_frame_22=c = index2;
+per_frame_23=while(c < count, random = randint(1000) / 1000; sample = gmegabuf(floor(index + 13)); gmegabuf(floor(index + 11)) = 0.92 * gmegabuf(floor(index + 11)) - 4 * gmegabuf(floor(index + 12)) * dt + 2 * (random - 0.5) * dt * (0.4 * bass * sample + 0.5 * treb * (1 - sample)); gmegabuf(floor(index + 12)) = gmegabuf(floor(index + 12)) + 60 * gmegabuf(floor(index + 11)) * dt; v = sqrt(sqr(gmegabuf(floor(index + 2))) + sqr(gmegabuf(floor(index + 3)))); fric = max(0, 1 - sqr(v * friction) - 2 * v); gmegabuf(floor(index + 2)) = gmegabuf(floor(index + 2)) * fric; gmegabuf(floor(index + 3)) = gmegabuf(floor(index + 3)) * fric; gmegabuf(floor(index + 10)) = gmegabuf(floor(index + 10)) * fric + v * gmegabuf(floor(index + 12)) * 0; acceleration = 0 * random + 0.003 * abs(gmegabuf(floor(index + 11))); direction = gmegabuf(floor(index + 9)) - pi2; gmegabuf(floor(index + 2)) = gmegabuf(floor(index + 2)) + sin(direction) * acceleration; gmegabuf(floor(index + 3)) = gmegabuf(floor(index + 3)) + cos(direction) * acceleration; gmegabuf(floor(index)) = gmegabuf(floor(index)) + 60 * gmegabuf(floor(index + 2)) * dt; gmegabuf(floor(index + 1)) = gmegabuf(floor(index + 1)) + 60 * gmegabuf(floor(index + 3)) * dt; gmegabuf(floor(index + 9)) = gmegabuf(floor(index + 9)) + 0.5 * gmegabuf(floor(index + 10)); gmegabuf(floor(index + 3)) = gmegabuf(floor(index + 3)) - gravity; vr = sin(gmegabuf(floor(index + 10))) * gmegabuf(floor(index + 4)); bounce = above(gmegabuf(floor(index + 1)), 1 - gmegabuf(floor(index + 4)) + w); gmegabuf(floor(index + 2)) = if(0.00001 < abs(bounce), gmegabuf(floor(index + 2)) + (vr + gmegabuf(floor(index + 2))) * rotatefactor, gmegabuf(floor(index + 2))); gmegabuf(floor(index + 3)) = if(0.00001 < abs(bounce), -abs(gmegabuf(floor(index + 3))) * dampening - shock, gmegabuf(floor(index + 3))); vr = if(0.00001 < abs(bounce), vr - (gmegabuf(floor(index + 2)) + vr) * (1 - rotatefactor), vr); bounce = below(gmegabuf(floor(index + 1)), gmegabuf(floor(index + 4)) - w); gmegabuf(floor(index + 2)) = if(0.00001 < abs(bounce), gmegabuf(floor(index + 2)) + (vr - gmegabuf(floor(index + 2))) * rotatefactor, gmegabuf(floor(index + 2))); gmegabuf(floor(index + 3)) = if(0.00001 < abs(bounce), abs(gmegabuf(floor(index + 3))) * dampening + shock, gmegabuf(floor(index + 3))); vr = if(0.00001 < abs(bounce), vr + (gmegabuf(floor(index + 2)) - vr) * (1 - rotatefactor), vr); bounce = above(gmegabuf(floor(index)), 1 - gmegabuf(floor(index + 4)) + h); gmegabuf(floor(index + 2)) = if(0.00001 < abs(bounce), -abs(gmegabuf(floor(index + 2))) * dampening - shock, gmegabuf(floor(index + 2))); gmegabuf(floor(index + 3)) = if(0.00001 < abs(bounce), gmegabuf(floor(index + 3)) + (vr - gmegabuf(floor(index + 3))) * rotatefactor, gmegabuf(floor(index + 3))); vr = if(0.00001 < abs(bounce), vr + (gmegabuf(floor(index + 3)) - vr) * (1 - rotatefactor), vr); bounce = below(gmegabuf(floor(index)), gmegabuf(floor(index + 4)) - h); gmegabuf(floor(index + 2)) = if(0.00001 < abs(bounce), abs(gmegabuf(floor(index + 2))) * dampening + shock, gmegabuf(floor(index + 2))); gmegabuf(floor(index + 3)) = if(0.00001 < abs(bounce), gmegabuf(floor(index + 3)) - (vr + gmegabuf(floor(index + 3))) * rotatefactor, gmegabuf(floor(index + 3))); vr = if(0.00001 < abs(bounce), vr - (gmegabuf(floor(index + 3)) + vr) * (1 - rotatefactor), vr); gmegabuf(floor(index + 10)) = asin(vr / gmegabuf(floor(index + 4))); i = 0; j = 0; b = j; while(b < count, d = sqrt(sqr(gmegabuf(floor(index)) - gmegabuf(floor(i))) + sqr(gmegabuf(floor(index + 1)) - gmegabuf(floor(i + 1)))); d = if(0.00001 < abs(equal(d, 0)), 10, d); d = d - 0.5 * (gmegabuf(floor(index + 4)) + gmegabuf(floor(i + 4))); megabuf(floor(j)) = i; megabuf(floor(j + 1)) = d; j = j + 2; i = i + attributes; b = b + 1;); i = 0; b = i; while(b < nn, j = i; smallestfind = 10; findindex = -1; d = 0; while(d < count - j, distance = megabuf(floor(2 * j + 1)); smaller = above(smallestfind, distance); smallestfind = if(0.00001 < abs(smaller), distance, smallestfind); findindex = if(0.00001 < abs(smaller), 2 * j, findindex); j = j + 1; d = d + 1;); j = megabuf(floor(2 * i)); d = megabuf(floor(2 * i + 1)); megabuf(floor(2 * i)) = megabuf(floor(findindex)); megabuf(floor(2 * i + 1)) = megabuf(floor(findindex + 1)); megabuf(floor(findindex)) = j; megabuf(floor(findindex + 1)) = d; i = i + 1; b = b + 1;); i = 0; b = i; while(b < nn, gmegabuf(floor(index + nliststart + i)) = megabuf(floor(2 * i)); i = i + 1; b = b + 1;); i = 0; b = i; while(b < check, index2 = megabuf(floor(i)); hit = below(sqrt(sqr(gmegabuf(floor(index)) - gmegabuf(floor(index2))) + sqr(gmegabuf(floor(index + 1)) - gmegabuf(floor(index2 + 1)))), gmegabuf(floor(index + 4)) + gmegabuf(floor(index2 + 4))) * above(sqrt(sqr(gmegabuf(floor(index)) - gmegabuf(floor(index2))) + sqr(gmegabuf(floor(index + 1)) - gmegabuf(floor(index2 + 1)))), sqrt(sqr(gmegabuf(floor(index + 0)) - gmegabuf(floor(index2 + 0)) + gmegabuf(floor(index + 2)) - gmegabuf(floor(index2 + 2))) + sqr(gmegabuf(floor(index + 1)) - gmegabuf(floor(index2 + 1)) + gmegabuf(floor(index + 3)) - gmegabuf(floor(index2 + 3))))); ref_ang = atan2(gmegabuf(floor(index2)) - gmegabuf(floor(index)), gmegabuf(floor(index2 + 1)) - gmegabuf(floor(index + 1))) + pi2; v1 = sqrt(sqr(gmegabuf(floor(index + 2))) + sqr(gmegabuf(floor(index + 3)))); v2 = sqrt(sqr(gmegabuf(floor(index2 + 2))) + sqr(gmegabuf(floor(index2 + 3)))); w1 = atan2(gmegabuf(floor(index + 2)), gmegabuf(floor(index + 3))); w2 = atan2(gmegabuf(floor(index2 + 2)), gmegabuf(floor(index2 + 3))); vr2 = sin(gmegabuf(floor(index2 + 10))) * gmegabuf(floor(index2 + 4)); m1 = gmegabuf(floor(index + 8)); m2 = gmegabuf(floor(index2 + 8)); vv1 = ((m1 - m2) * v1 + 2 * m2 * v2) / (m1 + m2); vv2 = ((m2 - m1) * v2 + 2 * m1 * v1) / (m1 + m2); vrr = ((m1 - m2) * vr + 2 * m2 * vr2) / (m1 + m2); vrr2 = ((m2 - m1) * vr2 + 2 * m1 * vr) / (m1 + m2); gmegabuf(floor(index + 2)) = if(0.00001 < abs(hit), sin(ref_ang) * v1 * cos(w1 - ref_ang) + (vr - vr2 - sin(ref_ang) * v1 * cos(w1 - ref_ang)) * rotatefactor + cos(ref_ang) * vv1 * sin(w2 - ref_ang), gmegabuf(floor(index + 2))); gmegabuf(floor(index + 3)) = if(0.00001 < abs(hit), cos(ref_ang) * v1 * cos(w1 - ref_ang) + (vr - vr2 - cos(ref_ang) * v1 * cos(w1 - ref_ang)) * rotatefactor - sin(ref_ang) * vv1 * sin(w2 - ref_ang), gmegabuf(floor(index + 3))); gmegabuf(floor(index2 + 2)) = if(0.00001 < abs(hit), sin(ref_ang) * v2 * cos(w2 - ref_ang) + (vr2 - vr - sin(ref_ang) * v2 * cos(w2 - ref_ang)) * rotatefactor + cos(ref_ang) * vv2 * sin(w1 - ref_ang), gmegabuf(floor(index2 + 2))); gmegabuf(floor(index2 + 3)) = if(0.00001 < abs(hit), cos(ref_ang) * v2 * cos(w2 - ref_ang) + (vr2 - vr - cos(ref_ang) * v2 * cos(w2 - ref_ang)) * rotatefactor - sin(ref_ang) * vv2 * sin(w1 - ref_ang), gmegabuf(floor(index2 + 3))); vr = if(0.00001 < abs(hit), vrr + (cos(w1 - ref_ang) * (v1 - v2) - vrr) * (1 - rotatefactor), vr); gmegabuf(floor(index + 10)) = asin(vr / gmegabuf(floor(index + 4))); vr2 = if(0.00001 < abs(hit), vrr2 + (cos(w2 - ref_ang) * (v2 - v1) - vrr2) * (1 - rotatefactor), vr2); gmegabuf(floor(index2 + 10)) = asin(vr2 / gmegabuf(floor(index2 + 4))); i = i + 2; b = b + 1;); index = index + attributes; c = c + 1;);
+per_frame_24=q1 = aspectx;
+per_frame_25=q2 = aspecty;
+shape_3_init1=bending = 0;
+shape_3_init2=ppo = 0;
+shape_3_init3=index = 0;
+shape_3_init4=i3 = 0;
+shape_3_init5=dir = 0;
+shape_3_init6=i4 = 0;
+shape_3_init7=size = 0;
+shape_3_init8=q2 = 0;
+shape_3_init9=q32 = 0;
+shape_3_init10=sample = 0;
+shape_3_init11=i3 = 0;
+shape_3_init12=i4 = 0;
+shape_3_per_frame1=i3 = if(0.00001 < abs(equal(instance, 0)), 0, i3);
+shape_3_per_frame2=i4 = if(0.00001 < abs(equal(instance, 0)), 0, i4);
+shape_3_per_frame3=ppo = 8;
+shape_3_per_frame4=index = i4 * q32;
+shape_3_per_frame5=sample = mod(i3, ppo);
+shape_3_per_frame6=size = 40 * gmegabuf(floor(index + 4));
+shape_3_per_frame7=x = gmegabuf(floor(index));
+shape_3_per_frame8=y = gmegabuf(floor(index + 1));
+shape_3_per_frame9=ang = gmegabuf(floor(index + 9));
+shape_3_per_frame10=rad = 0.05 * size;
+shape_3_per_frame11=r = gmegabuf(floor(index + 5));
+shape_3_per_frame12=g = gmegabuf(floor(index + 6));
+shape_3_per_frame13=b = gmegabuf(floor(index + 7));
+shape_3_per_frame14=sample = sample / ppo;
+shape_3_per_frame15=bending = 5 * gmegabuf(floor(index + 12)) + 5 * gmegabuf(floor(index + 10));
+shape_3_per_frame16=dir = -ang + (sample - 0.4) * bending;
+shape_3_per_frame17=ang = 1.5 * asin(1) - dir + 0.05 * bending;
+shape_3_per_frame18=x = x + (0.06 * (sample - 0.3) * cos(dir) * size + sin(dir) * size * bending * 0.01);
+shape_3_per_frame19=y = y + (0.06 * (sample - 0.3) * sin(dir) * size - cos(dir) * size * bending * 0.01);
+shape_3_per_frame20=x = 0.5 + (x - 0.5) / q2;
+shape_3_per_frame21=rad = 1.5 * rad - 0.05 * sample * size;
+shape_3_per_frame22=i3 = i3 + 1;
+shape_3_per_frame23=i4 = if(0.00001 < abs(equal(mod(i3, ppo), 0)), i4 + 1, i4);
+
+[warp_shader]
+vec2 pix;
+float xlat_mutablebuf2;
+ shader_body { 
+  pix = (texsize.zw * 2.0);
+  vec3 res_1;
+  res_1 = (texture (sampler_main, (uv + (pix * vec2(1.0, 0.0)))).xyz - 0.5);
+  res_1 = ((res_1 * res_1) * sign(res_1));
+  vec3 res_2;
+  res_2 = (texture (sampler_main, (uv + (pix * vec2(0.0, 1.0)))).xyz - 0.5);
+  res_2 = ((res_2 * res_2) * sign(res_2));
+  vec3 res_3;
+  res_3 = (texture (sampler_main, (uv + (pix * vec2(-1.0, 0.0)))).xyz - 0.5);
+  res_3 = ((res_3 * res_3) * sign(res_3));
+  vec3 res_4;
+  res_4 = (texture (sampler_main, (uv + (pix * vec2(0.0, -1.0)))).xyz - 0.5);
+  res_4 = ((res_4 * res_4) * sign(res_4));
+  vec3 res_5;
+  res_5 = (texture (sampler_main, (uv + (pix * vec2(2.0, 0.0)))).xyz - 0.5);
+  res_5 = ((res_5 * res_5) * sign(res_5));
+  vec3 res_6;
+  res_6 = (texture (sampler_main, (uv + (pix * vec2(0.0, 2.0)))).xyz - 0.5);
+  res_6 = ((res_6 * res_6) * sign(res_6));
+  vec3 res_7;
+  res_7 = (texture (sampler_main, (uv + (pix * vec2(-2.0, 0.0)))).xyz - 0.5);
+  res_7 = ((res_7 * res_7) * sign(res_7));
+  vec3 res_8;
+  res_8 = (texture (sampler_main, (uv + (pix * vec2(0.0, -2.0)))).xyz - 0.5);
+  res_8 = ((res_8 * res_8) * sign(res_8));
+  vec3 res_9;
+  res_9 = (texture (sampler_main, uv).xyz - 0.5);
+  res_9 = ((res_9 * res_9) * sign(res_9));
+  xlat_mutablebuf2 = (((
+    ((((
+      (res_1.y + res_2.y)
+     + 
+      (res_3.y + res_4.y)
+    ) + (res_5.y / 2.0)) + (res_6.y / 2.0)) + (res_7.y / 2.0))
+   + 
+    (res_8.y / 2.0)
+  ) / 3.0) - res_9.x);
+  xlat_mutablebuf2 = (xlat_mutablebuf2 * 0.98);
+  vec3 tmpvar_10;
+  tmpvar_10.z = 0.0;
+  tmpvar_10.x = texture (sampler_pw_main, uv).y;
+  tmpvar_10.y = ((sign(xlat_mutablebuf2) * sqrt(
+    abs(xlat_mutablebuf2)
+  )) + 0.5);
+  vec4 tmpvar_11;
+  tmpvar_11.w = 1.0;
+  tmpvar_11.xyz = tmpvar_10;
+  ret = tmpvar_11.xyz;
+ }
+
+[comp_shader]
+uniform sampler2D sampler_smalltiled_lizard_scales;
+vec2 pix;
+vec2 xlat_mutabledz;
+vec2 xlat_mutabledz1;
+vec2 xlat_mutableuv1;
+ shader_body { 
+  pix = (texsize.zw * 2.0);
+  vec2 uv_1;
+  vec2 uvi_2;
+  uvi_2 = (uv + (pix * vec2(1.0, 0.0)));
+  float res_3;
+  res_3 = (mix ((
+    (texture (sampler_blur1, uvi_2).xyz * scale1)
+   + bias1).x, (
+    (texture (sampler_blur1, uvi_2).xyz * scale1)
+   + bias1).y, 0.5) - 0.5);
+  res_3 = ((res_3 * res_3) * sign(res_3));
+  vec2 uvi_4;
+  uvi_4 = (uv + (pix * vec2(-1.0, 0.0)));
+  float res_5;
+  res_5 = (mix ((
+    (texture (sampler_blur1, uvi_4).xyz * scale1)
+   + bias1).x, (
+    (texture (sampler_blur1, uvi_4).xyz * scale1)
+   + bias1).y, 0.5) - 0.5);
+  res_5 = ((res_5 * res_5) * sign(res_5));
+  xlat_mutabledz1.x = (res_3 - res_5);
+  vec2 uvi_6;
+  uvi_6 = (uv + (pix * vec2(0.0, 1.0)));
+  float res_7;
+  res_7 = (mix ((
+    (texture (sampler_blur1, uvi_6).xyz * scale1)
+   + bias1).x, (
+    (texture (sampler_blur1, uvi_6).xyz * scale1)
+   + bias1).y, 0.5) - 0.5);
+  res_7 = ((res_7 * res_7) * sign(res_7));
+  vec2 uvi_8;
+  uvi_8 = (uv + (pix * vec2(0.0, -1.0)));
+  float res_9;
+  res_9 = (mix ((
+    (texture (sampler_blur1, uvi_8).xyz * scale1)
+   + bias1).x, (
+    (texture (sampler_blur1, uvi_8).xyz * scale1)
+   + bias1).y, 0.5) - 0.5);
+  res_9 = ((res_9 * res_9) * sign(res_9));
+  xlat_mutabledz1.y = (res_7 - res_9);
+  float res_10;
+  vec4 tmpvar_11;
+  tmpvar_11 = texture (sampler_blur1, uv);
+  res_10 = (mix ((
+    (tmpvar_11.xyz * scale1)
+   + bias1).x, (
+    (tmpvar_11.xyz * scale1)
+   + bias1).y, 0.5) - 0.5);
+  res_10 = ((res_10 * res_10) * sign(res_10));
+  uv_1 = (uv + ((xlat_mutabledz1 * 
+    clamp ((1.0 - res_10), 0.0, 1.0)
+  ) * 0.5));
+  xlat_mutabledz.x = (texture (sampler_main, (uv_1 + (pix * vec2(1.0, 0.0)))).z - texture (sampler_main, (uv_1 + (pix * vec2(-1.0, 0.0)))).z);
+  xlat_mutabledz.y = (texture (sampler_main, (uv_1 + (pix * vec2(0.0, 1.0)))).z - texture (sampler_main, (uv_1 + (pix * vec2(0.0, -1.0)))).z);
+  xlat_mutableuv1 = ((uv_1 - 0.1) + (xlat_mutabledz1 * 8.0));
+  vec2 x_12;
+  x_12 = (xlat_mutableuv1 + (xlat_mutabledz * 0.6));
+  vec2 x_13;
+  x_13 = (xlat_mutableuv1 + xlat_mutabledz);
+  vec2 x_14;
+  x_14 = (xlat_mutableuv1 + (xlat_mutabledz * 2.6));
+  vec3 tmpvar_15;
+  tmpvar_15.x = sqrt(dot (x_12, x_12));
+  tmpvar_15.y = sqrt(dot (x_13, x_13));
+  tmpvar_15.z = sqrt(dot (x_14, x_14));
+  vec4 tmpvar_16;
+  tmpvar_16.w = 1.0;
+  tmpvar_16.xyz = ((texture (sampler_smalltiled_lizard_scales, (
+    (uv_1 + xlat_mutabledz1)
+   - 
+    (time * 0.02)
+  )) * 0.5).xyz + ((
+    (0.1 / tmpvar_15)
+   - 
+    (texture (sampler_main, uv).z * 0.2)
+  ) - (texture (sampler_main, 
+    (0.8 - uv_1)
+  ).z * 0.2)));
+  ret = tmpvar_16.xyz;
+ }

@@ -1,0 +1,79 @@
+[preset00]
+fRating=0.000000
+fGammaAdj=1.000000
+fDecay=0.950000
+nWaveMode=5.000000
+bBrighten=1.000000
+fWaveAlpha=0.566000
+fWaveScale=0.599000
+fWaveSmoothing=0.500000
+fWarpScale=2.853000
+fShader=1.000000
+fZoom=1.000340
+fWarp=0.000000
+fWaveR=0.500000
+fWaveG=0.500000
+fWaveB=0.500000
+fOuterBorderSize=0.055000
+fOuterBorderA=1.000000
+fInnerBorderSize=0.005000
+fInnerBorderR=0.000000
+fInnerBorderG=0.000000
+fInnerBorderB=0.000000
+fInnerBorderA=1.000000
+nMotionVectorsX=6.400000
+nMotionVectorsY=48.000000
+nMotionVectorsLoop=2.000000
+fMotionVectorsA=0.300000
+wavecode_0_enabled=0.000000
+wavecode_1_enabled=0.000000
+wavecode_2_enabled=0.000000
+wavecode_3_enabled=0.000000
+shapecode_0_enabled=0.000000
+shapecode_1_enabled=0.000000
+shapecode_2_enabled=0.000000
+shapecode_3_enabled=0.000000
+per_frame_init_1=thresh = 0;
+per_frame_init_2=dx_r = 0;
+per_frame_init_3=dy_r = 0;
+per_frame_1=wave_r = wave_r + 0.502 * (0.61 * sin(0.933 * time) + 0.401 * sin(1.045 * time));
+per_frame_2=wave_g = wave_g + 0.504 * (0.605 * sin(0.909 * time) + 0.41 * sin(0.956 * time));
+per_frame_3=wave_b = wave_b + 0.501 * (0.6 * sin(0.91 * time) + 0.4 * sin(0.992 * time));
+per_frame_4=mv_r = 1 - abs(wave_r);
+per_frame_5=mv_g = 1 - abs(wave_g);
+per_frame_6=mv_b = 1 - abs(wave_b);
+per_frame_7=ib_r = wave_g;
+per_frame_8=ib_b = wave_r;
+per_frame_9=ib_g = wave_b;
+per_frame_10=mv_x = 160 * bass * above(sin(time), 0) + 10 * below(sin(time), 0);
+per_frame_11=mv_y = 140 * bass * below(sin(time), 0) + 6 * above(sin(time), 0);
+per_pixel_1=thresh = 2 * above(bass_att, thresh) + (1 - above(bass_att, thresh)) * (0.96 * (thresh - 1.3) + 1.3);
+per_pixel_2=dx_r = 0.015 * equal(thresh, 2) * sin(5 * time) + (1 - equal(thresh, 2)) * dx_r;
+per_pixel_3=dy_r = 0.015 * equal(thresh, 2) * sin(6 * time) + (1 - equal(thresh, 2)) * dy_r;
+per_pixel_4=zoom = zoom + 0.52 * (0.5 - x) * sin(5 * time);
+per_pixel_5=zoom = zoom + 0.52 * (0.5 - y) * cos(3.14749 * time);
+per_pixel_6=rot = rot + dx_r * sin(max(0.72 * bass_att * abs(treb - cos(4 * time)), mid_att * rad));
+per_pixel_7=zoom = zoom + 0.1;
+per_pixel_8=rot = rot + 8 * dx_r * (0.5 - x) * cos(8 * time);
+per_pixel_9=rot = rot + 8 * dy_r * (0.5 - y) * sin(8 * time);
+
+[warp_shader]
+shader_body { 
+  vec3 ret_1;
+  vec4 tmpvar_2;
+  tmpvar_2 = texture (sampler_main, uv);
+  ret_1 = (tmpvar_2.xyz + ((tmpvar_2.xyz - 
+    ((texture (sampler_blur1, uv).xyz * scale1) + bias1)
+  ) * 0.3));
+  ret_1 = (ret_1 * 0.9);
+  ret_1 = (ret_1 + ((
+    (texture (sampler_noise_lq, ((uv_orig * texsize.xy) * (texsize_noise_lq.zw * 0.1))).xyz - 0.5)
+   / 256.0) * 28.0));
+  vec3 tmpvar_3;
+  tmpvar_3 = mix (ret_1, vec3(dot (ret_1, vec3(0.32, 0.49, 0.29))), vec3(0.04, 0.04, 0.04));
+  ret_1 = tmpvar_3;
+  vec4 tmpvar_4;
+  tmpvar_4.w = 1.0;
+  tmpvar_4.xyz = tmpvar_3;
+  ret = tmpvar_4.xyz;
+ }

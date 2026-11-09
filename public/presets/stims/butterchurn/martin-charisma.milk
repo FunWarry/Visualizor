@@ -1,0 +1,323 @@
+[preset00]
+fRating=0.000000
+fGammaAdj=1.980001
+fDecay=0.500000
+fVideoEchoZoom=0.999998
+fVideoEchoAlpha=0.500000
+nVideoEchoOrientation=3.000000
+nWaveMode=4.000000
+bAdditiveWaves=1.000000
+bWaveDots=1.000000
+bModWaveAlphaByVolume=1.000000
+bDarken=1.000000
+fWaveAlpha=0.330640
+fWaveScale=0.897961
+fWaveSmoothing=0.108000
+fWaveParam=0.100000
+fModWaveAlphaStart=0.720000
+fModWaveAlphaEnd=1.280000
+fWarpAnimSpeed=1.459500
+fWarpScale=2.006700
+fZoom=0.999900
+fWarp=0.010000
+fSx=0.999900
+fWaveR=0.000000
+fWaveG=0.500000
+fWaveB=0.500000
+fWaveY=0.540000
+fOuterBorderR=1.000000
+fOuterBorderG=1.000000
+fOuterBorderB=1.000000
+fInnerBorderSize=0.260000
+nMotionVectorsX=24.799994
+nMotionVectorsDy=0.160000
+nMotionVectorsLoop=1.500000
+fMotionVectorsA=0.000000
+b1ed=0.000000
+wavecode_0_enabled=1.000000
+wavecode_0_samples=352.000000
+wavecode_0_usedots=1.000000
+wavecode_0_additive=1.000000
+wavecode_0_scaling=0.038558
+wavecode_0_smoothing=0.200000
+wavecode_0_g=0.000000
+wavecode_1_enabled=0.000000
+wavecode_2_enabled=0.000000
+wavecode_3_enabled=0.000000
+shapecode_0_enabled=0.000000
+shapecode_1_enabled=0.000000
+shapecode_2_enabled=0.000000
+shapecode_3_enabled=0.000000
+per_frame_init_1=index2 = 0;
+per_frame_init_2=q25 = 0;
+per_frame_init_3=index = 0;
+per_frame_init_4=q18 = 0;
+per_frame_init_5=q22 = 0;
+per_frame_init_6=q21 = 0;
+per_frame_init_7=q29 = 0;
+per_frame_init_8=q6 = 0;
+per_frame_init_9=movex = 0;
+per_frame_init_10=q1 = 0;
+per_frame_init_11=dec_med = 0;
+per_frame_init_12=q5 = 0;
+per_frame_init_13=index3 = 0;
+per_frame_init_14=rott = 0;
+per_frame_init_15=is_beat = 0;
+per_frame_init_16=q23 = 0;
+per_frame_init_17=k1 = 0;
+per_frame_init_18=q24 = 0;
+per_frame_init_19=dec_slow = 0;
+per_frame_init_20=q4 = 0;
+per_frame_init_21=q26 = 0;
+per_frame_init_22=p2 = 0;
+per_frame_init_23=mov = 0;
+per_frame_init_24=avg = 0;
+per_frame_init_25=beat = 0;
+per_frame_init_26=p1 = 0;
+per_frame_init_27=dx1 = 0;
+per_frame_init_28=peak = 0;
+per_frame_init_29=q2 = 0;
+per_frame_init_30=q27 = 0;
+per_frame_init_31=clear = 0;
+per_frame_init_32=p3 = 0;
+per_frame_init_33=q3 = 0;
+per_frame_init_34=t0 = 0;
+per_frame_init_35=rot1 = 0;
+per_frame_init_36=q32 = 0;
+per_frame_init_37=q28 = 0;
+per_frame_init_38=q20 = 0;
+per_frame_init_39=clear = 0.5;
+per_frame_1=dec_med = pow(0.96, 30 / fps);
+per_frame_2=dec_slow = pow(0.99, 30 / fps);
+per_frame_3=beat = max(max(bass, mid), treb);
+per_frame_4=avg = avg * dec_slow + beat * (1 - dec_slow);
+per_frame_5=is_beat = above(beat, 0.2 + avg + peak) * above(time, t0 + 0.2);
+per_frame_6=t0 = is_beat * time + (1 - is_beat) * t0;
+per_frame_7=peak = is_beat * beat + (1 - is_beat) * peak * dec_med;
+per_frame_8=index = mod(index + is_beat, 4);
+per_frame_9=index2 = mod(index2 + is_beat * bnot(index), 8);
+per_frame_10=index3 = mod(index3 + is_beat * bnot(index) * bnot(index2), 3);
+per_frame_11=q20 = avg;
+per_frame_12=q21 = beat;
+per_frame_13=q22 = peak;
+per_frame_14=q23 = index;
+per_frame_15=q24 = is_beat;
+per_frame_16=q26 = bass + mid + treb;
+per_frame_17=k1 = is_beat * equal(index, 0);
+per_frame_18=p1 = k1 * (p1 + 1) + (1 - k1) * p1;
+per_frame_19=p2 = dec_med * p2 + (1 - dec_med) * p1;
+per_frame_20=p3 = dec_med * p3 + (1 - dec_med) * p2;
+per_frame_21=rott = 3.1416 * p3 / 4;
+per_frame_22=rot1 = rot1 + q26;
+per_frame_23=q25 = 0.01 * rot1;
+per_frame_24=q27 = 8 - index;
+per_frame_25=q28 = index3;
+per_frame_26=dx1 = dec_med * dx1 + (1 - dec_med) * bnot(index2);
+per_frame_27=q29 = dx1;
+per_frame_28=monitor = q29;
+per_frame_29=q1 = cos(rott);
+per_frame_30=q2 = sin(rott);
+per_frame_31=q3 = -q2;
+per_frame_32=q4 = q1;
+per_frame_33=q5 = 1.5 * cos(time / 9);
+per_frame_34=q6 = 0.5 * sin(time / 7);
+per_frame_35=clear = clear * dec_med + 1 - dec_med;
+per_frame_36=q32 = clear;
+per_frame_37=mov = bnot(q24) * movex + (randint(100) / 100 - 50) * q2;
+per_frame_38=movex = movex + 0.2 / fps * q2;
+per_frame_39=q18 = movex;
+wave_0_init1=t02 = 0;
+wave_0_init2=q1 = 0;
+wave_0_init3=ratio = 0;
+wave_0_init4=ampl = 0;
+wave_0_init5=x1 = 0;
+wave_0_init6=y1 = 0;
+wave_0_per_frame1=q1 = bass_att;
+wave_0_per_point1=r = abs(sin(frame / 38));
+wave_0_per_point2=g = 0.5 * abs(cos(frame / 45));
+wave_0_per_point3=b = 0.5 * abs(sin(frame / 133));
+wave_0_per_point4=a = 0.3;
+wave_0_per_point5=t02 = t02 + q1 / 10;
+wave_0_per_point6=ratio = sin(frame / 49);
+wave_0_per_point7=ampl = 0.01 + 0.4 * sqr(sin(frame / 18) * cos(frame / 123));
+wave_0_per_point8=x1 = (r - 0.5) / 15 + 0.5 + ampl * sin(6.28 * sample);
+wave_0_per_point9=y1 = (b - 0.5) / 15 + 0.5 + ampl * cos(6.28 * sample);
+wave_0_per_point10=x = x1 + 0.2 * (ampl + ratio) * sin(6.28 * sample * ratio * 7.3);
+wave_0_per_point11=y = y1 + 0.2 * (ampl + ratio) * cos(37.68 * sample);
+
+[warp_shader]
+shader_body { 
+  vec2 uv6_1;
+  vec2 tmpvar_2;
+  tmpvar_2 = ((uv - 0.5) * aspect.xy);
+  float tmpvar_3;
+  tmpvar_3 = (rand_frame * 64.0).x;
+  uv6_1 = (0.5 * cos((
+    ((tmpvar_2 * mat2(0.7, -0.7, 0.7, 0.7)) * 17.0)
+   + 
+    (rand_frame * 6.0)
+  .xy)));
+  float x_4;
+  x_4 = (uv6_1.x + uv6_1.y);
+  vec4 tmpvar_5;
+  tmpvar_5.w = 1.0;
+  tmpvar_5.xyz = ((0.147 * (
+    (texture (sampler_main, (uv + clamp ((
+      (sin(tmpvar_3) / cos(tmpvar_3))
+     * 
+      normalize(tmpvar_2)
+    ), vec2(-8.0, -8.0), vec2(8.0, 8.0)))).xyz + (0.15 * (vec3((0.01 / 
+      sqrt((x_4 * x_4))
+    )) * roam_cos.xyz)))
+   - 0.02)) + ((0.85 * 
+    (texture (sampler_main, uv_orig).xyz - 0.002)
+  ) * q32));
+  ret = tmpvar_5.xyz;
+ }
+
+[comp_shader]
+vec2 xlat_mutabledz;
+vec3 xlat_mutableret1;
+vec2 xlat_mutableuv3;
+vec2 xlat_mutableuv4;
+ shader_body { 
+  vec2 uv_1;
+  float inten_2;
+  float dist_3;
+  vec3 ret_4;
+  uv_1 = (uv - 0.5);
+  float tmpvar_5;
+  tmpvar_5 = (time / 2.0);
+  dist_3 = (1.0 - fract(tmpvar_5));
+  inten_2 = ((sqrt(dist_3) * (1.0 - dist_3)) * 2.0);
+  vec2 tmpvar_6;
+  tmpvar_6.y = 0.4;
+  tmpvar_6.x = q18;
+  xlat_mutableuv3 = (((2.0 * uv_1) * dist_3) + tmpvar_6);
+  vec2 tmpvar_7;
+  tmpvar_7.y = 0.0;
+  tmpvar_7.x = texsize.z;
+  vec2 tmpvar_8;
+  tmpvar_8.y = 0.0;
+  tmpvar_8.x = texsize.z;
+  xlat_mutabledz.x = (inten_2 * dot ((texture (sampler_main, 
+    (xlat_mutableuv3 + tmpvar_7)
+  ).xyz - texture (sampler_main, 
+    (xlat_mutableuv3 - tmpvar_8)
+  ).xyz), vec3(0.32, 0.49, 0.29)));
+  vec2 tmpvar_9;
+  tmpvar_9.x = 0.0;
+  tmpvar_9.y = texsize.w;
+  vec2 tmpvar_10;
+  tmpvar_10.x = 0.0;
+  tmpvar_10.y = texsize.w;
+  xlat_mutabledz.y = (inten_2 * dot ((texture (sampler_main, 
+    (xlat_mutableuv3 + tmpvar_9)
+  ).xyz - texture (sampler_main, 
+    (xlat_mutableuv3 - tmpvar_10)
+  ).xyz), vec3(0.32, 0.49, 0.29)));
+  xlat_mutableret1 = max (vec3(0.0, 0.0, 0.0), (texture (sampler_main, xlat_mutableuv3).xyz * inten_2));
+  dist_3 = (1.0 - fract((0.3333333 + tmpvar_5)));
+  inten_2 = ((sqrt(dist_3) * (1.0 - dist_3)) * 2.0);
+  vec2 tmpvar_11;
+  tmpvar_11.y = 0.4;
+  tmpvar_11.x = q18;
+  xlat_mutableuv3 = (((2.0 * uv_1) * dist_3) + tmpvar_11);
+  vec2 tmpvar_12;
+  tmpvar_12.y = 0.0;
+  tmpvar_12.x = texsize.z;
+  vec2 tmpvar_13;
+  tmpvar_13.y = 0.0;
+  tmpvar_13.x = texsize.z;
+  xlat_mutabledz.x = (xlat_mutabledz.x + (inten_2 * dot (
+    (texture (sampler_main, (xlat_mutableuv3 + tmpvar_12)).xyz - texture (sampler_main, (xlat_mutableuv3 - tmpvar_13)).xyz)
+  , vec3(0.32, 0.49, 0.29))));
+  vec2 tmpvar_14;
+  tmpvar_14.x = 0.0;
+  tmpvar_14.y = texsize.w;
+  vec2 tmpvar_15;
+  tmpvar_15.x = 0.0;
+  tmpvar_15.y = texsize.w;
+  xlat_mutabledz.y = (xlat_mutabledz.y + (inten_2 * dot (
+    (texture (sampler_main, (xlat_mutableuv3 + tmpvar_14)).xyz - texture (sampler_main, (xlat_mutableuv3 - tmpvar_15)).xyz)
+  , vec3(0.32, 0.49, 0.29))));
+  xlat_mutableret1 = max (xlat_mutableret1, (texture (sampler_main, xlat_mutableuv3).xyz * inten_2));
+  dist_3 = (1.0 - fract((0.6666667 + tmpvar_5)));
+  inten_2 = ((sqrt(dist_3) * (1.0 - dist_3)) * 2.0);
+  vec2 tmpvar_16;
+  tmpvar_16.y = 0.4;
+  tmpvar_16.x = q18;
+  xlat_mutableuv3 = (((2.0 * uv_1) * dist_3) + tmpvar_16);
+  vec2 tmpvar_17;
+  tmpvar_17.y = 0.0;
+  tmpvar_17.x = texsize.z;
+  vec2 tmpvar_18;
+  tmpvar_18.y = 0.0;
+  tmpvar_18.x = texsize.z;
+  xlat_mutabledz.x = (xlat_mutabledz.x + (inten_2 * dot (
+    (texture (sampler_main, (xlat_mutableuv3 + tmpvar_17)).xyz - texture (sampler_main, (xlat_mutableuv3 - tmpvar_18)).xyz)
+  , vec3(0.32, 0.49, 0.29))));
+  vec2 tmpvar_19;
+  tmpvar_19.x = 0.0;
+  tmpvar_19.y = texsize.w;
+  vec2 tmpvar_20;
+  tmpvar_20.x = 0.0;
+  tmpvar_20.y = texsize.w;
+  xlat_mutabledz.y = (xlat_mutabledz.y + (inten_2 * dot (
+    (texture (sampler_main, (xlat_mutableuv3 + tmpvar_19)).xyz - texture (sampler_main, (xlat_mutableuv3 - tmpvar_20)).xyz)
+  , vec3(0.32, 0.49, 0.29))));
+  xlat_mutableret1 = max (xlat_mutableret1, (texture (sampler_main, xlat_mutableuv3).xyz * inten_2));
+  dist_3 = (1.0 - fract((1.0 + tmpvar_5)));
+  inten_2 = ((sqrt(dist_3) * (1.0 - dist_3)) * 2.0);
+  vec2 tmpvar_21;
+  tmpvar_21.y = 0.4;
+  tmpvar_21.x = q18;
+  xlat_mutableuv3 = (((2.0 * uv_1) * dist_3) + tmpvar_21);
+  vec2 tmpvar_22;
+  tmpvar_22.y = 0.0;
+  tmpvar_22.x = texsize.z;
+  vec2 tmpvar_23;
+  tmpvar_23.y = 0.0;
+  tmpvar_23.x = texsize.z;
+  xlat_mutabledz.x = (xlat_mutabledz.x + (inten_2 * dot (
+    (texture (sampler_main, (xlat_mutableuv3 + tmpvar_22)).xyz - texture (sampler_main, (xlat_mutableuv3 - tmpvar_23)).xyz)
+  , vec3(0.32, 0.49, 0.29))));
+  vec2 tmpvar_24;
+  tmpvar_24.x = 0.0;
+  tmpvar_24.y = texsize.w;
+  vec2 tmpvar_25;
+  tmpvar_25.x = 0.0;
+  tmpvar_25.y = texsize.w;
+  xlat_mutabledz.y = (xlat_mutabledz.y + (inten_2 * dot (
+    (texture (sampler_main, (xlat_mutableuv3 + tmpvar_24)).xyz - texture (sampler_main, (xlat_mutableuv3 - tmpvar_25)).xyz)
+  , vec3(0.32, 0.49, 0.29))));
+  xlat_mutableret1 = max (xlat_mutableret1, (texture (sampler_main, xlat_mutableuv3).xyz * inten_2));
+  uv_1 = (uv_1 + xlat_mutabledz);
+  vec2 tmpvar_26;
+  tmpvar_26.x = q5;
+  tmpvar_26.y = q6;
+  xlat_mutableuv4 = (uv_1 - (0.4 * tmpvar_26));
+  float tmpvar_27;
+  tmpvar_27 = (0.1 * clamp ((1.0/(
+    (abs(uv_1.y) + 0.1)
+  )), 0.0, 12.0));
+  vec2 tmpvar_28;
+  tmpvar_28.x = (uv_1.x * tmpvar_27);
+  tmpvar_28.y = tmpvar_27;
+  vec3 tmpvar_29;
+  tmpvar_29.xy = vec2(0.0, 0.0);
+  tmpvar_29.z = clamp ((1.0 - (3.0 * uv_1.y)), 0.0, 1.0);
+  ret_4 = (vec3(0.0, 0.1, 0.1) + (0.1 * tmpvar_29));
+  ret_4 = (ret_4 + (vec3(dot (texture (sampler_noise_hq, 
+    (tmpvar_28 + (0.1 * time))
+  ), vec4(0.32, 0.49, 0.29, 0.0))) * (
+    (clamp ((1.0 - (12.0 * uv_1.y)), 0.0, 1.0) * 0.1)
+   / 
+    (0.05 + sqrt(dot (xlat_mutableuv4, xlat_mutableuv4)))
+  )));
+  ret_4 = (ret_4 + ((0.4 * xlat_mutableret1) + (xlat_mutableret1 * q22)));
+  vec4 tmpvar_30;
+  tmpvar_30.w = 1.0;
+  tmpvar_30.xyz = ret_4;
+  ret = tmpvar_30.xyz;
+ }

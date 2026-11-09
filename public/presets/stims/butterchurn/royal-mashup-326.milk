@@ -1,0 +1,124 @@
+[preset00]
+fRating=2.000000
+fGammaAdj=1.000000
+fDecay=0.997000
+fVideoEchoZoom=0.997000
+nVideoEchoOrientation=1.000000
+bWaveThick=1.000000
+bMaximizeWaveColor=0.000000
+bDarken=1.000000
+fWaveAlpha=0.001000
+fWaveScale=0.010000
+fWaveSmoothing=0.270000
+fWaveParam=-0.380000
+fModWaveAlphaStart=0.710000
+fModWaveAlphaEnd=1.300000
+fWarpScale=1.331000
+fZoom=0.999510
+fWarp=0.010000
+fOuterBorderSize=0.500000
+fOuterBorderR=0.010000
+fInnerBorderSize=0.260000
+fInnerBorderR=1.000000
+fInnerBorderG=1.000000
+fInnerBorderB=1.000000
+nMotionVectorsX=64.000000
+nMotionVectorsY=48.000000
+nMotionVectorsLoop=0.850000
+fMotionVectorsR=0.500000
+fMotionVectorsG=0.500000
+fMotionVectorsB=0.500000
+fMotionVectorsA=0.000000
+wavecode_0_enabled=1.000000
+wavecode_1_enabled=0.000000
+wavecode_2_enabled=0.000000
+wavecode_3_enabled=0.000000
+shapecode_0_enabled=0.000000
+shapecode_1_enabled=0.000000
+shapecode_2_enabled=0.000000
+shapecode_3_enabled=0.000000
+per_frame_init_1=bassspin = 0;
+per_frame_init_2=bassc = 0;
+per_frame_init_3=q1 = 0;
+per_frame_init_4=q2 = 0;
+per_frame_init_5=tst = 0;
+per_frame_init_6=q3 = 0;
+per_frame_init_7=tst = 10;
+per_frame_1=warp = 0;
+per_frame_2=bassspin = if(0.00001 < abs(above(0.09 * bass, bassspin)), bassspin + 0.002, bassspin - 0.002);
+per_frame_3=bassspin = bassspin * above(bassspin, 0);
+per_frame_4=bassc = bassc + bassspin;
+per_frame_5=q1 = bassc;
+per_frame_6=q2 = mod(frame, floor(36 + 12 * sin(0.1 * time)));
+per_frame_7=tst = if(0.00001 < abs(equal(q2, 1)), 10 + floor(randint(45)), tst);
+per_frame_8=q3 = tst;
+per_frame_9=decay = 0.92;
+per_pixel_1=zoom = zoom + 0.03 * bass_att * bass_att * rad;
+per_pixel_2=rot = rot + rad * band(-2.5, 5 * cos(time)) * 0.01;
+per_pixel_3=zoom = zoom + 0.01 * treb_att;
+wave_0_per_point1=x = 0.5 + 0.2 * bass * sin(20 * sample * time * treb);
+wave_0_per_point2=y = 0.5 + 0.2 * bass * cos(20 * sample * time * treb);
+wave_0_per_point3=r = 1 + 0.5 * sin(0.1 * sample + 10 * time * bass);
+wave_0_per_point4=g = 1 + 0.5 * sin(2 * sample + 50 * time * treb);
+wave_0_per_point5=b = 1 + 0.5 * sin(5 * sample + 20 * time * mid);
+wave_0_per_point6=a = r;
+
+[warp_shader]
+shader_body { 
+  vec4 tmpvar_1;
+  tmpvar_1.w = 1.0;
+  tmpvar_1.xyz = (texture (sampler_fw_main, uv).xyz - 0.04);
+  ret = tmpvar_1.xyz;
+ }
+
+[comp_shader]
+shader_body { 
+  vec3 ret_1;
+  vec2 tmpvar_2;
+  tmpvar_2 = (texsize.zw * 8.0);
+  vec2 tmpvar_3;
+  tmpvar_3.x = (((texture (sampler_blur1, 
+    (uv + (vec2(1.0, 0.0) * tmpvar_2))
+  ).xyz * scale1) + bias1) - ((texture (sampler_blur1, 
+    (uv - (vec2(1.0, 0.0) * tmpvar_2))
+  ).xyz * scale1) + bias1)).y;
+  tmpvar_3.y = (((texture (sampler_blur1, 
+    (uv + (vec2(0.0, 1.0) * tmpvar_2))
+  ).xyz * scale1) + bias1) - ((texture (sampler_blur1, 
+    (uv - (vec2(0.0, 1.0) * tmpvar_2))
+  ).xyz * scale1) + bias1)).y;
+  vec2 tmpvar_4;
+  tmpvar_4 = (uv + (tmpvar_3 * 0.55));
+  vec3 tmpvar_5;
+  tmpvar_5 = mix (ret_1, (1.0 - ret_1), ((0.7 * 
+    ((texture (sampler_blur1, tmpvar_4).xyz * scale1) + bias1)
+  ) + (0.2 * texture (sampler_main, uv).xyz)));
+  vec3 tmpvar_6;
+  tmpvar_6 = mix (tmpvar_5, ((
+    (tmpvar_5 - (0.1 * ((texture (sampler_blur3, tmpvar_4).xyz * scale3) + bias3)))
+   + 
+    (0.1 * ((texture (sampler_blur1, (
+      (tmpvar_4 * 1.25)
+     - 0.125)).xyz * scale1) + bias1))
+  ) + (0.42 * texture (sampler_main, tmpvar_4).xyz)), vec3(0.25, 0.25, 0.25));
+  vec3 x_7;
+  x_7 = (tmpvar_6 - 0.5);
+  ret_1 = (tmpvar_6 * clamp ((
+    sqrt(dot (x_7, x_7))
+   * 5.0), 0.0, 1.0));
+  ret_1 = (vec3(dot (ret_1, vec3(0.32, 0.49, 0.29))) + 1.25);
+  ret_1 = (ret_1 * (ret_1 * 0.45));
+  ret_1 = (ret_1 * mix ((0.9 * ret_1), (
+    (1.2 * ret_1)
+   * 
+    ((((texture (sampler_blur3, uv).xyz * scale3) + bias3) - ((texture (sampler_blur1, uv).xyz * scale1) + bias1)) - (0.25 * ((texture (sampler_blur2, tmpvar_4).xyz * scale2) + bias2)))
+  ), pow (hue_shader.zxy, ret_1)));
+  ret_1 = (ret_1 + 0.02);
+  ret_1 = (ret_1 * ret_1);
+  ret_1 = (ret_1 * hue_shader.zxy);
+  ret_1 = (ret_1 * (2.0 + max (treb_att, mid_att)));
+  vec4 tmpvar_8;
+  tmpvar_8.w = 1.0;
+  tmpvar_8.xyz = ret_1;
+  ret = tmpvar_8.xyz;
+ }

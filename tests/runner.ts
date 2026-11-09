@@ -13,6 +13,7 @@ import './tier1-features/midi.test';
 import './tier1-features/presets.test';
 import './tier1-features/audio-dsp.test';
 import './tier1-features/tickets-1-37.test';
+import './tier1-features/stims-catalog.test';
 
 // Import Tier 2 Boundary & Corner Case Suites
 import './tier2-boundaries/themes-boundary.test';
@@ -25,12 +26,15 @@ import './tier2-boundaries/studio-boundary.test';
 import './tier2-boundaries/midi-boundary.test';
 import './tier2-boundaries/presets-boundary.test';
 import './tier2-boundaries/audio-boundary.test';
+import './tier2-boundary/stims-boundary.test';
 
 // Import Tier 3 Cross-Feature Combination Suites
 import './tier3-combinations/combinations.test';
+import './tier3-cross/stims-active-presets.test';
 
 // Import Tier 4 Real-World Application Scenario Suites
 import './tier4-scenarios/scenarios.test';
+import './tier4-e2e/stims-discovery-e2e.test';
 
 async function main(): Promise<void> {
   console.log('\n=============================================================');

@@ -1,0 +1,52 @@
+[preset00]
+fRating=2.000000
+fGammaAdj=2.700000
+nWaveMode=1.000000
+bModWaveAlphaByVolume=1.000000
+fWaveAlpha=2.707000
+fWaveScale=1.025000
+fWaveSmoothing=0.100000
+fModWaveAlphaStart=0.770000
+fModWaveAlphaEnd=1.010000
+fWarpScale=1.331000
+fZoom=1.014000
+fWarp=0.217860
+fWaveR=0.650000
+fWaveG=0.650000
+fWaveB=0.650000
+fMotionVectorsA=0.000000
+wavecode_0_enabled=0.000000
+wavecode_1_enabled=0.000000
+wavecode_2_enabled=0.000000
+wavecode_3_enabled=0.000000
+shapecode_0_enabled=0.000000
+shapecode_1_enabled=0.000000
+shapecode_2_enabled=0.000000
+shapecode_3_enabled=0.000000
+per_frame_1=wave_r = wave_r + 0.35 * (0.6 * sin(3.98 * time) + 0.4 * sin(11.047 * time));
+per_frame_2=wave_g = wave_g + 0.35 * (0.6 * sin(0.835 * time) + 0.4 * sin(1.081 * time));
+per_frame_3=wave_b = wave_b + 0.35 * (0.6 * sin(0.814 * time) + 0.4 * sin(1.011 * time));
+per_frame_4=cx = cx + 0.11 * (0.6 * sin(0.374 * time) + 0.4 * sin(0.294 * time));
+per_frame_5=cy = cy + 0.11 * (0.6 * sin(0.393 * time) + 0.4 * sin(0.223 * time));
+per_frame_6=dx = dx + 0.005 * (0.6 * sin(0.173 * time) + 0.4 * sin(0.223 * time));
+per_frame_7=decay = decay - 0.01 * equal(mod(frame, 20), 0);
+
+[warp_shader]
+shader_body { 
+  vec4 tmpvar_1;
+  tmpvar_1.w = 1.0;
+  tmpvar_1.xyz = (texture (sampler_main, (uv + (
+    (texture (sampler_main, (mix (uv, uv_orig, vec2(-1.0, -1.0)) + texsize.zw)).xy - 0.37)
+   * 0.01))).xyz - 0.004);
+  ret = tmpvar_1.xyz;
+ }
+
+[comp_shader]
+shader_body { 
+  vec4 tmpvar_1;
+  tmpvar_1 = texture (sampler_main, uv);
+  vec4 tmpvar_2;
+  tmpvar_2.w = 1.0;
+  tmpvar_2.xyz = mix (vec3(dot (tmpvar_1.xyz, vec3(0.3333, 0.3333, 0.3333))), tmpvar_1.xyz, vec3(3.0, 3.0, 3.0));
+  ret = tmpvar_2.xyz;
+ }

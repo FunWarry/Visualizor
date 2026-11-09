@@ -1,0 +1,59 @@
+[preset00]
+fRating=0.000000
+fGammaAdj=1.000000
+fDecay=1.000000
+fVideoEchoZoom=1.000000
+nVideoEchoOrientation=1.000000
+nWaveMode=7.000000
+bAdditiveWaves=1.000000
+bWaveThick=1.000000
+bTexWrap=0.000000
+bDarken=1.000000
+fWaveAlpha=100.000000
+fWaveScale=0.098609
+fWaveSmoothing=0.500000
+fWaveParam=1.000000
+fModWaveAlphaStart=0.500000
+fModWaveAlphaEnd=1.000000
+fZoomExponent=0.999996
+fShader=1.000000
+fDX=0.000010
+fDY=0.000010
+fWarp=0.010000
+fWaveY=0.976000
+fOuterBorderSize=0.004500
+fOuterBorderA=1.000000
+fInnerBorderSize=0.021500
+fInnerBorderR=1.000000
+fInnerBorderG=0.600000
+fInnerBorderB=0.500000
+fInnerBorderA=1.000000
+nMotionVectorsX=64.000000
+nMotionVectorsY=2.400000
+nMotionVectorsDy=-0.100000
+nMotionVectorsLoop=5.000000
+shapecode_0_enabled=0.000000
+shapecode_1_enabled=0.000000
+shapecode_2_enabled=0.000000
+shapecode_3_enabled=0.000000
+per_frame_init_1=thresh = 0;
+per_frame_init_2=dx_r = 0;
+per_frame_init_3=dy_r = 0;
+per_frame_1=warp = 0;
+per_frame_2=ib_r = 0.9 + 0.1 * sin(0.894 * time);
+per_frame_3=ib_g = 0.43 + 0.13 * sin(0.14 * time);
+per_frame_4=thresh = 2 * above(bass_att, thresh) + (1 - above(bass_att, thresh)) * (0.96 * (thresh - 1.3) + 1.3);
+per_frame_5=dx_r = 0.004 * equal(thresh, 2) * sin(5 * time) + (1 - equal(thresh, 2)) * dx_r;
+per_frame_6=dy_r = 0.004 * equal(thresh, 2) * sin(6 * time) + (1 - equal(thresh, 2)) * dy_r;
+per_frame_7=dx = 1.1 * dx_r;
+per_frame_8=dy = 1.1 * dy_r;
+per_frame_9=dx = dx + if(0.00001 < abs(above(bass + bass_att, 2.6)), 21 * dx_r, 0);
+per_frame_10=dy = if(0.00001 < abs(above(bass, 1.3)), 0, dy);
+per_frame_11=mv_l = 10000;
+per_frame_12=mv_y = 2;
+per_frame_13=mv_dy = -0.1;
+per_frame_14=zoom = zoom - 0.02 * thresh;
+per_frame_15=wave_r = ib_r;
+per_frame_16=wave_b = ib_b;
+per_frame_17=wave_g = ib_g;
+per_pixel_1=zoom = if(0.00001 < abs(below(rad, 0.3 + 0.1 * sin(time))), zoom + -0.6, zoom);

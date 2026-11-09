@@ -1,0 +1,37 @@
+[preset00]
+fRating=0.000000
+fDecay=1.000000
+fVideoEchoZoom=0.999608
+fVideoEchoAlpha=0.500000
+nVideoEchoOrientation=2.000000
+bWaveThick=1.000000
+bMaximizeWaveColor=0.000000
+bTexWrap=0.000000
+bDarkenCenter=1.000000
+fWaveScale=0.011046
+fWaveParam=-0.420000
+fWaveR=0.500000
+fWaveG=0.500000
+fWaveB=0.500000
+fOuterBorderR=1.000000
+fOuterBorderA=0.900000
+nMotionVectorsX=1.280000
+nMotionVectorsY=1.248000
+nMotionVectorsDx=-0.060000
+nMotionVectorsDy=-0.026000
+nMotionVectorsLoop=5.000000
+fMotionVectorsA=0.000000
+shapecode_0_enabled=0.000000
+shapecode_1_enabled=0.000000
+shapecode_2_enabled=0.000000
+shapecode_3_enabled=0.000000
+per_frame_init_1=q1 = 0;
+per_frame_1=warp = 0;
+per_frame_2=wave_r = 0.3 * bass_att;
+per_frame_3=wave_g = 0.3 * treb_att;
+per_frame_4=wave_b = 0.3 * mid_att;
+per_frame_5=ob_r = 0.5 + 0.5 * sin(5.12 * time);
+per_frame_6=ob_b = 0.5 + 0.5 * sin(6.112 * time);
+per_frame_7=ob_g = 0.5 + 0.5 * sin(7.212 * time);
+per_frame_8=q1 = zoom + 0.005 * pow(bass + bass_att, 3) - 0.02;
+per_pixel_1=zoom = q1 + rad * sin(25 * ang) * 0.05;

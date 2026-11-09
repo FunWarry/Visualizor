@@ -1,4 +1,35 @@
 // Headless DOM, WebGL, Web Audio, and Web MIDI environment harness for Visualizor
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+
+export class MockStorage implements Storage {
+  private readonly store = new Map<string, string>();
+
+  get length(): number {
+    return this.store.size;
+  }
+
+  clear(): void {
+    this.store.clear();
+  }
+
+  getItem(key: string): string | null {
+    return this.store.get(key) ?? null;
+  }
+
+  key(index: number): string | null {
+    const keys = Array.from(this.store.keys());
+    return keys[index] ?? null;
+  }
+
+  removeItem(key: string): void {
+    this.store.delete(key);
+  }
+
+  setItem(key: string, value: string): void {
+    this.store.set(key, String(value));
+  }
+}
 
 export class MockDOMTokenList {
   private readonly tokens = new Set<string>();
@@ -243,7 +274,8 @@ export function createMockCanvas2DContext(): Record<string, unknown> {
     translate: () => {},
     rotate: () => {},
     scale: () => {},
-    roundRect: () => {}
+    roundRect: () => {},
+    drawImage: () => {}
   };
 }
 
@@ -623,8 +655,64 @@ export function setupTestEnvironment(): void {
   milkCanvas.id = 'milkdrop-canvas';
   body.appendChild(milkCanvas);
 
+  const transitionCanvas = new MockElement('CANVAS');
+  transitionCanvas.id = 'transition-canvas';
+  body.appendChild(transitionCanvas);
+
   activeMidiAccess = new MockMIDIAccess();
   activeMidiAccess.addMockInput('input-0', 'Arturia BeatStep MIDI 1');
+
+  const mockLocalStorage = new MockStorage();
+  const mockSessionStorage = new MockStorage();
+
+  const originalFetch = globalThis.fetch;
+  const mockFetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    let urlStr: string;
+    if (typeof input === 'string') {
+      urlStr = input;
+    } else if (input instanceof URL) {
+      urlStr = input.toString();
+    } else {
+      urlStr = (input as Request).url;
+    }
+
+    if (!urlStr.startsWith('http://') && !urlStr.startsWith('https://')) {
+      const cleanPath = urlStr.replace(/^\/+/, '').split('?')[0];
+      const filePath = path.resolve(process.cwd(), 'public', cleanPath);
+
+      if (fs.existsSync(filePath)) {
+        const data = await fs.promises.readFile(filePath);
+        const isJson = cleanPath.endsWith('.json');
+        const isPng = cleanPath.endsWith('.png');
+        const contentType = isJson
+          ? 'application/json'
+          : isPng
+            ? 'image/png'
+            : 'text/plain; charset=utf-8';
+
+        return new Response(data, {
+          status: 200,
+          statusText: 'OK',
+          headers: { 'Content-Type': contentType }
+        });
+      }
+
+      return new Response(JSON.stringify({ error: `File not found: ${cleanPath}` }), {
+        status: 404,
+        statusText: 'Not Found',
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    if (originalFetch) {
+      return originalFetch(input, init);
+    }
+
+    return new Response(JSON.stringify({ error: `No fetch handler for: ${urlStr}` }), {
+      status: 404,
+      statusText: 'Not Found'
+    });
+  };
 
   const mockWindow = {
     innerWidth: 1920,
@@ -633,7 +721,10 @@ export function setupTestEnvironment(): void {
     addEventListener: () => {},
     removeEventListener: () => {},
     AudioContext: MockAudioContext,
-    webkitAudioContext: MockAudioContext
+    webkitAudioContext: MockAudioContext,
+    localStorage: mockLocalStorage,
+    sessionStorage: mockSessionStorage,
+    fetch: mockFetch
   };
 
   const mockDocument = {
@@ -711,8 +802,43 @@ export function setupTestEnvironment(): void {
     configurable: true,
     writable: true
   });
+
+  const origCreateObjectURL = URL.createObjectURL;
+  URL.createObjectURL = (obj: unknown): string => {
+    if (typeof Blob !== 'undefined' && obj instanceof Blob) {
+      try {
+        return origCreateObjectURL(obj);
+      } catch {
+        // Fallback for mocked Blob environments
+      }
+    }
+    return `blob:mock-object-${Math.random().toString(36).slice(2)}`;
+  };
+  URL.revokeObjectURL = () => {};
+
+  Object.defineProperty(globalThis, 'fetch', {
+    value: mockFetch,
+    configurable: true,
+    writable: true
+  });
+
+  Object.defineProperty(globalThis, 'localStorage', {
+    value: mockLocalStorage,
+    configurable: true,
+    writable: true
+  });
+
+  Object.defineProperty(globalThis, 'sessionStorage', {
+    value: mockSessionStorage,
+    configurable: true,
+    writable: true
+  });
 }
 
 export function getActiveMidiAccess(): MockMIDIAccess | null {
   return activeMidiAccess;
 }
+
+// Initialize global window/document immediately for UMD modules like butterchurn
+setupTestEnvironment();
+

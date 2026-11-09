@@ -1,0 +1,86 @@
+[preset00]
+fRating=4.000000
+fGammaAdj=1.630000
+fDecay=1.000000
+fVideoEchoZoom=1.000000
+fVideoEchoAlpha=0.500000
+nVideoEchoOrientation=1.000000
+nWaveMode=1.000000
+bTexWrap=0.000000
+bDarken=1.000000
+fWaveAlpha=0.900000
+fWaveScale=0.400000
+fWaveSmoothing=0.000000
+fWaveParam=-1.000000
+fModWaveAlphaStart=0.900000
+fModWaveAlphaEnd=2.000000
+fZoom=1.010000
+fCX=0.000000
+fCY=0.000000
+fDX=0.320000
+fDY=0.280000
+fWarp=0.000000
+fSx=0.610000
+fSy=0.644000
+fWaveR=0.100000
+fWaveG=0.100000
+fWaveB=0.100000
+fWaveX=0.680000
+fWaveY=0.700000
+fOuterBorderSize=0.005000
+fOuterBorderA=0.012000
+fInnerBorderSize=0.000000
+fInnerBorderR=0.000000
+fInnerBorderG=0.000000
+fInnerBorderB=0.500000
+fInnerBorderA=0.500000
+nMotionVectorsX=27.640000
+nMotionVectorsY=20.800000
+nMotionVectorsLoop=0.500000
+fMotionVectorsG=0.000000
+fMotionVectorsA=0.000000
+wavecode_0_enabled=0.000000
+wavecode_1_enabled=0.000000
+wavecode_2_enabled=0.000000
+wavecode_3_enabled=0.000000
+shapecode_0_enabled=1.000000
+shapecode_0_textured=1.000000
+shapecode_0_rad=5.033000
+shapecode_0_ang=3.079000
+shapecode_0_tex_ang=1.566000
+shapecode_0_tex_zoom=0.198000
+shapecode_0_g=1.000000
+shapecode_0_b=1.000000
+shapecode_0_r2=1.000000
+shapecode_0_b2=1.000000
+shapecode_0_a2=1.000000
+shapecode_0_border_r=0.000000
+shapecode_0_border_g=0.000000
+shapecode_0_border_b=0.000000
+shapecode_0_border_a=0.000000
+shapecode_1_enabled=1.000000
+shapecode_1_sides=99.000000
+shapecode_1_textured=1.000000
+shapecode_1_rad=0.500000
+shapecode_1_ang=3.142000
+shapecode_1_tex_ang=0.063000
+shapecode_1_tex_zoom=1.943000
+shapecode_1_g=1.000000
+shapecode_1_b=1.000000
+shapecode_1_r2=1.000000
+shapecode_1_b2=1.000000
+shapecode_1_border_r=0.000000
+shapecode_1_border_g=0.000000
+shapecode_1_border_b=0.000000
+shapecode_1_border_a=0.000000
+shapecode_2_enabled=0.000000
+shapecode_3_enabled=0.000000
+per_frame_1=wave_x = wave_x + 0 * (0 * sin(0 * time) + 0 * sin(1.621 * time));
+per_frame_2=wave_y = wave_y + 0 * (0 * sin(0 * time) + 0 * sin(2.322 * time));
+per_frame_3=wave_r = wave_r + 0.5 * (0.5 * sin(0.5 * time) + 0.4 * sin(0.916 * time));
+per_frame_4=wave_g = wave_g + 0.5 * (0.5 * sin(0.5 * time) + 0.4 * sin(1.023 * time));
+per_frame_5=wave_b = wave_b + 0.5 * (0.5 * sin(0.5 * time) + 0.4 * sin(0.949 * time));
+per_frame_6=zoom = zoom + 0.013 * (0.6 * sin(0.339 * time) + 0.4 * sin(0.276 * time));
+per_frame_7=rot = rot + 0.04 * (0.6 * sin(0.381 * time) + 0.4 * sin(0.579 * time));
+per_frame_8=decay = decay - 0.01 * equal(mod(frame, 50), 0);
+per_frame_9=zoom = zoom + 0.1 * (bass_att - 1);

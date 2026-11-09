@@ -1,0 +1,69 @@
+[preset00]
+fRating=0.000000
+fGammaAdj=1.000000
+fDecay=0.985000
+fVideoEchoZoom=2.722646
+fVideoEchoAlpha=0.500000
+nVideoEchoOrientation=2.000000
+nWaveMode=1.000000
+bAdditiveWaves=1.000000
+bModWaveAlphaByVolume=1.000000
+bTexWrap=0.000000
+bDarkenCenter=1.000000
+fWaveAlpha=4.099998
+fWaveScale=0.640708
+fWaveSmoothing=0.900000
+fModWaveAlphaStart=0.710000
+fModWaveAlphaEnd=1.300000
+fWarpScale=1.331000
+fZoomExponent=8.311067
+fShader=1.000000
+fZoom=1.009509
+fWarp=0.010000
+fWaveR=0.650000
+fWaveG=0.650000
+fWaveB=0.650000
+fOuterBorderSize=0.500000
+fOuterBorderR=0.010000
+fInnerBorderSize=0.260000
+nMotionVectorsX=64.000000
+nMotionVectorsY=48.000000
+nMotionVectorsLoop=5.000000
+fMotionVectorsA=0.500000
+wavecode_0_enabled=1.000000
+wavecode_0_thick=1.000000
+wavecode_0_additive=1.000000
+wavecode_0_scaling=2.216703
+wavecode_0_smoothing=1.000000
+wavecode_0_g=0.000000
+wavecode_0_a=0.130000
+wavecode_1_enabled=0.000000
+wavecode_2_enabled=0.000000
+wavecode_3_enabled=0.000000
+shapecode_0_enabled=1.000000
+shapecode_0_additive=1.000000
+shapecode_0_thickoutline=1.000000
+shapecode_0_r=0.000000
+shapecode_0_g2=0.000000
+shapecode_0_b2=0.300000
+shapecode_0_border_a=0.300000
+shapecode_1_enabled=1.000000
+shapecode_1_textured=1.000000
+shapecode_1_rad=0.330037
+shapecode_1_border_a=0.400000
+shapecode_2_enabled=1.000000
+shapecode_2_sides=100.000000
+shapecode_2_additive=1.000000
+shapecode_2_a=0.200000
+shapecode_2_border_a=0.000000
+shapecode_3_enabled=0.000000
+per_frame_1=wave_r = 0.01 * randint(100);
+per_frame_2=wave_g = 0.5 * bass;
+per_pixel_1=rot = rot + 0.001 * (randint(10) - 5);
+per_pixel_2=rot = rot + 0.01 * rad;
+shape_0_per_frame1=rad = rad + 0.3 * bass;
+shape_0_per_frame2=y = 0.5 * treb;
+shape_1_per_frame1=rad = rad + 0.5 * treb;
+shape_2_per_frame1=rad = rad + 0.5 * mid;
+shape_2_per_frame2=x = x + 0.2 * sin(0.3 * time);
+shape_2_per_frame3=y = y + 0.2 * sin(time + 0.33);

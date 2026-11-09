@@ -1,0 +1,99 @@
+[preset00]
+fRating=0.000000
+fGammaAdj=1.700000
+fDecay=1.000000
+fVideoEchoZoom=0.997000
+fVideoEchoAlpha=0.500000
+nVideoEchoOrientation=1.000000
+nWaveMode=4.000000
+bWaveDots=1.000000
+bMaximizeWaveColor=0.000000
+bTexWrap=0.000000
+fWaveAlpha=0.320000
+fWaveScale=1.521000
+fWaveSmoothing=0.900000
+fModWaveAlphaStart=0.710000
+fModWaveAlphaEnd=1.300000
+fWarpAnimSpeed=2.599000
+fWarpScale=0.010000
+fZoomExponent=0.999900
+fZoom=1.009490
+fWarp=0.010000
+fSx=0.990100
+fSy=1.001700
+fOuterBorderSize=0.000000
+fOuterBorderR=1.000000
+fOuterBorderG=1.000000
+fOuterBorderB=1.000000
+fInnerBorderSize=0.000000
+fInnerBorderR=0.000000
+fInnerBorderG=0.000000
+fInnerBorderB=0.000000
+fInnerBorderA=1.000000
+nMotionVectorsX=64.000000
+nMotionVectorsY=48.000000
+nMotionVectorsDy=0.820000
+nMotionVectorsLoop=5.000000
+fMotionVectorsR=0.350000
+fMotionVectorsG=0.350000
+fMotionVectorsB=0.350000
+b1ed=0.000000
+wavecode_0_enabled=0.000000
+wavecode_1_enabled=0.000000
+wavecode_2_enabled=0.000000
+wavecode_3_enabled=0.000000
+shapecode_0_enabled=0.000000
+shapecode_1_enabled=0.000000
+shapecode_2_enabled=0.000000
+shapecode_3_enabled=0.000000
+per_frame_init_1=redsine = 0;
+per_frame_init_2=bluesine = 0;
+per_frame_init_3=greenif = 0;
+per_frame_init_4=q5 = 0;
+per_frame_init_5=q4 = 0;
+per_frame_init_6=redif = 0;
+per_frame_init_7=blueif = 0;
+per_frame_init_8=vol = 0;
+per_frame_init_9=greensine = 0;
+per_frame_init_10=decay = 0.1;
+per_frame_1=sx = 0.9;
+per_frame_2=vol = 0.3333 * (bass + mid + treb_att);
+per_frame_3=redsine = 0.5 + 0.15 * bass * sin(3 * time);
+per_frame_4=greensine = 0.5 + 0.15 * mid * sin(2 * time);
+per_frame_5=bluesine = 0.5 + 0.15 * treb * sin(time);
+per_frame_6=redif = if(0.00001 < abs(above(bass, 1.2)), redsine, if(0.00001 < abs(above(redif, 0.95)), 0, 0.85 * redif));
+per_frame_7=greenif = if(0.00001 < abs(above(mid, 1.2)), greensine, if(0.00001 < abs(above(greenif, 0.95)), 0, 0.85 * greenif));
+per_frame_8=blueif = if(0.00001 < abs(above(treb, 1.2)), bluesine, if(0.00001 < abs(above(blueif, 0.95)), 0, 0.85 * blueif));
+per_frame_9=q4 = 0.95 + 0.05 * sin(0.52 * time) * cos(0.39 * time);
+per_frame_10=q5 = 0.95 + 0.05 * sin(0.44 * time) * cos(0.71 * time);
+per_pixel_1=zoom = zoom + 0.05 * rad * treb_att;
+
+[warp_shader]
+shader_body { 
+  vec3 tmpvar_1;
+  tmpvar_1.z = 0.5;
+  tmpvar_1.x = q4;
+  tmpvar_1.y = q5;
+  vec4 tmpvar_2;
+  tmpvar_2.w = 1.0;
+  tmpvar_2.xyz = (texture (sampler_fc_main, uv).xyz * tmpvar_1);
+  ret = tmpvar_2.xyz;
+ }
+
+[comp_shader]
+shader_body { 
+  vec2 uvp_1;
+  uvp_1.x = uv.x;
+  uvp_1.y = (uv.y * 0.2);
+  vec2 tmpvar_2;
+  tmpvar_2.x = (uv.y + (rad * 0.12));
+  tmpvar_2.y = ((uv.x * rad) * 0.12);
+  vec4 tmpvar_3;
+  tmpvar_3.w = 1.0;
+  tmpvar_3.xyz = (texture (sampler_noise_hq, ((
+    (texture (sampler_blur1, uvp_1).xyz * scale1)
+   + bias1) * (
+    (texture (sampler_blur2, uvp_1).xyz * scale2)
+   + bias2)).xy).xyz + ((texture (sampler_blur2, tmpvar_2).xyz * scale2) + bias2));
+  ret = tmpvar_3.xyz;
+ }

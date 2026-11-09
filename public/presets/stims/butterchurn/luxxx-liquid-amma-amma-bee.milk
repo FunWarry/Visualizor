@@ -1,0 +1,210 @@
+[preset00]
+fRating=3.000000
+fGammaAdj=1.980000
+fDecay=0.500000
+fVideoEchoZoom=1.000000
+fVideoEchoAlpha=0.500000
+nVideoEchoOrientation=3.000000
+nWaveMode=7.000000
+bAdditiveWaves=1.000000
+bModWaveAlphaByVolume=1.000000
+bMaximizeWaveColor=0.000000
+bDarken=1.000000
+fWaveAlpha=0.001000
+fWaveScale=1.286000
+fWaveSmoothing=0.630000
+fModWaveAlphaStart=0.710000
+fModWaveAlphaEnd=1.300000
+fWarpScale=2.853000
+fZoom=0.961900
+fRot=-0.010000
+fWarp=0.000000
+fWaveR=0.650000
+fWaveG=0.650000
+fWaveB=0.650000
+fInnerBorderR=0.500000
+fInnerBorderG=0.570000
+fInnerBorderB=0.400000
+nMotionVectorsX=64.000000
+nMotionVectorsY=20.160000
+nMotionVectorsLoop=0.400000
+fMotionVectorsG=0.400000
+fMotionVectorsA=0.000000
+b1ed=0.000000
+wavecode_0_enabled=1.000000
+wavecode_0_usedots=1.000000
+wavecode_0_thick=1.000000
+wavecode_0_additive=1.000000
+wavecode_1_enabled=1.000000
+wavecode_1_usedots=1.000000
+wavecode_1_thick=1.000000
+wavecode_1_additive=1.000000
+wavecode_2_enabled=1.000000
+wavecode_2_usedots=1.000000
+wavecode_2_thick=1.000000
+wavecode_2_additive=1.000000
+wavecode_3_enabled=1.000000
+wavecode_3_usedots=1.000000
+wavecode_3_thick=1.000000
+wavecode_3_additive=1.000000
+shapecode_0_enabled=0.000000
+shapecode_1_enabled=0.000000
+shapecode_2_enabled=0.000000
+shapecode_3_enabled=0.000000
+per_frame_init_1=q1 = 0;
+per_frame_1=wave_r = wave_r + 0.1 * (0.6 * sin(0.933 * time) + 0.4 * sin(1.072 * time));
+per_frame_2=wave_g = wave_g + 0.1 * (0.6 * sin(0.888 * time) + 0.4 * sin(0.918 * time));
+per_frame_3=wave_b = wave_b + 0.2 * (0.6 * sin(0.335 * time) + 0.4 * sin(0.4 * time));
+per_frame_4=wave_mystery = 0.5 * sin(0.35 * bass);
+per_frame_5=decay = decay - 0.01 * equal(mod(frame, 50), 0);
+per_frame_6=mv_b = mv_b + 0.2 * sin(1.411 * time);
+per_frame_7=cx = cx + 0.08 * sin(1.315 * time);
+per_frame_8=cy = cy + 0.08 * sin(1.127 * time);
+per_frame_9=q1 = sin(sin(1.211 * time) + cos(0.887 * time) - sin(1.453 * time));
+per_pixel_1=zoom = zoom + 0.1 * rad;
+per_pixel_2=rot = rot - 0.15 * sin(q1 - ang);
+wave_0_init1=oldmd = 0;
+wave_0_init2=md = 0;
+wave_0_init3=mx = 0;
+wave_0_init4=my = 0;
+wave_0_init5=ma = 0.5;
+wave_0_init6=my = 0.5;
+wave_0_init7=md = 0;
+wave_0_per_point1=oldmd = md;
+wave_0_per_point2=md = mod(md + randint(4), 4);
+wave_0_per_point3=md = if(0.00001 < abs(equal(md, oldmd)), mod(md + 1, 4), md);
+wave_0_per_point4=mx = mx + 0.002 * equal(md, 0) * bass;
+wave_0_per_point5=mx = mx - 0.002 * equal(md, 1) * bass;
+wave_0_per_point6=my = my + 0.002 * equal(md, 2) * treb;
+wave_0_per_point7=my = my - 0.002 * equal(md, 3) * treb;
+wave_0_per_point8=mx = if(0.00001 < abs(above(mx, 0.9)), 0.5, mx);
+wave_0_per_point9=mx = if(0.00001 < abs(below(mx, 0.1)), 0.5, mx);
+wave_0_per_point10=my = if(0.00001 < abs(above(my, 0.9)), 0.5, my);
+wave_0_per_point11=my = if(0.00001 < abs(below(my, 0.1)), 0.5, my);
+wave_0_per_point12=x = mx;
+wave_0_per_point13=y = my;
+wave_0_per_point14=a = 0.1 * bass;
+wave_0_per_point15=r = 0.5 * bass;
+wave_1_init1=oldmd = 0;
+wave_1_init2=md = 0;
+wave_1_init3=mx = 0;
+wave_1_init4=my = 0;
+wave_1_init5=mx = 0.5;
+wave_1_init6=my = 0.5;
+wave_1_init7=md = 1;
+wave_1_per_point1=oldmd = md;
+wave_1_per_point2=md = mod(md + randint(4), 4);
+wave_1_per_point3=md = if(0.00001 < abs(equal(md, oldmd)), mod(md + 1, 4), md);
+wave_1_per_point4=mx = mx + 0.002 * equal(md, 0) * bass;
+wave_1_per_point5=mx = mx - 0.002 * equal(md, 1) * bass;
+wave_1_per_point6=my = my + 0.002 * equal(md, 2) * treb;
+wave_1_per_point7=my = my - 0.002 * equal(md, 3) * treb;
+wave_1_per_point8=mx = if(0.00001 < abs(above(mx, 0.9)), 0.5, mx);
+wave_1_per_point9=mx = if(0.00001 < abs(below(mx, 0.1)), 0.5, mx);
+wave_1_per_point10=my = if(0.00001 < abs(above(my, 0.9)), 0.5, my);
+wave_1_per_point11=my = if(0.00001 < abs(below(my, 0.1)), 0.5, my);
+wave_1_per_point12=x = mx;
+wave_1_per_point13=y = my;
+wave_1_per_point14=a = 0.1 * bass;
+wave_1_per_point15=g = 0.5 * treb;
+wave_2_init1=oldmd = 0;
+wave_2_init2=md = 0;
+wave_2_init3=mx = 0;
+wave_2_init4=my = 0;
+wave_2_init5=mx = 0.5;
+wave_2_init6=my = 0.5;
+wave_2_init7=md = 2;
+wave_2_per_point1=oldmd = md;
+wave_2_per_point2=md = mod(md + randint(4), 4);
+wave_2_per_point3=md = if(0.00001 < abs(equal(md, oldmd)), mod(md + 1, 4), md);
+wave_2_per_point4=mx = mx + 0.002 * equal(md, 0) * bass;
+wave_2_per_point5=mx = mx - 0.002 * equal(md, 1) * bass;
+wave_2_per_point6=my = my + 0.002 * equal(md, 2) * treb;
+wave_2_per_point7=my = my - 0.002 * equal(md, 3) * treb;
+wave_2_per_point8=mx = if(0.00001 < abs(above(mx, 0.9)), 0.5, mx);
+wave_2_per_point9=mx = if(0.00001 < abs(below(mx, 0.1)), 0.5, mx);
+wave_2_per_point10=my = if(0.00001 < abs(above(my, 0.9)), 0.5, my);
+wave_2_per_point11=my = if(0.00001 < abs(below(my, 0.1)), 0.5, my);
+wave_2_per_point12=x = mx;
+wave_2_per_point13=y = my;
+wave_2_per_point14=a = 0.1 * bass;
+wave_3_init1=oldmd = 0;
+wave_3_init2=md = 0;
+wave_3_init3=mx = 0;
+wave_3_init4=my = 0;
+wave_3_init5=mx = 0.5;
+wave_3_init6=my = 0.4;
+wave_3_init7=md = 3;
+wave_3_per_point1=oldmd = md;
+wave_3_per_point2=md = mod(md + randint(4), 4);
+wave_3_per_point3=md = if(0.00001 < abs(equal(md, oldmd)), mod(md + 1, 4), md);
+wave_3_per_point4=mx = mx + 0.002 * equal(md, 0) * bass;
+wave_3_per_point5=mx = mx - 0.002 * equal(md, 1) * bass;
+wave_3_per_point6=my = my + 0.002 * equal(md, 2) * treb;
+wave_3_per_point7=my = my - 0.002 * equal(md, 3) * treb;
+wave_3_per_point8=mx = if(0.00001 < abs(above(mx, 0.9)), 0.5, mx);
+wave_3_per_point9=mx = if(0.00001 < abs(below(mx, 0.1)), 0.5, mx);
+wave_3_per_point10=my = if(0.00001 < abs(above(my, 0.9)), 0.5, my);
+wave_3_per_point11=my = if(0.00001 < abs(below(my, 0.1)), 0.5, my);
+wave_3_per_point12=x = mx;
+wave_3_per_point13=y = my;
+wave_3_per_point14=a = 0.1 * bass;
+
+[warp_shader]
+shader_body { 
+  vec2 uv1_1;
+  vec3 ret_2;
+  ret_2.yz = (texture (sampler_main, uv).xyz - 0.08).yz;
+  vec2 tmpvar_3;
+  tmpvar_3 = (texsize.zw * 4.0);
+  vec3 tmpvar_4;
+  tmpvar_4 = (((texture (sampler_blur1, 
+    (uv + (vec2(1.0, 0.0) * tmpvar_3))
+  ).xyz * scale1) + bias1) - ((texture (sampler_blur1, 
+    (uv - (vec2(1.0, 0.0) * tmpvar_3))
+  ).xyz * scale1) + bias1));
+  vec3 tmpvar_5;
+  tmpvar_5 = (((texture (sampler_blur1, 
+    (uv + (vec2(0.0, 1.0) * tmpvar_3))
+  ).xyz * scale1) + bias1) - ((texture (sampler_blur1, 
+    (uv - (vec2(0.0, 1.0) * tmpvar_3))
+  ).xyz * scale1) + bias1));
+  vec2 tmpvar_6;
+  tmpvar_6.x = tmpvar_4.x;
+  tmpvar_6.y = tmpvar_5.x;
+  uv1_1 = (uv + (tmpvar_3 * (tmpvar_6 * 0.4)));
+  ret_2.x = texture (sampler_fc_main, uv1_1).x;
+  ret_2.x = (ret_2.x - ((
+    (((texture (sampler_blur1, uv1_1).xyz * scale1) + bias1).x - ret_2.x)
+   * 0.05) + 0.004));
+  vec2 tmpvar_7;
+  tmpvar_7.x = tmpvar_4.x;
+  tmpvar_7.y = tmpvar_5.x;
+  vec2 tmpvar_8;
+  tmpvar_8.x = tmpvar_4.z;
+  tmpvar_8.y = tmpvar_5.z;
+  ret_2.z = (max ((
+    sqrt(dot (tmpvar_7, tmpvar_7))
+   * 1.4), texture (sampler_main, (
+    mix (uv_orig, uv, vec2(-1.0, -1.0))
+   - 
+    ((tmpvar_8 * texsize.zw) * 4.0)
+  )).z) - 0.004);
+  vec4 tmpvar_9;
+  tmpvar_9.w = 1.0;
+  tmpvar_9.xyz = ret_2;
+  ret = tmpvar_9.xyz;
+ }
+
+[comp_shader]
+shader_body { 
+  vec3 ret_1;
+  ret_1 = (mix (texture (sampler_main, uv).xyz, texture (sampler_main, (
+    -(((uv - 0.5) * 1.003))
+   + 0.5)).xyz, vec3(0.5, 0.5, 0.5)) * 2.75);
+  ret_1 = (ret_1 * ret_1);
+  vec4 tmpvar_2;
+  tmpvar_2.w = 1.0;
+  tmpvar_2.xyz = ret_1;
+  ret = tmpvar_2.xyz;
+ }

@@ -1,0 +1,355 @@
+[preset00]
+fRating=4.000000
+fGammaAdj=1.980000
+fDecay=0.500000
+fVideoEchoZoom=0.952000
+fVideoEchoAlpha=0.500000
+nVideoEchoOrientation=3.000000
+nWaveMode=6.000000
+bAdditiveWaves=1.000000
+bWaveThick=1.000000
+bModWaveAlphaByVolume=1.000000
+bMaximizeWaveColor=0.000000
+bDarken=1.000000
+fWaveAlpha=0.312000
+fWaveScale=1.229000
+fWaveSmoothing=0.000000
+fWaveParam=0.200000
+fModWaveAlphaStart=0.710000
+fModWaveAlphaEnd=1.300000
+fWarpAnimSpeed=1.459000
+fWarpScale=2.007000
+fZoom=0.999900
+fWarp=0.010000
+fSx=0.999900
+fWaveR=0.000000
+fWaveG=0.000000
+fWaveB=0.000000
+fOuterBorderSize=0.005000
+fOuterBorderA=0.200000
+fInnerBorderSize=0.000000
+fInnerBorderR=0.000000
+fInnerBorderG=0.000000
+fInnerBorderA=1.000000
+nMotionVectorsX=32.000000
+nMotionVectorsY=24.000000
+nMotionVectorsLoop=0.000000
+fMotionVectorsB=0.500000
+fMotionVectorsA=0.000000
+b1ed=0.000000
+wavecode_0_enabled=0.000000
+wavecode_1_enabled=0.000000
+wavecode_2_enabled=0.000000
+wavecode_3_enabled=0.000000
+shapecode_0_enabled=0.000000
+shapecode_1_enabled=0.000000
+shapecode_2_enabled=0.000000
+shapecode_3_enabled=0.000000
+per_frame_init_1=px = 0;
+per_frame_init_2=tic = 0;
+per_frame_init_3=index2 = 0;
+per_frame_init_4=crit = 0;
+per_frame_init_5=index = 0;
+per_frame_init_6=q12 = 0;
+per_frame_init_7=q22 = 0;
+per_frame_init_8=q21 = 0;
+per_frame_init_9=q13 = 0;
+per_frame_init_10=q15 = 0;
+per_frame_init_11=q29 = 0;
+per_frame_init_12=l1angy = 0;
+per_frame_init_13=dec_med = 0;
+per_frame_init_14=py = 0;
+per_frame_init_15=mindev = 0;
+per_frame_init_16=trel = 0;
+per_frame_init_17=t0a = 0;
+per_frame_init_18=is_beat = 0;
+per_frame_init_19=q23 = 0;
+per_frame_init_20=q24 = 0;
+per_frame_init_21=jump = 0;
+per_frame_init_22=dec_slow = 0;
+per_frame_init_23=ran2 = 0;
+per_frame_init_24=q11 = 0;
+per_frame_init_25=q10 = 0;
+per_frame_init_26=sdev = 0;
+per_frame_init_27=pp = 0;
+per_frame_init_28=spb = 0;
+per_frame_init_29=spb_ = 0;
+per_frame_init_30=pz = 0;
+per_frame_init_31=q16 = 0;
+per_frame_init_32=avg = 0;
+per_frame_init_33=puls = 0;
+per_frame_init_34=trig = 0;
+per_frame_init_35=beat = 0;
+per_frame_init_36=q17 = 0;
+per_frame_init_37=l1angz = 0;
+per_frame_init_38=peak = 0;
+per_frame_init_39=q27 = 0;
+per_frame_init_40=q14 = 0;
+per_frame_init_41=sw1 = 0;
+per_frame_init_42=t0 = 0;
+per_frame_init_43=ran1 = 0;
+per_frame_init_44=q28 = 0;
+per_frame_init_45=test = 0;
+per_frame_init_46=q30 = 0;
+per_frame_init_47=q20 = 0;
+per_frame_init_48=index2 = randint(8);
+per_frame_init_49=px = randint(100);
+per_frame_init_50=py = randint(100);
+per_frame_init_51=pz = randint(100);
+per_frame_1=dec_med = pow(0.85, 30 / fps);
+per_frame_2=dec_slow = pow(0.95, 30 / fps);
+per_frame_3=beat = mid;
+per_frame_4=avg = avg * dec_slow + beat * (1 - dec_slow);
+per_frame_5=is_beat = above(beat, 1.2 * avg) * above(time, t0 + 0.1);
+per_frame_6=t0 = is_beat * time + (1 - is_beat) * t0;
+per_frame_7=peak = is_beat * beat + (1 - is_beat) * peak * dec_med;
+per_frame_8=index = mod(index + is_beat, 32);
+per_frame_9=index2 = mod(index2 + is_beat * bnot(index), 8);
+per_frame_10=spb = min(t0 - t0a + 0.01, 2);
+per_frame_11=t0a = t0;
+per_frame_12=spb_ = if(0.00001 < abs(is_beat), 0.9 * spb_ + 0.1 * spb, spb_);
+per_frame_13=mindev = min(min(abs(spb - spb_), abs(2 * spb - spb_)), abs(spb - 2 * spb_));
+per_frame_14=sdev = if(0.00001 < abs(is_beat), 0.96 * sdev + 0.04 * pow(mindev + 0.01, 2), sdev);
+per_frame_15=q20 = avg;
+per_frame_16=q21 = beat;
+per_frame_17=q22 = peak + 0.01;
+per_frame_18=q24 = is_beat;
+per_frame_19=q27 = index;
+per_frame_20=q28 = index2;
+per_frame_21=puls = puls * dec_med + (1 - dec_med) * q24 * 16 * bnot(mod(index, 4));
+per_frame_22=q23 = min(1, puls);
+per_frame_23=test = test + 120 * (above(beat, 1.2 * avg) * (beat - avg) / fps);
+per_frame_24=tic = q27 / 2;
+per_frame_25=l1angz = 0 * tic + test;
+per_frame_26=l1angy = 1.6 * (1 + sin(2 * test)) / 2;
+per_frame_27=sw1 = mod(q28, 2) * above(avg, 1);
+per_frame_28=l1angy = l1angy - 1 / q22 * sw1 + (1 - sw1) * q22 / 8;
+per_frame_29=l1angy = l1angy + 2 * above(avg, 1.2) * sin(q22);
+per_frame_30=l1angz = l1angz + above(avg, 1.2) * q22 * above(q28, 4);
+per_frame_31=q10 = cos(l1angz) * sin(l1angy);
+per_frame_32=q11 = sin(l1angz) * sin(l1angy);
+per_frame_33=q12 = abs(cos(l1angy) * cos(l1angy));
+per_frame_34=trig = q24 * bnot(mod(index, 2));
+per_frame_35=ran1 = if(0.00001 < abs(trig), randint(100) / 100 - 0.5, ran1);
+per_frame_36=ran2 = if(0.00001 < abs(trig), randint(100) / 100 - 0.5, ran2);
+per_frame_37=q13 = ran1 / 2;
+per_frame_38=q14 = ran2 / 2;
+per_frame_39=pp = 4 * avg * q13 / fps;
+per_frame_40=pp = 1 / fps;
+per_frame_41=crit = floor(q27 / 8);
+per_frame_42=px = px + equal(crit, 0) * pp;
+per_frame_43=py = py + equal(crit, 1) * pp;
+per_frame_44=pz = pz + equal(crit, 2) * pp;
+per_frame_45=trel = trel + 1 / spb_ / fps;
+per_frame_46=jump = floor(trel) * below(sdev, 0.004 * avg);
+per_frame_47=q15 = px + jump;
+per_frame_48=q16 = py + jump;
+per_frame_49=q17 = pz + jump;
+per_frame_50=q30 = above(q28, 5);
+per_frame_51=monitor = avg;
+per_frame_52=q29 = q22 / 16 * (above(q22, 1.5) + 0.8 - avg) + 0.1 * (sin(time / 5) - 0.8);
+per_frame_53=zoom = 1;
+per_frame_54=warp = 0;
+per_frame_55=rot = 0;
+per_frame_56=dx = 0;
+per_frame_57=dy = -0.02;
+
+[warp_shader]
+float clip1;
+vec2 xlat_mutableKugel1;
+vec3 xlat_mutablelight;
+float xlat_mutablerad1;
+float xlat_mutableray1;
+vec2 xlat_mutablersk;
+float xlat_mutablesun1;
+vec2 xlat_mutableuv1;
+vec2 xlat_mutableuv3;
+vec2 xlat_mutableuv4;
+vec2 xlat_mutableuv5;
+ shader_body { 
+  vec2 tmpvar_1;
+  tmpvar_1.x = q13;
+  tmpvar_1.y = q14;
+  clip1 = (float((rand_preset.x >= 0.5)) + 1.0);
+  vec2 uv_2;
+  uv_2 = uv;
+  vec2 uv2_3;
+  float ff_5;
+  float k1_6;
+  float ky_7;
+  vec3 ret_8;
+  xlat_mutableuv1 = ((uv - vec2(0.5, 0.5)) * aspect.xy);
+  xlat_mutableuv3 = (58.0 * xlat_mutableuv1);
+  ky_7 = clamp ((0.04 - (xlat_mutableuv3.y / 40.0)), 0.0, 1.0);
+  k1_6 = (xlat_mutableuv3.x - (sign(xlat_mutableuv3.x) * 14.0));
+  k1_6 = (k1_6 - ((
+    sign(k1_6)
+   * q28) * 2.0));
+  k1_6 = (k1_6 - (sign(k1_6) * 8.0));
+  ff_5 = (16.0 + (16.0 * rand_preset.z));
+  for (int n_4 = 1; float(n_4) <= 6.0; n_4++) {
+    k1_6 = (k1_6 + ((
+      ((-(ff_5) * float(n_4)) * sign(k1_6))
+     * ky_7) * ky_7));
+    ky_7 = clamp ((ky_7 - 0.1), 0.0, 1.0);
+  };
+  float tmpvar_9;
+  tmpvar_9 = clamp (k1_6, -1.57, 1.57);
+  k1_6 = tmpvar_9;
+  float tmpvar_10;
+  tmpvar_10 = clamp ((cos(tmpvar_9) - 0.02), 0.0, 1.0);
+  vec2 tmpvar_11;
+  tmpvar_11.x = cos(q15);
+  tmpvar_11.y = 0.0;
+  xlat_mutablersk = (xlat_mutableuv1 + (0.3 * tmpvar_11));
+  xlat_mutablerad1 = ((16.0 * sqrt(
+    dot (xlat_mutablersk, xlat_mutablersk)
+  )) * (2.0 + cos(q17)));
+  xlat_mutableuv4 = ((sin(xlat_mutablerad1) / cos(xlat_mutablerad1)) * normalize(xlat_mutablersk));
+  xlat_mutableKugel1 = (xlat_mutableuv4 * clamp ((9.0 - 
+    (7.0 * xlat_mutablerad1)
+  ), 0.0, 1.0));
+  vec4 tmpvar_12;
+  tmpvar_12 = (1.0 + slow_roam_sin);
+  xlat_mutablelight = ((0.1 / xlat_mutablerad1) * pow (vec4(q23), tmpvar_12)).xyz;
+  uv_2 = (uv + (xlat_mutableKugel1 * 0.1));
+  vec2 tmpvar_13;
+  tmpvar_13.x = 0.0;
+  tmpvar_13.y = cos((q16 / 2.0));
+  xlat_mutablersk = (xlat_mutableuv1 + (0.3 * tmpvar_13));
+  xlat_mutablerad1 = ((16.0 * sqrt(
+    dot (xlat_mutablersk, xlat_mutablersk)
+  )) * (2.0 + cos(
+    (q17 * 2.0)
+  )));
+  xlat_mutableuv4 = ((sin(xlat_mutablerad1) / cos(xlat_mutablerad1)) * normalize(xlat_mutablersk));
+  xlat_mutableKugel1 = (xlat_mutableuv4 * clamp ((9.0 - 
+    (7.0 * xlat_mutablerad1)
+  ), 0.0, 1.0));
+  xlat_mutablelight = (xlat_mutablelight + ((0.1 / xlat_mutablerad1) * pow (vec4(q23), tmpvar_12)).xyz);
+  uv_2 = (uv_2 + (xlat_mutableKugel1 * 0.1));
+  vec2 tmpvar_14;
+  tmpvar_14.x = cos((q15 / 3.0));
+  tmpvar_14.y = 0.0;
+  xlat_mutablersk = (xlat_mutableuv1 + (0.3 * tmpvar_14));
+  xlat_mutablerad1 = ((16.0 * sqrt(
+    dot (xlat_mutablersk, xlat_mutablersk)
+  )) * (2.0 + cos(
+    (q17 * 3.0)
+  )));
+  xlat_mutableuv4 = ((sin(xlat_mutablerad1) / cos(xlat_mutablerad1)) * normalize(xlat_mutablersk));
+  xlat_mutableKugel1 = (xlat_mutableuv4 * clamp ((9.0 - 
+    (7.0 * xlat_mutablerad1)
+  ), 0.0, 1.0));
+  xlat_mutablelight = (xlat_mutablelight + ((0.1 / xlat_mutablerad1) * pow (vec4(q23), tmpvar_12)).xyz);
+  uv_2 = (uv_2 + (xlat_mutableKugel1 * 0.1));
+  uv_2 = (uv_2 + (tmpvar_10 * 0.05));
+  vec2 tmpvar_15;
+  tmpvar_15 = ((uv_2.yx - 0.5) * (2.0 + tmpvar_10));
+  float ex_16;
+  ex_16 = (0.5 + ((0.3 * q28) / 8.0));
+  float tmpvar_17;
+  tmpvar_17 = sqrt(((tmpvar_15.x * tmpvar_15.x) + (tmpvar_15.y * tmpvar_15.y)));
+  float tmpvar_18;
+  float tmpvar_19;
+  tmpvar_19 = (min (abs(
+    (tmpvar_15.y / tmpvar_15.x)
+  ), 1.0) / max (abs(
+    (tmpvar_15.y / tmpvar_15.x)
+  ), 1.0));
+  float tmpvar_20;
+  tmpvar_20 = (tmpvar_19 * tmpvar_19);
+  tmpvar_20 = (((
+    ((((
+      ((((-0.01213232 * tmpvar_20) + 0.05368138) * tmpvar_20) - 0.1173503)
+     * tmpvar_20) + 0.1938925) * tmpvar_20) - 0.3326756)
+   * tmpvar_20) + 0.9999793) * tmpvar_19);
+  tmpvar_20 = (tmpvar_20 + (float(
+    (abs((tmpvar_15.y / tmpvar_15.x)) > 1.0)
+  ) * (
+    (tmpvar_20 * -2.0)
+   + 1.570796)));
+  tmpvar_18 = (tmpvar_20 * sign((tmpvar_15.y / tmpvar_15.x)));
+  if ((abs(tmpvar_15.x) > (1e-08 * abs(tmpvar_15.y)))) {
+    if ((tmpvar_15.x < 0.0)) {
+      if ((tmpvar_15.y >= 0.0)) {
+        tmpvar_18 += 3.141593;
+      } else {
+        tmpvar_18 = (tmpvar_18 - 3.141593);
+      };
+    };
+  } else {
+    tmpvar_18 = (sign(tmpvar_15.y) * 1.570796);
+  };
+  vec2 tmpvar_21;
+  tmpvar_21.x = (pow (tmpvar_17, ex_16) * cos((tmpvar_18 * ex_16)));
+  tmpvar_21.y = (pow (tmpvar_17, ex_16) * sin((tmpvar_18 * ex_16)));
+  uv2_3 = (0.5 + ((1.0 - 
+    abs(((fract(
+      ((vec2(mod (tmpvar_21, clip1))) * 0.5)
+    ) * 2.0) - 1.0))
+  ) - 0.5));
+  ret_8 = ((texture (sampler_main, uv2_3.yx).xyz + texture (sampler_main, uv_orig).xyz) / 2.0);
+  xlat_mutableuv4 = (((uv_2 - 0.5) - tmpvar_1) + tmpvar_10);
+  vec2 tmpvar_22;
+  tmpvar_22.x = q10;
+  tmpvar_22.y = q11;
+  xlat_mutableuv5 = (normalize(xlat_mutableuv4) - tmpvar_22);
+  vec2 x_23;
+  x_23 = (xlat_mutableuv5 / q12);
+  xlat_mutableray1 = (clamp ((1.0 - 
+    sqrt(dot (x_23, x_23))
+  ), 0.0, 1.0) + ((0.001 / 
+    sqrt(dot (xlat_mutableuv5, xlat_mutableuv5))
+  ) / sqrt(
+    dot (xlat_mutableuv4, xlat_mutableuv4)
+  )));
+  xlat_mutablesun1 = (clamp ((0.002 / 
+    sqrt(dot (xlat_mutableuv4, xlat_mutableuv4))
+  ), 0.0, 1.0) / (1.05 - q12));
+  vec3 tmpvar_24;
+  tmpvar_24.x = q27;
+  tmpvar_24.y = (q27 + 3.0);
+  tmpvar_24.z = (q27 + 6.0);
+  ret_8 = (ret_8 + ((xlat_mutableray1 + xlat_mutablesun1) * fract(
+    (tmpvar_24 / 16.0)
+  )));
+  vec2 tmpvar_25;
+  tmpvar_25 = sin(((uv2_3 * 2.0) + (0.2 * 
+    ((float(mod (q27, 8.0))) - 4.0)
+  )));
+  ret_8 = (ret_8 + (0.015 / sqrt(
+    dot (tmpvar_25, tmpvar_25)
+  )));
+  ret_8 = (ret_8 + ((
+    pow (tmpvar_10, 3.0)
+   * q29) * (1.0 + roam_sin)).xyz);
+  ret_8 = (ret_8 + xlat_mutablelight);
+  ret_8 = (ret_8 * ((1.0 - 
+    (3.3 / fps)
+  ) - (0.02 * 
+    dot (((texture (sampler_blur2, uv_orig).xyz * scale2) + bias2), vec3(0.32, 0.49, 0.29))
+  )));
+  vec4 tmpvar_26;
+  tmpvar_26.w = 1.0;
+  tmpvar_26.xyz = ret_8;
+  ret = tmpvar_26.xyz;
+ }
+
+[comp_shader]
+shader_body { 
+  vec3 tmpvar_1;
+  vec3 tmpvar_2;
+  tmpvar_2 = clamp ((pow (texture (sampler_main, uv).xyz, vec3(1.2, 1.2, 1.2)) / vec3(1.2, 1.2, 1.2)), 0.0, 1.0);
+  tmpvar_1 = (tmpvar_2 * (tmpvar_2 * (3.0 - 
+    (2.0 * tmpvar_2)
+  )));
+  float tmpvar_3;
+  tmpvar_3 = clamp (q20, 0.0, 1.0);
+  vec4 tmpvar_4;
+  tmpvar_4.w = 1.0;
+  tmpvar_4.xyz = mix (vec3(dot (tmpvar_1, vec3(0.32, 0.49, 0.29))), tmpvar_1, vec3((tmpvar_3 * (tmpvar_3 * 
+    (3.0 - (2.0 * tmpvar_3))
+  ))));
+  ret = tmpvar_4.xyz;
+ }

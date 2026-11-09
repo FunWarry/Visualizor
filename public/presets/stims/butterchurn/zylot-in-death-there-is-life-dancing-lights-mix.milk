@@ -1,0 +1,77 @@
+[preset00]
+fRating=5.000000
+nWaveMode=3.000000
+bWaveDots=1.000000
+bModWaveAlphaByVolume=1.000000
+fWaveScale=16.217468
+fWaveParam=-0.440000
+fWaveR=0.500000
+fWaveG=0.500000
+fWaveB=0.500000
+fMotionVectorsA=0.000000
+wavecode_0_enabled=0.000000
+wavecode_1_enabled=0.000000
+wavecode_2_enabled=0.000000
+wavecode_3_enabled=0.000000
+shapecode_0_enabled=1.000000
+shapecode_0_additive=1.000000
+shapecode_0_textured=1.000000
+shapecode_0_rad=2.667175
+shapecode_0_ang=0.565486
+shapecode_0_tex_zoom=0.400342
+shapecode_0_g=1.000000
+shapecode_0_b=1.000000
+shapecode_0_a=0.200000
+shapecode_0_r2=1.000000
+shapecode_0_b2=1.000000
+shapecode_0_border_r=0.000000
+shapecode_0_border_g=0.000000
+shapecode_0_border_b=0.000000
+shapecode_1_enabled=0.000000
+shapecode_2_enabled=0.000000
+shapecode_3_enabled=0.000000
+per_frame_1=warp = 0;
+per_frame_2=wave_r = wave_r + 0.2 * sin(1.33 * time) + 0.3 * bass;
+per_frame_3=wave_g = wave_g + 0.2 * sin(time) + 0.3 * treb;
+per_frame_4=wave_b = wave_b + 0.2 * sin(0.988 * time) + 0.3 * mid;
+per_frame_5=zoom = 1 + 0.01 * bass;
+per_pixel_1=zoom = zoom + 0.01 * rad * treb;
+shape_0_init1=spin = 0;
+
+[warp_shader]
+shader_body { 
+  vec3 ret_1;
+  vec4 tmpvar_2;
+  tmpvar_2 = texture (sampler_main, uv);
+  ret_1 = (tmpvar_2.xyz - (tmpvar_2.xyz * 0.5));
+  ret_1 = ((ret_1 * abs(
+    (((texture (sampler_blur2, uv).xyz * scale2) + bias2) - 0.5)
+  )) * 5.0);
+  ret_1 = (ret_1 - 0.01);
+  vec4 tmpvar_3;
+  tmpvar_3.w = 1.0;
+  tmpvar_3.xyz = ret_1;
+  ret = tmpvar_3.xyz;
+ }
+
+[comp_shader]
+shader_body { 
+  vec3 ret_1;
+  ret_1 = (texture (sampler_main, uv).xyz * 5.0);
+  ret_1 = (ret_1 + 1.2);
+  vec3 tmpvar_2;
+  tmpvar_2.x = (1.0 + (0.2 * sin(time)));
+  tmpvar_2.y = (1.0 + (0.2 * sin(
+    (time * 0.2233333)
+  )));
+  tmpvar_2.z = (1.0 + (0.2 * sin(
+    (time * 0.733467)
+  )));
+  ret_1 = ((ret_1 * (
+    (texture (sampler_blur1, uv).xyz * scale1)
+   + bias1).x) * tmpvar_2);
+  vec4 tmpvar_3;
+  tmpvar_3.w = 1.0;
+  tmpvar_3.xyz = ret_1;
+  ret = tmpvar_3.xyz;
+ }

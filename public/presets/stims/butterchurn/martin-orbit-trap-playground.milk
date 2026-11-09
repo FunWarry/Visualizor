@@ -1,0 +1,158 @@
+[preset00]
+fRating=4.000000
+fGammaAdj=1.980000
+fDecay=0.500000
+fVideoEchoZoom=1.000000
+fVideoEchoAlpha=0.500000
+nVideoEchoOrientation=3.000000
+nWaveMode=6.000000
+bAdditiveWaves=1.000000
+bWaveThick=1.000000
+bModWaveAlphaByVolume=1.000000
+bMaximizeWaveColor=0.000000
+bDarken=1.000000
+fWaveAlpha=0.001000
+fWaveScale=2.103000
+fWaveSmoothing=0.540000
+fWaveParam=0.380000
+fModWaveAlphaStart=0.810000
+fModWaveAlphaEnd=1.400000
+fRot=-0.020000
+fDY=0.020000
+fWarp=0.110010
+fSx=0.999900
+fWaveR=0.000000
+fWaveG=0.000000
+fWaveB=0.000000
+nMotionVectorsX=64.000000
+nMotionVectorsY=48.000000
+nMotionVectorsLoop=1.850000
+fMotionVectorsR=0.500000
+fMotionVectorsG=0.500000
+fMotionVectorsB=0.500000
+fMotionVectorsA=0.000000
+b1ed=0.000000
+wavecode_0_enabled=0.000000
+wavecode_1_enabled=0.000000
+wavecode_2_enabled=0.000000
+wavecode_3_enabled=0.000000
+shapecode_0_enabled=0.000000
+shapecode_1_enabled=1.000000
+shapecode_1_sides=34.000000
+shapecode_1_num_inst=274.000000
+shapecode_1_x=0.600000
+shapecode_1_rad=0.022170
+shapecode_1_tex_zoom=60.803830
+shapecode_1_g=0.600000
+shapecode_1_b=1.000000
+shapecode_1_a=0.900000
+shapecode_1_g2=0.000000
+shapecode_1_border_g=0.590000
+shapecode_1_border_b=0.000000
+shapecode_1_border_a=1.000000
+shapecode_2_enabled=0.000000
+shapecode_3_enabled=0.000000
+per_frame_1=dy = 0;
+per_frame_2=dx = 0;
+per_frame_3=rot = 0;
+per_frame_4=zoom = 1;
+shape_1_init1=aspect = 0;
+shape_1_init2=q32 = 0;
+shape_1_init3=speed = 0;
+shape_1_init4=trel = 0;
+shape_1_init5=speed = 0;
+shape_1_init6=speed = 0;
+shape_1_init7=k1 = 0;
+shape_1_init8=dist = 0;
+shape_1_init9=k1 = 0;
+shape_1_init10=dist = 0;
+shape_1_init11=dist = 0;
+shape_1_init12=dist = 0;
+shape_1_init13=fov = 0;
+shape_1_init14=arg = 0;
+shape_1_init15=dist = 0;
+shape_1_init16=posx = 0;
+shape_1_init17=fov = 0;
+shape_1_init18=dist = 0;
+shape_1_init19=arg = 0;
+shape_1_init20=dist = 0;
+shape_1_init21=posy = 0;
+shape_1_init22=fov = 0;
+shape_1_init23=dist = 0;
+shape_1_init24=arg = 0;
+shape_1_init25=dist = 0;
+shape_1_init26=posx = 0;
+shape_1_init27=posy = 0;
+shape_1_init28=aspect = 0;
+shape_1_init29=radi = 0;
+shape_1_init30=dist = 0;
+shape_1_init31=z1 = 1;
+shape_1_init32=z2 = 23;
+shape_1_init33=rr1 = 0;
+shape_1_init34=rr2 = 0;
+shape_1_per_frame1=aspect = q32;
+shape_1_per_frame2=speed = 0.02;
+shape_1_per_frame3=trel = floor(time * speed) - time * speed + 1;
+shape_1_per_frame4=k1 = 1 - instance / num_inst;
+shape_1_per_frame5=dist = k1;
+shape_1_per_frame6=dist = dist - floor(dist);
+shape_1_per_frame7=fov = 0.03;
+shape_1_per_frame8=arg = dist + 0.2 * time;
+shape_1_per_frame9=posx = fov / dist * (sin(13 * arg) + 0 * sin(332 * dist));
+shape_1_per_frame10=posy = fov / dist * (cos(36 * arg) + 0 * sin(332 * dist));
+shape_1_per_frame11=x = 0.5 + posx;
+shape_1_per_frame12=y = 0.5 + posy * aspect;
+shape_1_per_frame13=a = 1;
+shape_1_per_frame14=border_a = min(4 * radi, 1);
+shape_1_per_frame15=a2 = 1;
+shape_1_per_frame16=rad = 0.01 / dist;
+
+[warp_shader]
+shader_body { 
+  vec4 tmpvar_1;
+  tmpvar_1.w = 1.0;
+  tmpvar_1.xyz = (texture (sampler_main, uv).xyz * 0.9);
+  ret = tmpvar_1.xyz;
+ }
+
+[comp_shader]
+vec2 xlat_mutablec;
+vec2 xlat_mutablezz;
+ shader_body { 
+  int n_1;
+  vec2 p0_2;
+  float trap1_3;
+  trap1_3 = 100.0;
+  p0_2 = (vec2(0.5, 0.6) - (uv * 0.2));
+  xlat_mutablec = (((
+    (uv_orig - 0.5)
+   * aspect.xy) / 10.0) + vec2(-0.5017, 0.6102));
+  xlat_mutablezz = vec2(0.0, 0.0);
+  n_1 = 0;
+  while (true) {
+    if ((n_1 > 60)) {
+      break;
+    };
+    vec2 tmpvar_4;
+    tmpvar_4.x = ((xlat_mutablezz.x * xlat_mutablezz.x) - (xlat_mutablezz.y * xlat_mutablezz.y));
+    tmpvar_4.y = ((2.0 * xlat_mutablezz.x) * xlat_mutablezz.y);
+    xlat_mutablezz = (tmpvar_4 + xlat_mutablec);
+    float tmpvar_5;
+    tmpvar_5 = dot (xlat_mutablezz, xlat_mutablezz);
+    if ((tmpvar_5 > 4.0)) {
+      n_1 = 1000;
+    };
+    vec2 x_6;
+    x_6 = (xlat_mutablezz - p0_2);
+    trap1_3 = min (trap1_3, sqrt(dot (x_6, x_6)));
+    n_1++;
+  };
+  vec3 tmpvar_7;
+  tmpvar_7.x = trap1_3;
+  tmpvar_7.y = (1.0 - trap1_3);
+  tmpvar_7.z = (1.0 - ((2.0 * trap1_3) * trap1_3));
+  vec4 tmpvar_8;
+  tmpvar_8.w = 1.0;
+  tmpvar_8.xyz = pow (tmpvar_7, vec3(4.0, 4.0, 4.0));
+  ret = tmpvar_8.xyz;
+ }
