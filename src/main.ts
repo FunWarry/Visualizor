@@ -1138,17 +1138,67 @@ function mutateActiveProperties(presetId: string): void {
   }
 }
 
-function pickNextAutoCyclePreset(): VisualizerPreset | null {
+type AutoCycleCandidate =
+  | { type: '3d'; preset: VisualizerPreset }
+  | { type: 'milkdrop'; name: string };
+
+function getAutoCycle3DCandidates(): VisualizerPreset[] {
   let pool = PRESETS.slice();
   if (autoCycleConfig.pool === 'favorites') {
-    const favs = PRESETS.filter(p => favoritePresets.has(p.id));
-    if (favs.length > 0) pool = favs;
+    pool = PRESETS.filter(p => favoritePresets.has(p.id));
   }
   const unlocked = pool.filter(p => !isPresetLocked(p.id));
   const usable = unlocked.length > 0 ? unlocked : pool;
-  const different = usable.filter(p => p.id !== activePresetId);
-  const candidates = different.length > 0 ? different : usable;
-  return candidates[Math.floor(Math.random() * candidates.length)] ?? null;
+  if (!milkdropEngine.isActive && activePresetId) {
+    const diff = usable.filter(p => p.id !== activePresetId);
+    if (diff.length > 0) return diff;
+  }
+  return usable;
+}
+
+function getAutoCycleMilkdropCandidates(): string[] {
+  initMilkdropIfNeeded();
+  let pool = milkdropEngine.presetNames.slice();
+  if (autoCycleConfig.pool === 'favorites') {
+    pool = pool.filter(name => favoritePresets.has(`milkdrop_${name}`));
+  }
+  if (milkdropEngine.isActive && milkdropEngine.currentPresetName) {
+    const diff = pool.filter(name => name !== milkdropEngine.currentPresetName);
+    if (diff.length > 0) return diff;
+  }
+  return pool;
+}
+
+function pickNextAutoCycleCandidate(): AutoCycleCandidate | null {
+  const candidates3D = getAutoCycle3DCandidates();
+  const candidatesMilkdrop = getAutoCycleMilkdropCandidates();
+
+  const has3D = candidates3D.length > 0;
+  const hasMilkdrop = candidatesMilkdrop.length > 0;
+
+  if (!has3D && !hasMilkdrop) return null;
+  if (!has3D) {
+    const name = candidatesMilkdrop[Math.floor(Math.random() * candidatesMilkdrop.length)];
+    return { type: 'milkdrop', name };
+  }
+  if (!hasMilkdrop) {
+    const preset = candidates3D[Math.floor(Math.random() * candidates3D.length)];
+    return { type: '3d', preset };
+  }
+
+  // Both pools available: 50% chance between 3D and MilkDrop for balanced variety
+  if (Math.random() < 0.5) {
+    const name = candidatesMilkdrop[Math.floor(Math.random() * candidatesMilkdrop.length)];
+    return { type: 'milkdrop', name };
+  }
+  const preset = candidates3D[Math.floor(Math.random() * candidates3D.length)];
+  return { type: '3d', preset };
+}
+
+function pickNextAutoCyclePreset(): VisualizerPreset | null {
+  const candidate = pickNextAutoCycleCandidate();
+  if (candidate?.type === '3d') return candidate.preset;
+  return null;
 }
 
 function executeAutoCycleStep(): void {
@@ -1158,21 +1208,28 @@ function executeAutoCycleStep(): void {
     return;
   }
 
-  const chosen = pickNextAutoCyclePreset();
+  const chosen = pickNextAutoCycleCandidate();
   if (!chosen) return;
 
-  shuffleThemesIfEnabled();
-  if (autoCycleConfig.parameters === 'shuffle') {
-    randomizePreset(chosen);
+  if (chosen.type === '3d') {
+    shuffleThemesIfEnabled();
+    if (autoCycleConfig.parameters === 'shuffle') {
+      randomizePreset(chosen.preset);
+    }
+    if (autoCycleConfig.effects === 'shuffle') {
+      randomizeAllFxShaders();
+    }
+    if (autoCycleConfig.camera === 'shuffle') {
+      randomizeAllCameraOptics();
+    }
+    select3DPreset(chosen.preset);
+  } else {
+    // MilkDrop preset
+    if (autoCycleConfig.effects === 'shuffle') {
+      randomizeAllFxShaders();
+    }
+    selectMilkdropPreset(chosen.name);
   }
-  if (autoCycleConfig.effects === 'shuffle') {
-    randomizeAllFxShaders();
-  }
-  if (autoCycleConfig.camera === 'shuffle') {
-    randomizeAllCameraOptics();
-  }
-
-  select3DPreset(chosen);
 }
 
 function restartAutoCycleTimer(): void {

@@ -17,6 +17,14 @@ export class MilkdropEngine {
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
+    try {
+      if (this.presetNames.length === 0) {
+        this.presets = butterchurnPresets.getPresets();
+        this.presetNames = Object.keys(this.presets);
+      }
+    } catch {
+      // Safe fallback if presets package not yet ready
+    }
   }
 
   public init(audioContext: AudioContext, audioNode: AudioNode) {
@@ -51,8 +59,10 @@ export class MilkdropEngine {
         this.visualizer.connectAudio(this.audioNode);
       }
 
-      this.presets = butterchurnPresets.getPresets();
-      this.presetNames = Object.keys(this.presets);
+      if (this.presetNames.length === 0) {
+        this.presets = butterchurnPresets.getPresets();
+        this.presetNames = Object.keys(this.presets);
+      }
 
       if (this.presetNames.length > 0) {
         // Pick a flagship Milkdrop / ProjectM preset
