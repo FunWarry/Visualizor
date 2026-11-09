@@ -14,6 +14,8 @@ interface ShardData {
   tumbleAxis: THREE.Vector3;
   bobSpeed: number;
   bobAmp: number;
+  currentAngle: number;
+  currentTumble: number;
 }
 
 const NUM_SHARDS = 24;
@@ -116,12 +118,12 @@ export class ObsidianPolyPreset extends BasePreset {
 
     for (let i = 0; i < NUM_SHARDS; i++) {
       const radius = 7.5 + Math.random() * 5.0;
-      const speed = 0.08 + Math.random() * 0.3;
+      const speed = 0.08 + Math.random() * 0.14;
       const height = (Math.random() - 0.4) * 6.0;
       const phase = Math.random() * Math.PI * 2;
       const tilt = (Math.random() - 0.5) * 0.6;
       const size = 0.25 + Math.random() * 0.45;
-      const tumbleSpeed = 0.8 + Math.random() * 2.5;
+      const tumbleSpeed = 0.4 + Math.random() * 1.2;
       const tumbleAxis = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
       const bobSpeed = 0.2 + Math.random() * 0.6;
       const bobAmp = 0.3 + Math.random() * 1.0;
@@ -136,7 +138,9 @@ export class ObsidianPolyPreset extends BasePreset {
         tumbleSpeed,
         tumbleAxis,
         bobSpeed,
-        bobAmp
+        bobAmp,
+        currentAngle: phase,
+        currentTumble: Math.random() * Math.PI * 2
       });
 
       this.dummy.position.set(Math.cos(phase) * radius, height, Math.sin(phase) * radius);
@@ -311,7 +315,7 @@ export class ObsidianPolyPreset extends BasePreset {
 
     this.updateAudioSmoothing(audio, delta);
     this.updateMeshDeformation(time, speed, reactivity, deformation);
-    this.updateShards(time);
+    this.updateShards(time, delta, speed);
     this.updateParticles(audio, time);
     this.updateNebula(audio, time);
 
@@ -382,15 +386,17 @@ export class ObsidianPolyPreset extends BasePreset {
     this.mesh.geometry.computeVertexNormals();
   }
 
-  private updateShards(time: number): void {
+  private updateShards(time: number, delta: number, speed: number): void {
     if (!this.shardMesh) return;
-    const boost = 1.0 + this.energy * 3.0 + this.bassHit * 2.0;
+    const dt = Math.min(delta, 0.1);
+    const audioBoost = 1.0 + this.energy * 0.35 + this.bassHit * 0.25;
 
     for (let i = 0; i < NUM_SHARDS; i++) {
       const data = this.shardData[i];
-      const angle = data.orbitPhase + time * data.orbitSpeed * boost;
-      const rad = data.orbitRadius + this.bassHit * 2.0 - this.smoothBass * 0.8;
-      const bob = Math.sin(time * data.bobSpeed + data.orbitPhase * 3.0) * data.bobAmp * (1.0 + this.smoothBass * 3.0);
+      data.currentAngle += dt * data.orbitSpeed * audioBoost * speed;
+      const angle = data.currentAngle;
+      const rad = data.orbitRadius + this.bassHit * 1.2 - this.smoothBass * 0.5;
+      const bob = Math.sin(time * data.bobSpeed + data.orbitPhase * 3.0) * data.bobAmp * (1.0 + this.smoothBass * 1.5);
 
       this.dummy.position.set(
         Math.cos(angle) * rad,
@@ -398,9 +404,10 @@ export class ObsidianPolyPreset extends BasePreset {
         Math.sin(angle) * rad
       );
 
-      this.quat.setFromAxisAngle(data.tumbleAxis, time * data.tumbleSpeed * (1.0 + this.energy * 2.5));
+      data.currentTumble += dt * data.tumbleSpeed * (1.0 + this.energy * 0.5) * speed;
+      this.quat.setFromAxisAngle(data.tumbleAxis, data.currentTumble);
       this.dummy.quaternion.copy(this.quat);
-      this.dummy.scale.setScalar(data.size * (1.0 + this.bassHit * 0.6 + this.smoothBass * 0.2));
+      this.dummy.scale.setScalar(data.size * (1.0 + this.bassHit * 0.4 + this.smoothBass * 0.15));
       this.dummy.updateMatrix();
       this.shardMesh.setMatrixAt(i, this.dummy.matrix);
     }
