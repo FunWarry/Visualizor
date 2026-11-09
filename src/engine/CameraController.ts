@@ -107,6 +107,9 @@ export class CameraController {
     this.tiltAngle = Math.max(CameraController.MIN_TILT, Math.min(CameraController.MAX_TILT, tilt));
     this.targetTiltAngle = this.tiltAngle;
 
+    const multiplier = (clampedDist / this.baseRadius) * 1.6;
+    this.normalizedZoom = Math.max(0, Math.min(1, (multiplier - 0.7) / (2.5 - 0.7)));
+
     this.isTransitioning = false;
     this.applyTransform();
   }
@@ -220,6 +223,7 @@ export class CameraController {
     radius: number;
     zoom: number;
     targetY: number;
+    target: [number, number, number];
     autoRotate: boolean;
     autoRotateSpeed: number;
     autoRotateDirection: 1 | -1;
@@ -232,6 +236,7 @@ export class CameraController {
       radius: this.radius,
       zoom: this.normalizedZoom,
       targetY: this.target.y,
+      target: [this.target.x, this.target.y, this.target.z],
       autoRotate: this.autoRotate,
       autoRotateSpeed: this.autoRotateSpeed,
       autoRotateDirection: this.autoRotateDirection,
@@ -247,6 +252,7 @@ export class CameraController {
       radius: number;
       zoom: number;
       targetY: number;
+      target: [number, number, number];
       autoRotate: boolean;
       autoRotateSpeed: number;
       autoRotateDirection: 1 | -1;
@@ -259,7 +265,11 @@ export class CameraController {
     if (state.tiltAngle !== undefined) this.tiltAngle = state.tiltAngle;
     if (state.radius !== undefined) this.radius = state.radius;
     if (state.zoom !== undefined) this.normalizedZoom = state.zoom;
-    if (state.targetY !== undefined) this.target.y = state.targetY;
+    if (Array.isArray(state.target) && state.target.length === 3) {
+      this.target.set(state.target[0], state.target[1], state.target[2]);
+    } else if (state.targetY !== undefined) {
+      this.target.y = state.targetY;
+    }
     if (state.autoRotate !== undefined) this.autoRotate = state.autoRotate;
     if (state.autoRotateSpeed !== undefined) this.autoRotateSpeed = state.autoRotateSpeed;
     if (state.autoRotateDirection !== undefined) this.autoRotateDirection = state.autoRotateDirection;

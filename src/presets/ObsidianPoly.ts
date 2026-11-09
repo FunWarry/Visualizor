@@ -49,6 +49,7 @@ export class ObsidianPolyPreset extends BasePreset {
 
   private nebula?: THREE.Mesh;
   private nebulaMaterial?: THREE.ShaderMaterial;
+  private polyLight?: THREE.PointLight;
 
   private smoothBass = 0;
   private smoothMid = 0;
@@ -69,24 +70,29 @@ export class ObsidianPolyPreset extends BasePreset {
   protected setup(ctx: PresetContext): void {
     // 1. Children[0]: Main faceted obsidian polyhedron
     const geometry = new THREE.IcosahedronGeometry(4.8, 3);
+    geometry.computeVertexNormals();
     const pos = geometry.attributes.position.array as Float32Array;
     const norm = geometry.attributes.normal.array as Float32Array;
     this.basePositions = new Float32Array(pos);
     this.baseNormals = new Float32Array(norm);
 
     this.material = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color(ctx.theme.primary).lerp(new THREE.Color('#1c1c28'), 0.4),
+      color: new THREE.Color(ctx.theme.primary).lerp(new THREE.Color('#20202c'), 0.25),
       emissive: new THREE.Color(ctx.theme.primary),
-      emissiveIntensity: 0.35,
-      roughness: 0.12,
-      metalness: 0.35,
+      emissiveIntensity: 0.4,
+      roughness: 0.18,
+      metalness: 0.45,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.08,
+      clearcoatRoughness: 0.05,
       flatShading: true
     });
 
     this.mesh = new THREE.Mesh(geometry, this.material);
     this.group.add(this.mesh);
+
+    this.polyLight = new THREE.PointLight(new THREE.Color(ctx.theme.primary), 3.0, 50);
+    this.polyLight.position.set(0, 8, 12);
+    this.group.add(this.polyLight);
 
     // 2. Children[1]: Orbiting crystal shards
     this.setupShards(ctx);
@@ -437,8 +443,11 @@ export class ObsidianPolyPreset extends BasePreset {
     const colNeb1 = stops?.[0] ?? theme.primary;
     const colNeb2 = stops?.[stops.length - 1] ?? theme.secondary;
 
-    this.material.color.set(colCore).lerp(new THREE.Color('#1c1c28'), 0.4);
+    this.material.color.set(colCore).lerp(new THREE.Color('#20202c'), 0.25);
     this.material.emissive.set(colCore);
+    if (this.polyLight) {
+      this.polyLight.color.set(colCore);
+    }
     if (this.shardMaterial) {
       this.shardMaterial.color.set(colShards);
       this.shardMaterial.emissive.set(colShards);

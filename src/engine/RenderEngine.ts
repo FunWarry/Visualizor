@@ -7,6 +7,7 @@ import { AfterimagePass } from 'three/examples/jsm/postprocessing/AfterimagePass
 import { VisualizerPreset, VisualizerTheme, AudioFeatures, PostProcessingConfig, PresetCameraConfig } from '../types';
 import { CameraController } from './CameraController';
 import { TextOverlayEngine } from '../overlay/TextOverlayEngine';
+import { getPreset } from '../presets';
 
 const PersistenceShader = {
   uniforms: {
@@ -157,7 +158,7 @@ const MasterShader = {
       uv = applyDrip(uv, uDrip, uTime, uAudioBass);
 
       // 4. CRT Barrel Distortion (automatically bypassed when kaleidoscope is active to prevent black curved edge cutouts)
-      float effectiveCrtBend = (uKaleidoscope > 1.0) ? 0.0 : uCrtBend;
+      float effectiveCrtBend = (uKaleidoscope > 0.001) ? 0.0 : uCrtBend;
       uv = crtDistort(uv, effectiveCrtBend);
 
       // 5. Pixelize / Retro Arcade
@@ -306,7 +307,65 @@ export class RenderEngine {
       orbitSpeed: this.config.autoRotateSpeed
     });
 
-    // Synchronize camera state bidirectionally between config and cameraController
+    this.initConfigProperties();
+
+    // Renderer setup
+    this.renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      powerPreference: 'high-performance',
+      preserveDrawingBuffer: true
+    });
+    this.renderer.setSize(width, height);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.2;
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    // Post-Processing Composer & Passes
+    this.composer = new EffectComposer(this.renderer);
+    this.renderPass = new RenderPass(this.scene, this.camera);
+    this.bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(width, height),
+      this.config.bloomStrength,
+      this.config.bloomRadius,
+      this.config.bloomThreshold
+    );
+    this.afterimagePass = new AfterimagePass(this.config.persistence);
+    this.persistencePass = new ShaderPass(PersistenceShader);
+    this.masterPass = new ShaderPass(MasterShader);
+    this.initPostProcessing();
+
+    // Ping-pong targets for motion persistence
+    const targetOptions = {
+      minFilter: THREE.LinearFilter,
+      magFilter: THREE.LinearFilter,
+      format: THREE.RGBAFormat
+    };
+    this.feedbackTargets = [
+      new THREE.WebGLRenderTarget(width, height, targetOptions),
+      new THREE.WebGLRenderTarget(width, height, targetOptions)
+    ];
+
+    // Ortho copy scene for ping-pong blit
+    this.copyScene = new THREE.Scene();
+    this.copyCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    this.copyMaterial = new THREE.MeshBasicMaterial({
+      map: this.feedbackTargets[0].texture,
+      transparent: false
+    });
+    const copyQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.copyMaterial);
+    this.copyScene.add(copyQuad);
+
+    this.initLighting();
+
+    // Initialize animated text overlay engine (Ticket #43)
+    this.textOverlay = new TextOverlayEngine(width, height, this.renderer.getPixelRatio());
+
+    window.addEventListener('resize', () => this.resize(window.innerWidth, window.innerHeight));
+  }
+
+  private initConfigProperties(): void {
     Object.defineProperty(this.config, 'autoRotate', {
       get: () => this.cameraController.autoRotate,
       set: (val: boolean) => {
@@ -333,84 +392,25 @@ export class RenderEngine {
       enumerable: true,
       configurable: true
     });
+  }
 
-    // Renderer setup
-    this.renderer = new THREE.WebGLRenderer({
-      canvas,
-      antialias: true,
-      powerPreference: 'high-performance',
-      preserveDrawingBuffer: true
-    });
-    this.renderer.setSize(width, height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.2;
-    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-
-    // Post-Processing Composer
-    this.composer = new EffectComposer(this.renderer);
-    this.renderPass = new RenderPass(this.scene, this.camera);
+  private initPostProcessing(): void {
     this.composer.addPass(this.renderPass);
-
-    // Unreal Bloom Pass
-    this.bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(width, height),
-      this.config.bloomStrength,
-      this.config.bloomRadius,
-      this.config.bloomThreshold
-    );
     this.composer.addPass(this.bloomPass);
-
-    // Afterimage Pass (Motion Trails / Persistence)
-    this.afterimagePass = new AfterimagePass(this.config.persistence);
     this.afterimagePass.enabled = this.config.persistence > 0.01;
     this.composer.addPass(this.afterimagePass);
-
-    // Persistence Pass
-    this.persistencePass = new ShaderPass(PersistenceShader);
     this.composer.addPass(this.persistencePass);
-
-    // Master Screen Effects Pass
-    this.masterPass = new ShaderPass(MasterShader);
     this.composer.addPass(this.masterPass);
+  }
 
-    // Ping-pong targets for motion persistence
-    const targetOptions = {
-      minFilter: THREE.LinearFilter,
-      magFilter: THREE.LinearFilter,
-      format: THREE.RGBAFormat
-    };
-    this.feedbackTargets = [
-      new THREE.WebGLRenderTarget(width, height, targetOptions),
-      new THREE.WebGLRenderTarget(width, height, targetOptions)
-    ];
-
-    // Ortho copy scene for ping-pong blit
-    this.copyScene = new THREE.Scene();
-    this.copyCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-    this.copyMaterial = new THREE.MeshBasicMaterial({
-      map: this.feedbackTargets[0].texture,
-      transparent: false
-    });
-    const copyQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.copyMaterial);
-    this.copyScene.add(copyQuad);
-
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    this.scene.add(ambientLight);
-
+  private initLighting(): void {
+    this.scene.add(new THREE.AmbientLight(0xffffff, 0.6));
     const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
     dirLight.position.set(5, 10, 7);
     this.scene.add(dirLight);
-
     const rimLight = new THREE.DirectionalLight(0xffffff, 0.8);
     rimLight.position.set(-6, -5, -6);
     this.scene.add(rimLight);
-
-    // Initialize animated text overlay engine (Ticket #43)
-    this.textOverlay = new TextOverlayEngine(width, height, this.renderer.getPixelRatio());
-
-    window.addEventListener('resize', () => this.resize(window.innerWidth, window.innerHeight));
   }
 
   private restoreSavedPresetCamera(presetId: string): boolean {
@@ -434,7 +434,7 @@ export class RenderEngine {
       const targetVec = cfg.target ? new THREE.Vector3(...cfg.target) : new THREE.Vector3(0, 0, 0);
       this.cameraController.setCameraPosition(cfg.position[0], cfg.position[1], cfg.position[2], targetVec);
       const autoRotate = cfg.autoRotate ?? true;
-      const autoRotateSpeed = (cfg.autoRotateSpeed && cfg.autoRotateSpeed > 0) ? cfg.autoRotateSpeed : (autoRotate ? 0.35 : 0);
+      const autoRotateSpeed = (cfg.autoRotateSpeed !== undefined && cfg.autoRotateSpeed >= 0) ? cfg.autoRotateSpeed : (autoRotate ? 0.35 : 0);
       this.cameraController.autoRotate = autoRotate;
       this.config.autoRotate = autoRotate;
       this.cameraController.autoRotateSpeed = autoRotateSpeed;
@@ -445,6 +445,23 @@ export class RenderEngine {
       this.cameraController.autoRotateSpeed = 0.35;
       this.config.autoRotate = true;
       this.config.autoRotateSpeed = 0.35;
+    }
+
+    if (cfg?.rotAngle !== undefined) {
+      this.cameraController.setOrbit(cfg.rotAngle, true);
+    }
+    if (cfg?.tiltAngle !== undefined) {
+      this.cameraController.setTilt(cfg.tiltAngle, true);
+    }
+    if (cfg?.zoom !== undefined) {
+      this.cameraController.setZoom(cfg.zoom, true, cfg.zoom > 1 || cfg.zoom < 0);
+    }
+
+    if (cfg?.bloomIntensity !== undefined) {
+      const intensity = cfg.bloomIntensity;
+      this.bloomPass.strength = intensity * 0.72;
+      this.bloomPass.threshold = Math.max(0.05, 1.0 - (intensity * 0.3));
+      this.bloomPass.radius = 0.3 + (intensity * 0.3);
     }
   }
 
@@ -491,9 +508,7 @@ export class RenderEngine {
   public setTheme(theme: VisualizerTheme) {
     this.currentTheme = theme;
     this.scene.background = new THREE.Color(theme.background);
-    if (this.activePreset?.onThemeChange) {
-      this.activePreset.onThemeChange(theme);
-    }
+    this.activePreset?.onThemeChange?.(theme);
   }
 
   private updateBloomConfig(newConfig: Partial<PostProcessingConfig>): void {
@@ -603,7 +618,7 @@ export class RenderEngine {
     uniforms.uFilmGrain.value = this.config.filmGrain;
     uniforms.uChromaticAberration.value = this.config.chromaticAberration;
     uniforms.uScanlines.value = this.config.scanlines;
-    const hasKaleido = (this.config.kaleidoscope ?? 0) > 1.0;
+    const hasKaleido = (this.config.kaleidoscope ?? 0) > 0.001;
     uniforms.uCrtBend.value = hasKaleido ? 0.0 : this.config.crtBend;
     uniforms.uAudioBass.value = audio.bass;
     uniforms.uPersistence.value = this.config.persistence;
@@ -656,20 +671,11 @@ export class RenderEngine {
     this.feedbackTargets[1].setSize(width, height);
     this.textOverlay.resize(width, height, this.renderer.getPixelRatio());
 
-    if (this.activePreset?.resize) {
-      this.activePreset.resize(width, height);
-    }
+    this.activePreset?.resize?.(width, height);
   }
 
   public setCanvasBackground(mode: 'dark' | 'white' | 'custom', customColor?: string): void {
-    let colorHex: string;
-    if (mode === 'dark') {
-      colorHex = '#000000';
-    } else if (mode === 'white') {
-      colorHex = '#ffffff';
-    } else {
-      colorHex = customColor ?? this.currentTheme.background ?? '#111116';
-    }
+    const colorHex = mode === 'dark' ? '#000000' : (mode === 'white' ? '#ffffff' : (customColor ?? this.currentTheme.background ?? '#111116'));
     const color = new THREE.Color(colorHex);
     this.scene.background = color;
     this.renderer.setClearColor(color);
@@ -712,24 +718,12 @@ export class RenderEngine {
   }
 
   public resetCameraForPreset(presetId: string): void {
+    if (!presetId) return;
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem(`visualizor_camera_${presetId}`);
     }
-    if (this.activePreset?.id === presetId) {
-      const cfg = this.activePreset.cameraConfig;
-      if (cfg?.position) {
-        const targetVec = cfg.target ? new THREE.Vector3(...cfg.target) : new THREE.Vector3(0, 0, 0);
-        this.cameraController.setCameraPosition(cfg.position[0], cfg.position[1], cfg.position[2], targetVec);
-        this.cameraController.autoRotate = cfg.autoRotate ?? true;
-        this.cameraController.autoRotateSpeed = (cfg.autoRotateSpeed && cfg.autoRotateSpeed > 0) ? cfg.autoRotateSpeed : 0.35;
-      } else {
-        this.cameraController.setCameraPosition(0, 4.5, 12, new THREE.Vector3(0, 0, 0));
-        this.cameraController.autoRotate = true;
-        this.cameraController.autoRotateSpeed = 0.35;
-      }
-      this.config.autoRotate = this.cameraController.autoRotate;
-      this.config.autoRotateSpeed = this.cameraController.autoRotateSpeed;
-    }
+    const targetPreset = this.activePreset?.id === presetId ? this.activePreset : getPreset(presetId);
+    this.applyDefaultPresetCamera(targetPreset?.cameraConfig);
   }
 
   public hasSavedCameraForPreset(presetId: string): boolean {
@@ -756,7 +750,11 @@ export class RenderEngine {
   }
 
   public resetCamera(): void {
-    this.config.autoRotate = true;
-    this.cameraController.reset();
+    if (this.activePreset?.cameraConfig) {
+      this.resetCameraForPreset(this.activePreset.id);
+    } else {
+      this.config.autoRotate = true;
+      this.cameraController.reset();
+    }
   }
 }

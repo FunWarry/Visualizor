@@ -31,6 +31,7 @@ export class FerrofluidPreset extends BasePreset {
 
   private ambientParticles?: THREE.Points;
   private particleMaterial?: THREE.ShaderMaterial;
+  private fluidLight?: THREE.PointLight;
 
   private smoothBass = 0;
   private smoothMid = 0;
@@ -68,17 +69,21 @@ export class FerrofluidPreset extends BasePreset {
     }
 
     this.material = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color(ctx.theme.primary).multiplyScalar(0.7),
+      color: new THREE.Color(ctx.theme.primary).multiplyScalar(0.85),
       emissive: new THREE.Color(ctx.theme.primary),
-      emissiveIntensity: 0.35,
+      emissiveIntensity: 0.45,
       roughness: 0.15,
-      metalness: 0.35,
+      metalness: 0.45,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.08
+      clearcoatRoughness: 0.05
     });
 
     this.mesh = new THREE.Mesh(this.geometry, this.material);
     this.group.add(this.mesh);
+
+    this.fluidLight = new THREE.PointLight(new THREE.Color(ctx.theme.primary), 3.0, 50);
+    this.fluidLight.position.set(0, 10, 15);
+    this.group.add(this.fluidLight);
 
     // Initialize Fibonacci spike directions
     this.cachedAxes.length = 0;
@@ -323,8 +328,11 @@ export class FerrofluidPreset extends BasePreset {
     const cPart1 = stops?.[2] ?? theme.primary;
     const cPart2 = stops?.[3] ?? stops?.[1] ?? theme.secondary;
 
-    this.material.color.set(cFluid).multiplyScalar(0.7);
+    this.material.color.set(cFluid).multiplyScalar(0.85);
     this.material.emissive.set(cFluid);
+    if (this.fluidLight) {
+      this.fluidLight.color.set(cFluid);
+    }
     if (this.basePlaneMaterial) {
       this.basePlaneMaterial.uniforms.uColor1.value.set(cPlane1);
       this.basePlaneMaterial.uniforms.uColor2.value.set(cPlane2);

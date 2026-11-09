@@ -1213,7 +1213,7 @@ function stopAutoCycle(): void {
 }
 
 function toggleAutoCyclePopover(e?: MouseEvent): void {
-  if (e) e.stopPropagation();
+  e?.stopPropagation();
   const popover = document.getElementById('autoCyclePopover');
   if (!popover) return;
   const isOpen = popover.style.display === 'block';
@@ -1522,7 +1522,11 @@ setupDpadArrow(tiltUp, 'tilt', 1);
 setupDpadArrow(tiltDown, 'tilt', -1);
 
 cameraReset?.addEventListener('click', () => {
-  renderEngine.resetCamera();
+  if (activePresetId) {
+    renderEngine.resetCameraForPreset(activePresetId);
+  } else {
+    renderEngine.resetCamera();
+  }
   syncCameraUI();
   viewpointBtns.forEach(b => b.classList.remove('active'));
   document.getElementById('viewDefaultBtn')?.classList.add('active');
@@ -1672,9 +1676,20 @@ saveCamBtn?.addEventListener('click', () => {
 
 const resetCamBtn = document.getElementById('resetCamBtn');
 resetCamBtn?.addEventListener('click', () => {
-  if (!activePresetId) return;
-  renderEngine.resetCameraForPreset(activePresetId);
+  if (activePresetId) {
+    renderEngine.resetCameraForPreset(activePresetId);
+  } else {
+    renderEngine.resetCamera();
+  }
   syncCameraUI();
+  viewpointBtns.forEach(b => b.classList.remove('active'));
+  document.getElementById('viewDefaultBtn')?.classList.add('active');
+  resetCamBtn.innerHTML = '↺ Reset ✓';
+  resetCamBtn.style.color = '#ff8a4c';
+  setTimeout(() => {
+    resetCamBtn.innerHTML = '↺ Reset';
+    resetCamBtn.style.color = '';
+  }, 1200);
 });
 
 const randAutoRotateBtn = document.getElementById('randAutoRotateBtn');
@@ -2511,6 +2526,29 @@ function syncFilterCardState(fxId: string, isActive: boolean): void {
   card?.classList.toggle('active', isActive);
 }
 
+function handleFxExclusivity(fxId: string, val: number): void {
+  if (val <= 0) return;
+  if (fxId === 'kaleidoscope') {
+    const crtFx = FX_CONTROLS.find(c => c.id === 'crtBend');
+    if (crtFx) {
+      const crtSlider = document.getElementById(crtFx.sliderId) as HTMLInputElement | null;
+      const crtValEl = document.getElementById(crtFx.valId);
+      if (crtSlider && Number.parseFloat(crtSlider.value) > 0) {
+        applyFxValue(crtFx, crtSlider, crtValEl, 0);
+      }
+    }
+  } else if (fxId === 'crtBend') {
+    const kaleidoFx = FX_CONTROLS.find(c => c.id === 'kaleidoscope');
+    if (kaleidoFx) {
+      const kaleidoSlider = document.getElementById(kaleidoFx.sliderId) as HTMLInputElement | null;
+      const kaleidoValEl = document.getElementById(kaleidoFx.valId);
+      if (kaleidoSlider && Number.parseFloat(kaleidoSlider.value) > 0) {
+        applyFxValue(kaleidoFx, kaleidoSlider, kaleidoValEl, 0);
+      }
+    }
+  }
+}
+
 function applyFxValue(
   fx: FxControlDef,
   slider: HTMLInputElement,
@@ -2526,6 +2564,7 @@ function applyFxValue(
   fx.apply(val);
   updateChipsForFx(fx, val);
   syncFilterCardState(fx.id, val > 0);
+  handleFxExclusivity(fx.id, val);
 }
 
 function randomizeFxControl(
@@ -2788,6 +2827,7 @@ function bindFxSlider(fx: FxControlDef): void {
     fx.apply(numVal);
     updateChipsForFx(fx, numVal);
     syncFilterCardState(fx.id, numVal > 0);
+    handleFxExclusivity(fx.id, numVal);
   });
 
   const lockBtn = row?.querySelector(`.fx-lock-btn[data-fx="${fx.id}"]`) as HTMLElement | null;
@@ -2883,15 +2923,6 @@ function setupFxControls(): void {
       const slider = document.getElementById(fx.sliderId) as HTMLInputElement | null;
       const valEl = document.getElementById(fx.valId);
       if (slider) randomizeFxControl(fx, slider, valEl);
-    }
-  });
-
-  const resetAllCamBtn = document.getElementById('resetCamBtn');
-  resetAllCamBtn?.addEventListener('click', () => {
-    for (const fx of FX_CONTROLS.filter(c => c.panel === 'camera')) {
-      const slider = document.getElementById(fx.sliderId) as HTMLInputElement | null;
-      const valEl = document.getElementById(fx.valId);
-      if (slider) applyFxValue(fx, slider, valEl, fx.defaultVal);
     }
   });
 }
