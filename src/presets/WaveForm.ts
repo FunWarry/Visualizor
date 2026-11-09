@@ -29,6 +29,7 @@ export class WaveFormPreset extends BasePreset {
   private wireMaterial!: THREE.MeshStandardMaterial;
   private terrainMaterial!: THREE.ShaderMaterial;
   private positionAttribute!: THREE.BufferAttribute;
+  private sceneRef?: THREE.Scene;
 
   // 2. 3000 Floating Stardust Particles
   private particlesMesh!: THREE.Points;
@@ -55,6 +56,9 @@ export class WaveFormPreset extends BasePreset {
   }
 
   protected setup(ctx: PresetContext): void {
+    this.sceneRef = ctx.scene;
+    ctx.scene.fog = new THREE.FogExp2(0x000000, 0.016);
+
     const primaryCol = new THREE.Color(ctx.theme.primary);
     const secondaryCol = new THREE.Color(ctx.theme.secondary || ctx.theme.accent || ctx.theme.primary);
 
@@ -77,6 +81,29 @@ export class WaveFormPreset extends BasePreset {
       roughness: 0.2,
       metalness: 0.3
     });
+    this.wireMaterial.onBeforeCompile = (shader) => {
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <common>',
+        `#include <common>
+        varying vec3 vWorldWavePos;`
+      ).replace(
+        '#include <worldpos_vertex>',
+        `#include <worldpos_vertex>
+        vWorldWavePos = (modelMatrix * vec4(transformed, 1.0)).xyz;`
+      );
+
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <common>',
+        `#include <common>
+        varying vec3 vWorldWavePos;`
+      ).replace(
+        '#include <dithering_fragment>',
+        `#include <dithering_fragment>
+        float dist = length(vWorldWavePos.xz);
+        float edgeAlpha = smoothstep(54.0, 24.0, dist);
+        gl_FragColor.a *= edgeAlpha;`
+      );
+    };
     this.wireMesh = new THREE.Mesh(this.geometry, this.wireMaterial);
     this.wireMesh.rotation.x = -Math.PI / 2;
     this.group.add(this.wireMesh);
@@ -135,7 +162,7 @@ export class WaveFormPreset extends BasePreset {
           color += vec3(grid) * uColor2 * 0.4;
 
           float radialDist = length(vPos.xy);
-          float circularAlpha = smoothstep(uHalfSize, uHalfSize - uEdgeFade, radialDist);
+          float circularAlpha = smoothstep(54.0, 24.0, radialDist);
           float edgeDist = min(uHalfSize - abs(vPos.x), uHalfSize - abs(vPos.y));
           float squareAlpha = smoothstep(0.0, uEdgeFade, edgeDist);
           float alpha = mix(circularAlpha, squareAlpha, uSheetShape);
@@ -365,6 +392,9 @@ export class WaveFormPreset extends BasePreset {
   }
 
   protected override onDispose(): void {
+    if (this.sceneRef) {
+      this.sceneRef.fog = null;
+    }
     this.geometry?.dispose();
     this.wireMaterial?.dispose();
     this.terrainMaterial?.dispose();

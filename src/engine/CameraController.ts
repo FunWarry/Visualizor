@@ -199,6 +199,8 @@ export class CameraController {
     const clampedDist = Math.max(0.1, Math.min(200.0, validDist));
     this.radius = clampedDist;
     this.targetRadius = clampedDist;
+    const multiplier = (clampedDist / this.baseRadius) * 1.6;
+    this.normalizedZoom = Math.max(0, Math.min(1, (multiplier - 0.7) / (2.5 - 0.7)));
     if (immediate) {
       this.isTransitioning = false;
       this.applyTransform();
@@ -360,10 +362,12 @@ export class CameraController {
       const dirX = Math.random() >= 0.5 ? 1 : -1;
       const dirY = Math.random() >= 0.5 ? 1 : -1;
       const dirZ = Math.random() >= 0.5 ? 1 : -1;
+      const distScale = Math.max(1.0, this.radius / 10.0);
+      const kick = this.shakeIntensity * 0.9 * distScale;
       this.shakeOffset.set(
-        dirX * (0.2 + Math.random() * 0.3) * this.shakeIntensity * 0.4,
-        dirY * (0.2 + Math.random() * 0.3) * this.shakeIntensity * 0.4,
-        dirZ * (0.1 + Math.random() * 0.2) * this.shakeIntensity * 0.2
+        dirX * (0.3 + Math.random() * 0.7) * kick,
+        dirY * (0.3 + Math.random() * 0.7) * kick,
+        dirZ * (0.2 + Math.random() * 0.4) * kick
       );
       this.applyTransform();
     }
@@ -405,16 +409,18 @@ export class CameraController {
   }
 
   private updateShake(safeDelta: number, audioBeat: boolean, audioBass: number): void {
-    if (this.cameraShakeEnabled && audioBeat) {
+    if (this.cameraShakeEnabled && (audioBeat || audioBass > 0.65)) {
       const bassFactor = Number.isFinite(audioBass) ? audioBass : 0;
-      this.triggerShake(Math.min(1.0, bassFactor * 0.8 + 0.3));
+      this.triggerShake(Math.min(1.0, bassFactor * 0.9 + 0.35));
     }
 
-    if (this.cameraShakeEnabled && this.shakeIntensity > 0.02) {
+    if (this.cameraShakeEnabled && this.shakeIntensity > 0.01) {
+      const distScale = Math.max(1.0, this.radius / 10.0);
+      const kick = this.shakeIntensity * 0.75 * distScale;
       this.shakeOffset.set(
-        (Math.random() - 0.5) * this.shakeIntensity * 0.4,
-        (Math.random() - 0.5) * this.shakeIntensity * 0.4,
-        (Math.random() - 0.5) * this.shakeIntensity * 0.2
+        (Math.random() - 0.5) * kick,
+        (Math.random() - 0.5) * kick,
+        (Math.random() - 0.5) * kick * 0.5
       );
       this.shakeIntensity *= Math.exp(-this.shakeDecayRate * safeDelta);
     } else {
@@ -469,7 +475,11 @@ export class CameraController {
       this.target.y + this.radius * sinTilt + this.shakeOffset.y,
       this.target.z + this.radius * cosTilt * cosRot + this.shakeOffset.z
     );
-    this.camera.lookAt(this.target);
+    this.camera.lookAt(
+      this.target.x + this.shakeOffset.x * 0.45,
+      this.target.y + this.shakeOffset.y * 0.45,
+      this.target.z + this.shakeOffset.z * 0.45
+    );
   }
 
   // Getters for inspection and testing

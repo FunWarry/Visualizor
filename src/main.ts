@@ -1539,24 +1539,26 @@ function syncZoomUI(sliderVal: number, displayVal: number): void {
   if (camZoomValInput && document.activeElement !== camZoomValInput) {
     camZoomValInput.value = displayVal.toFixed(2);
   }
+  const dist = renderEngine.cameraController.getDistance();
+  const camDistSlider = document.getElementById('camDistSlider') as HTMLInputElement | null;
+  const camDistValInput = document.getElementById('camDistValInput') as HTMLInputElement | null;
+  const camDistVal = document.getElementById('camDistVal');
+  if (camDistSlider && document.activeElement !== camDistSlider) camDistSlider.value = dist.toFixed(1);
+  if (camDistValInput && document.activeElement !== camDistValInput) camDistValInput.value = dist.toFixed(1);
+  if (camDistVal) camDistVal.textContent = `${dist.toFixed(1)}m`;
 }
 
 function applyStandardZoom(val: number): void {
   const clamped = Math.max(0, Math.min(1, val));
+  renderEngine.cameraController.setZoom(clamped, true);
   syncZoomUI(clamped, clamped);
-  renderEngine.cameraController.setZoom(clamped);
 }
 
 function applyExtendedZoom(val: number): void {
   const sliderClamped = Math.max(0, Math.min(1, val));
-  syncZoomUI(sliderClamped, val);
   renderEngine.cameraController.setZoom(val, true, true);
+  syncZoomUI(sliderClamped, val);
 }
-
-zoomSlider?.addEventListener('input', () => {
-  const val = Number.parseFloat(zoomSlider.value);
-  applyStandardZoom(val);
-});
 
 zoomIn?.addEventListener('click', () => {
   const current = renderEngine.cameraController.getZoom();
@@ -1615,11 +1617,6 @@ camShakeToggle?.addEventListener('change', () => {
   renderEngine.setCameraShake(camShakeToggle.checked);
 });
 
-camShakeSlider?.addEventListener('input', () => {
-  const val = Number.parseFloat(camShakeSlider.value);
-  if (camShakeVal) camShakeVal.textContent = `${Math.round(val * 100)}%`;
-});
-
 function syncNumericControl(sliderId: string, inputId: string, valId: string, sliderVal: string, inputVal: string, readoutVal: string): void {
   const slider = document.getElementById(sliderId) as HTMLInputElement | null;
   const input = document.getElementById(inputId) as HTMLInputElement | null;
@@ -1658,7 +1655,11 @@ export function syncCameraUI(): void {
 
   // Camera Shake
   if (camShakeToggle) camShakeToggle.checked = ctrl.cameraShakeEnabled;
-  syncNumericControl('camShakeSlider', 'camShakeIntensityValInput', 'camShakeVal', ctrl.cameraShakeIntensity.toString(), ctrl.cameraShakeIntensity.toFixed(2), `${Math.round(ctrl.cameraShakeIntensity * 100)}%`);
+  syncNumericControl('camShakeIntensitySlider', 'camShakeIntensityValInput', 'camShakeIntensityVal', ctrl.cameraShakeIntensity.toString(), ctrl.cameraShakeIntensity.toFixed(2), `${Math.round(ctrl.cameraShakeIntensity * 100)}%`);
+  cameraShakeSegments.forEach(chip => {
+    const chipVal = Number.parseFloat((chip as HTMLElement).dataset.value || '0');
+    chip.classList.toggle('active', ctrl.cameraShakeEnabled && Math.abs(chipVal - ctrl.cameraShakeIntensity) < 0.15);
+  });
 }
 
 // Camera Save & Reset buttons
@@ -1718,7 +1719,8 @@ window.addEventListener('visualizor:reset_camera', ((e: CustomEvent<{ presetId: 
 camShakeSlider?.addEventListener('input', () => {
   const val = Number.parseFloat(camShakeSlider.value);
   if (camShakeVal) camShakeVal.textContent = `${Math.round(val * 100)}%`;
-  renderEngine.cameraController.setCameraShakeIntensity(val);
+  renderEngine.setCameraShake(val > 0, val);
+  if (camShakeToggle) camShakeToggle.checked = val > 0;
   cameraShakeSegments.forEach(chip => {
     const chipVal = Number.parseFloat((chip as HTMLElement).dataset.value || '0');
     chip.classList.toggle('active', Math.abs(chipVal - val) < 0.15);
@@ -2419,6 +2421,13 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     format: (v) => `${Math.round(v * 100)}%`,
     apply: (v) => {
       renderEngine.cameraController.setZoom(v, true, v > 1 || v < 0);
+      const dist = renderEngine.cameraController.getDistance();
+      const camDistSlider = document.getElementById('camDistSlider') as HTMLInputElement | null;
+      const camDistValInput = document.getElementById('camDistValInput') as HTMLInputElement | null;
+      const camDistVal = document.getElementById('camDistVal');
+      if (camDistSlider && document.activeElement !== camDistSlider) camDistSlider.value = dist.toFixed(1);
+      if (camDistValInput && document.activeElement !== camDistValInput) camDistValInput.value = dist.toFixed(1);
+      if (camDistVal) camDistVal.textContent = `${dist.toFixed(1)}m`;
     }
   },
   {
@@ -2461,6 +2470,8 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     format: (v) => `${v.toFixed(1)}m`,
     apply: (v) => {
       renderEngine.cameraController.setDistance(v, true);
+      const zoom = renderEngine.cameraController.getZoom();
+      syncZoomUI(Math.max(0, Math.min(1, zoom)), zoom);
     }
   },
   {
@@ -2504,8 +2515,12 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     chipGroupId: 'cameraShakeSegments',
     format: (v) => `${Math.round(v * 100)}%`,
     apply: (v) => {
-      renderEngine.cameraController.setCameraShakeIntensity(v);
+      renderEngine.setCameraShake(v > 0, v);
       if (camShakeToggle) camShakeToggle.checked = v > 0;
+      cameraShakeSegments.forEach(chip => {
+        const chipVal = Number.parseFloat((chip as HTMLElement).dataset.value || '0');
+        chip.classList.toggle('active', Math.abs(chipVal - v) < 0.15);
+      });
     }
   }
 ];

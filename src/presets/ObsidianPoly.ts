@@ -77,13 +77,13 @@ export class ObsidianPolyPreset extends BasePreset {
     this.baseNormals = new Float32Array(norm);
 
     this.material = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color(ctx.theme.primary).lerp(new THREE.Color('#20202c'), 0.25),
+      color: new THREE.Color(ctx.theme.primary),
       emissive: new THREE.Color(ctx.theme.primary),
-      emissiveIntensity: 0.4,
-      roughness: 0.18,
-      metalness: 0.45,
+      emissiveIntensity: 0.45,
+      roughness: 0.25,
+      metalness: 0.25,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.05,
+      clearcoatRoughness: 0.1,
       flatShading: true
     });
 
@@ -441,10 +441,11 @@ export class ObsidianPolyPreset extends BasePreset {
     const colPart1 = stops?.[2] ?? stops?.[0] ?? theme.primary;
     const colPart2 = stops?.[3] ?? stops?.[1] ?? theme.secondary;
     const colNeb1 = stops?.[0] ?? theme.primary;
-    const colNeb2 = stops?.[stops.length - 1] ?? theme.secondary;
+    const colNeb2 = stops ? (stops.at(-1) ?? theme.secondary) : theme.secondary;
 
-    this.material.color.set(colCore).lerp(new THREE.Color('#20202c'), 0.25);
+    this.material.color.set(colCore);
     this.material.emissive.set(colCore);
+    this.material.emissiveIntensity = 0.45;
     if (this.polyLight) {
       this.polyLight.color.set(colCore);
     }
