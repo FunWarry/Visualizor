@@ -29,7 +29,7 @@ export class MilkDropPreset extends BasePreset {
   }
 
   protected setup(ctx: PresetContext): void {
-    const planeGeom = new THREE.PlaneGeometry(28, 20, 64, 64);
+    const planeGeom = new THREE.PlaneGeometry(80, 55, 64, 64);
     this.material = new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
@@ -96,7 +96,7 @@ export class MilkDropPreset extends BasePreset {
     const waveGeom = new THREE.BufferGeometry();
     const wavePos = new Float32Array(wavePointsCount * 3);
     for (let i = 0; i < wavePointsCount; i++) {
-      wavePos[i * 3] = (i / wavePointsCount - 0.5) * 22;
+      wavePos[i * 3] = (i / wavePointsCount - 0.5) * 55;
       wavePos[i * 3 + 1] = 0;
       wavePos[i * 3 + 2] = 0;
     }

@@ -7,7 +7,7 @@ const VERTEX_SHADER = `
   varying vec2 vUv;
   void main() {
     vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    gl_Position = vec4(position.xy, 0.0, 1.0);
   }
 `;
 
@@ -19,6 +19,7 @@ const FRAGMENT_SHADER = `
   uniform float uMid;
   uniform float uTreble;
   uniform float uZoom;
+  uniform float uAspect;
   uniform vec3 uPrimary;
   uniform vec3 uSecondary;
   uniform vec3 uAccent;
@@ -81,6 +82,7 @@ const FRAGMENT_SHADER = `
 
   void main() {
     vec2 p = (vUv - 0.5) * 2.0;
+    p.x *= (uAspect > 0.0 ? uAspect : 1.7778);
     float r = length(p);
 
     vec2 warped = inverseVortexWarp(p, uTime * 0.4, uZoom);
@@ -102,7 +104,8 @@ const FRAGMENT_SHADER = `
     col += mix(uAccent, vec3(1.0), 0.4) * eye;
 
     // Dark peripheral vignette
-    col *= clamp(1.4 - r * 0.7, 0.0, 1.0);
+    float normR = r / max(uAspect, 1.0);
+    col *= clamp(1.4 - normR * 0.7, 0.0, 1.0);
 
     gl_FragColor = vec4(col, 1.0);
   }
@@ -132,7 +135,8 @@ export class GeissPreset extends BasePreset {
   }
 
   protected setup(ctx: PresetContext): void {
-    const geometry = new THREE.PlaneGeometry(24, 18, 64, 64);
+    const geometry = new THREE.PlaneGeometry(2, 2);
+    const aspect = typeof window !== 'undefined' ? window.innerWidth / Math.max(window.innerHeight, 1) : 1.7778;
     this.material = new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
@@ -140,17 +144,19 @@ export class GeissPreset extends BasePreset {
         uMid: { value: 0 },
         uTreble: { value: 0 },
         uZoom: { value: 2.5 },
+        uAspect: { value: aspect },
         uPrimary: { value: new THREE.Color(ctx.theme.primary) },
         uSecondary: { value: new THREE.Color(ctx.theme.secondary) },
         uAccent: { value: new THREE.Color(ctx.theme.accent) }
       },
-      transparent: true,
+      depthWrite: false,
+      depthTest: false,
       vertexShader: VERTEX_SHADER,
       fragmentShader: FRAGMENT_SHADER
     });
 
     this.mesh = new THREE.Mesh(geometry, this.material);
-    this.mesh.position.z = -2;
+    this.mesh.frustumCulled = false;
     this.group.add(this.mesh);
   }
 
@@ -164,6 +170,15 @@ export class GeissPreset extends BasePreset {
     this.material.uniforms.uMid.value = audio.mid * reactivity;
     this.material.uniforms.uTreble.value = audio.treble * reactivity;
     this.material.uniforms.uZoom.value = zoom;
+    if (typeof window !== 'undefined') {
+      this.material.uniforms.uAspect.value = window.innerWidth / Math.max(window.innerHeight, 1);
+    }
+  }
+
+  public resize(width: number, height: number): void {
+    if (this.material?.uniforms?.uAspect) {
+      this.material.uniforms.uAspect.value = width / Math.max(height, 1);
+    }
   }
 
   public override onThemeChange(theme: VisualizerTheme): void {

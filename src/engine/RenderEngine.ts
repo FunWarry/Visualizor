@@ -157,21 +157,14 @@ const MasterShader = {
       // 3. Liquid Drip / Wave distortion
       uv = applyDrip(uv, uDrip, uTime, uAudioBass);
 
-      // 4. CRT Barrel Distortion (automatically bypassed when kaleidoscope is active to prevent black curved edge cutouts)
+      // 4. CRT Barrel Distortion (seamlessly clamped to screen edges, never cutting out into black borders)
       float effectiveCrtBend = (uKaleidoscope > 0.001) ? 0.0 : uCrtBend;
       uv = crtDistort(uv, effectiveCrtBend);
 
       // 5. Pixelize / Retro Arcade
       uv = applyPixelize(uv, uPixelize, uResolution);
 
-      if (effectiveCrtBend > 0.001) {
-        if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
-          gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-          return;
-        }
-      } else {
-        uv = clamp(uv, 0.0, 1.0);
-      }
+      uv = clamp(uv, 0.0, 1.0);
 
       // Chromatic Aberration
       float split = uChromaticAberration * (0.003 + uAudioBass * 0.012);

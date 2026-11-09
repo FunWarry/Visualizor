@@ -28,34 +28,40 @@ export class PlasmaArcsPreset extends BasePreset {
   }
 
   protected setup(ctx: PresetContext): void {
-    const geometry = new THREE.PlaneGeometry(24, 18, 64, 64);
+    const geometry = new THREE.PlaneGeometry(2, 2);
+    const aspect = typeof window !== 'undefined' ? window.innerWidth / Math.max(window.innerHeight, 1) : 1.7778;
     this.material = new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
         uVoltage: { value: 0 },
         uDensity: { value: 8.0 },
+        uAspect: { value: aspect },
         uColor1: { value: new THREE.Color(ctx.theme.primary) },
         uColor2: { value: new THREE.Color(ctx.theme.accent) }
       },
       transparent: true,
+      depthWrite: false,
+      depthTest: false,
       blending: THREE.AdditiveBlending,
       vertexShader: `
         varying vec2 vUv;
         void main() {
           vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          gl_Position = vec4(position.xy, 0.0, 1.0);
         }
       `,
       fragmentShader: `
         uniform float uTime;
         uniform float uVoltage;
         uniform float uDensity;
+        uniform float uAspect;
         uniform vec3 uColor1;
         uniform vec3 uColor2;
         varying vec2 vUv;
 
         void main() {
           vec2 p = (vUv - 0.5) * 2.0;
+          p.x *= (uAspect > 0.0 ? uAspect : 1.7778);
           float r = length(p);
           float a = atan(p.y, p.x);
 
@@ -74,7 +80,7 @@ export class PlasmaArcsPreset extends BasePreset {
     });
 
     this.mesh = new THREE.Mesh(geometry, this.material);
-    this.mesh.position.z = -2;
+    this.mesh.frustumCulled = false;
     this.group.add(this.mesh);
   }
 
@@ -86,6 +92,15 @@ export class PlasmaArcsPreset extends BasePreset {
     this.material.uniforms.uTime.value = time * speed;
     this.material.uniforms.uVoltage.value = (audio.rms * 1.5 + audio.treble * 1.2) * reactivity;
     this.material.uniforms.uDensity.value = density;
+    if (typeof window !== 'undefined') {
+      this.material.uniforms.uAspect.value = window.innerWidth / Math.max(window.innerHeight, 1);
+    }
+  }
+
+  public resize(width: number, height: number): void {
+    if (this.material?.uniforms?.uAspect) {
+      this.material.uniforms.uAspect.value = width / Math.max(height, 1);
+    }
   }
 
   public override onThemeChange(theme: VisualizerTheme): void {

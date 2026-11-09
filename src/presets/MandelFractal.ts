@@ -28,7 +28,8 @@ export class MandelFractalPreset extends BasePreset {
   }
 
   protected setup(ctx: PresetContext): void {
-    const geom = new THREE.PlaneGeometry(30, 20);
+    const geom = new THREE.PlaneGeometry(2, 2);
+    const aspect = typeof window !== 'undefined' ? window.innerWidth / Math.max(window.innerHeight, 1) : 1.7778;
 
     this.material = new THREE.ShaderMaterial({
       uniforms: {
@@ -38,15 +39,18 @@ export class MandelFractalPreset extends BasePreset {
         uMid: { value: 0 },
         uTreble: { value: 0 },
         uMaxIter: { value: 40.0 },
+        uAspect: { value: aspect },
         uColor1: { value: new THREE.Color(ctx.theme.primary) },
         uColor2: { value: new THREE.Color(ctx.theme.secondary) },
         uAccent: { value: new THREE.Color(ctx.theme.accent) }
       },
+      depthWrite: false,
+      depthTest: false,
       vertexShader: `
         varying vec2 vUv;
         void main() {
           vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          gl_Position = vec4(position.xy, 0.0, 1.0);
         }
       `,
       fragmentShader: `
@@ -56,6 +60,7 @@ export class MandelFractalPreset extends BasePreset {
         uniform float uMid;
         uniform float uTreble;
         uniform float uMaxIter;
+        uniform float uAspect;
         uniform vec3 uColor1;
         uniform vec3 uColor2;
         uniform vec3 uAccent;
@@ -66,7 +71,7 @@ export class MandelFractalPreset extends BasePreset {
         }
 
         void main() {
-          vec2 c = (vUv - 0.5) * vec2(3.0, 2.0) / uZoom;
+          vec2 c = (vUv - 0.5) * vec2(2.5 * (uAspect > 0.0 ? uAspect : 1.7778), 2.5) / uZoom;
           c += vec2(-0.743643887037158704752191506114774, 0.131825904205311970493132056385139);
 
           vec2 z = c;
@@ -97,7 +102,7 @@ export class MandelFractalPreset extends BasePreset {
     });
 
     this.mesh = new THREE.Mesh(geom, this.material);
-    this.mesh.position.z = -5;
+    this.mesh.frustumCulled = false;
     this.group.add(this.mesh);
   }
 
@@ -118,6 +123,15 @@ export class MandelFractalPreset extends BasePreset {
     this.material.uniforms.uMid.value = audio.mid * reactivity;
     this.material.uniforms.uTreble.value = audio.treble * reactivity;
     this.material.uniforms.uMaxIter.value = maxIter;
+    if (typeof window !== 'undefined') {
+      this.material.uniforms.uAspect.value = window.innerWidth / Math.max(window.innerHeight, 1);
+    }
+  }
+
+  public resize(width: number, height: number): void {
+    if (this.material?.uniforms?.uAspect) {
+      this.material.uniforms.uAspect.value = width / Math.max(height, 1);
+    }
   }
 
   public override onThemeChange(theme: VisualizerTheme): void {

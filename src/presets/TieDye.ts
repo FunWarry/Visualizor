@@ -27,22 +27,26 @@ export class TieDyePreset extends BasePreset {
   }
 
   protected setup(ctx: PresetContext): void {
-    const geometry = new THREE.PlaneGeometry(24, 18, 64, 64);
+    const geometry = new THREE.PlaneGeometry(2, 2);
+    const aspect = typeof window !== 'undefined' ? window.innerWidth / Math.max(window.innerHeight, 1) : 1.7778;
     this.material = new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
         uBass: { value: 0 },
         uMid: { value: 0 },
         uArms: { value: 6.0 },
+        uAspect: { value: aspect },
         uPrimary: { value: new THREE.Color(ctx.theme.primary) },
         uSecondary: { value: new THREE.Color(ctx.theme.secondary) },
         uAccent: { value: new THREE.Color(ctx.theme.accent) }
       },
+      depthWrite: false,
+      depthTest: false,
       vertexShader: `
         varying vec2 vUv;
         void main() {
           vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          gl_Position = vec4(position.xy, 0.0, 1.0);
         }
       `,
       fragmentShader: `
@@ -50,6 +54,7 @@ export class TieDyePreset extends BasePreset {
         uniform float uBass;
         uniform float uMid;
         uniform float uArms;
+        uniform float uAspect;
         uniform vec3 uPrimary;
         uniform vec3 uSecondary;
         uniform vec3 uAccent;
@@ -57,6 +62,7 @@ export class TieDyePreset extends BasePreset {
 
         void main() {
           vec2 p = (vUv - 0.5) * 2.0;
+          p.x *= (uAspect > 0.0 ? uAspect : 1.7778);
           float r = length(p);
           float a = atan(p.y, p.x);
 
@@ -76,7 +82,7 @@ export class TieDyePreset extends BasePreset {
     });
 
     this.mesh = new THREE.Mesh(geometry, this.material);
-    this.mesh.position.z = -2;
+    this.mesh.frustumCulled = false;
     this.group.add(this.mesh);
   }
 
@@ -89,6 +95,15 @@ export class TieDyePreset extends BasePreset {
     this.material.uniforms.uBass.value = audio.bass * reactivity;
     this.material.uniforms.uMid.value = audio.mid * reactivity;
     this.material.uniforms.uArms.value = arms;
+    if (typeof window !== 'undefined') {
+      this.material.uniforms.uAspect.value = window.innerWidth / Math.max(window.innerHeight, 1);
+    }
+  }
+
+  public resize(width: number, height: number): void {
+    if (this.material?.uniforms?.uAspect) {
+      this.material.uniforms.uAspect.value = width / Math.max(height, 1);
+    }
   }
 
   public override onThemeChange(theme: VisualizerTheme): void {

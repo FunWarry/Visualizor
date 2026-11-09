@@ -33,7 +33,7 @@ export class LiquidPreset extends BasePreset {
   }
 
   protected setup(ctx: PresetContext): void {
-    const geom = new THREE.PlaneGeometry(28, 18);
+    const geom = new THREE.PlaneGeometry(2, 2);
 
     const width = typeof window !== 'undefined' ? window.innerWidth : 1920;
     const height = typeof window !== 'undefined' ? window.innerHeight : 1080;
@@ -54,11 +54,13 @@ export class LiquidPreset extends BasePreset {
         uFlowSpeed: { value: 0.4 },
         uCausticWarp: { value: 0.5 }
       },
+      depthWrite: false,
+      depthTest: false,
       vertexShader: `
         varying vec2 vUv;
         void main() {
           vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          gl_Position = vec4(position.xy, 0.0, 1.0);
         }
       `,
       fragmentShader: `
@@ -232,7 +234,7 @@ export class LiquidPreset extends BasePreset {
     });
 
     this.mesh = new THREE.Mesh(geom, this.material);
-    this.mesh.position.z = -5;
+    this.mesh.frustumCulled = false;
     this.group.add(this.mesh);
 
     if (typeof window !== 'undefined') {

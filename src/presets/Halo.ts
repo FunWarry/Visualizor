@@ -27,7 +27,7 @@ export class HaloPreset extends BasePreset {
   }
 
   protected setup(ctx: PresetContext): void {
-    const geometry = new THREE.PlaneGeometry(16, 16, 64, 64);
+    const geometry = new THREE.PlaneGeometry(60, 60, 64, 64);
     this.material = new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },

@@ -16,7 +16,7 @@ export class FluidPlasmaPreset implements VisualizerPreset {
   private material!: THREE.ShaderMaterial;
 
   init(ctx: PresetContext) {
-    const geom = new THREE.PlaneGeometry(28, 18);
+    const geom = new THREE.PlaneGeometry(2, 2);
 
     this.material = new THREE.ShaderMaterial({
       uniforms: {
@@ -28,11 +28,13 @@ export class FluidPlasmaPreset implements VisualizerPreset {
         uColor2: { value: new THREE.Color(ctx.theme.secondary) },
         uAccent: { value: new THREE.Color(ctx.theme.accent) }
       },
+      depthWrite: false,
+      depthTest: false,
       vertexShader: `
         varying vec2 vUv;
         void main() {
           vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          gl_Position = vec4(position.xy, 0.0, 1.0);
         }
       `,
       fragmentShader: `
@@ -98,7 +100,7 @@ export class FluidPlasmaPreset implements VisualizerPreset {
     });
 
     this.mesh = new THREE.Mesh(geom, this.material);
-    this.mesh.position.z = -5;
+    this.mesh.frustumCulled = false;
     ctx.scene.add(this.mesh);
   }
 
