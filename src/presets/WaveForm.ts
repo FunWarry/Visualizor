@@ -40,8 +40,7 @@ export class WaveFormPreset extends BasePreset {
   private readonly waveSpeed = 0.5;
   private readonly sheetShape = 0.0;
   private readonly numParticles = 3000;
-  private readonly cols = 64;
-  private readonly rows = 64;
+  private currentDensity = 64;
   private readonly audioData64 = new Float32Array(64);
   private lastTime = 0;
 
@@ -51,7 +50,7 @@ export class WaveFormPreset extends BasePreset {
       { id: 'speed', name: 'Wave Speed', min: 0.2, max: 3.0, step: 0.1, defaultValue: 1.0 },
       { id: 'reactivity', name: 'Audio Reactivity', min: 0.1, max: 2.5, step: 0.1, defaultValue: 1.0 },
       { id: 'deformation', name: 'Wave Height', min: 0.2, max: 3.0, step: 0.1, defaultValue: 1.0 },
-      { id: 'density', name: 'Mesh Density', min: 32, max: 256, step: 16, defaultValue: 128 }
+      { id: 'density', name: 'Mesh Density', min: 32, max: 256, step: 16, defaultValue: 64 }
     ]);
   }
 
@@ -66,8 +65,12 @@ export class WaveFormPreset extends BasePreset {
     const halfSize = size * 0.5;
     const edgeFade = 22.5;
 
-    // PlaneGeometry with exactly 64 * 64 vertices (cols=64, rows=64)
-    this.geometry = new THREE.PlaneGeometry(size, size, this.cols - 1, this.rows - 1);
+    const initialDensity = Math.max(16, Math.min(256, Math.round(this.paramStore.getValue('density') ?? 64)));
+    this.currentDensity = initialDensity;
+    const segs = initialDensity - 1;
+
+    // PlaneGeometry with dynamically configurable segments (Mesh Density parameter)
+    this.geometry = new THREE.PlaneGeometry(size, size, segs, segs);
     this.positionAttribute = this.geometry.attributes.position as THREE.BufferAttribute;
 
     // 1. Wireframe overlay grid (MUST be child[0] with MeshStandardMaterial for test compliance)
@@ -268,6 +271,10 @@ export class WaveFormPreset extends BasePreset {
     const speedParam = this.paramStore.get('speed') ?? 1.0;
     const reactParam = this.paramStore.get('reactivity') ?? 1.0;
     const deformParam = this.paramStore.get('deformation') ?? 1.0;
+    const densityParam = this.paramStore.get('density') ?? 64;
+    if (Math.round(densityParam) !== this.currentDensity) {
+      this.rebuildGeometry(densityParam);
+    }
     const sens = reactParam;
 
     const elapsed = (this.lastTime += dt * speedParam);
@@ -389,6 +396,40 @@ export class WaveFormPreset extends BasePreset {
     if (this.particlesMaterial?.uniforms) {
       this.particlesMaterial.uniforms.uColor.value.copy(particleCol);
     }
+  }
+
+  private rebuildGeometry(density: number): void {
+    if (!this.wireMesh || !this.surfaceMesh) return;
+    const boundedDensity = Math.max(16, Math.min(256, Math.round(density)));
+    if (this.currentDensity === boundedDensity && this.geometry) return;
+
+    this.currentDensity = boundedDensity;
+    const oldGeometry = this.geometry;
+
+    const size = 120.0;
+    const segs = boundedDensity - 1;
+    this.geometry = new THREE.PlaneGeometry(size, size, segs, segs);
+    this.positionAttribute = this.geometry.attributes.position as THREE.BufferAttribute;
+
+    this.wireMesh.geometry = this.geometry;
+    this.surfaceMesh.geometry = this.geometry;
+
+    if (oldGeometry) {
+      oldGeometry.dispose();
+    }
+  }
+
+  public override setCustomParameter(id: string, value: number): void {
+    super.setCustomParameter(id, value);
+    if (id === 'density') {
+      this.rebuildGeometry(value);
+    }
+  }
+
+  public override resetCustomParameters(): void {
+    super.resetCustomParameters();
+    const defaultDensity = this.paramStore.getValue('density') ?? 64;
+    this.rebuildGeometry(defaultDensity);
   }
 
   protected override onDispose(): void {
