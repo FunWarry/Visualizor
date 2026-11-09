@@ -1614,7 +1614,24 @@ camDirCcwBtn?.addEventListener('click', () => setSpinDirection(-1));
 camDirCwBtn?.addEventListener('click', () => setSpinDirection(1));
 
 camShakeToggle?.addEventListener('change', () => {
-  renderEngine.setCameraShake(camShakeToggle.checked);
+  const isEnabled = camShakeToggle.checked;
+  const slider = document.getElementById('camShakeIntensitySlider') as HTMLInputElement | null;
+  const currentVal = slider ? Number.parseFloat(slider.value) || 0 : 0;
+  const targetVal = isEnabled ? (currentVal > 0 ? currentVal : 0.6) : 0;
+  renderEngine.setCameraShake(isEnabled, targetVal);
+  if (slider && isEnabled && currentVal === 0) {
+    slider.value = targetVal.toString();
+  }
+  const mainInput = document.getElementById('camShakeIntensityValInput') as HTMLInputElement | null;
+  if (mainInput && document.activeElement !== mainInput && isEnabled && currentVal === 0) {
+    mainInput.value = targetVal.toString();
+  }
+  const valEl = document.getElementById('camShakeIntensityVal');
+  if (valEl) valEl.textContent = `${Math.round(targetVal * 100)}%`;
+  cameraShakeSegments.forEach(chip => {
+    const chipVal = Number.parseFloat((chip as HTMLElement).dataset.value || '0');
+    chip.classList.toggle('active', isEnabled ? Math.abs(chipVal - targetVal) < 0.15 : chipVal === 0);
+  });
 });
 
 function syncNumericControl(sliderId: string, inputId: string, valId: string, sliderVal: string, inputVal: string, readoutVal: string): void {
@@ -1734,6 +1751,8 @@ cameraShakeSegments.forEach(chip => {
     const val = Number.parseFloat((chip as HTMLElement).dataset.value || '0');
     renderEngine.setCameraShake(val > 0, val);
     if (camShakeSlider) camShakeSlider.value = val.toString();
+    const mainInput = document.getElementById('camShakeIntensityValInput') as HTMLInputElement | null;
+    if (mainInput && document.activeElement !== mainInput) mainInput.value = val.toString();
     if (camShakeVal) camShakeVal.textContent = `${Math.round(val * 100)}%`;
     if (camShakeToggle) camShakeToggle.checked = val > 0;
   });
@@ -2689,7 +2708,7 @@ function setupFxDrawerBias(
 }
 
 function bindFxSliderMargins(fx: FxControlDef, row: Element | null): void {
-  const gearBtn = row?.querySelector(`.fx-gear-btn[data-fx="${fx.id}"]`) as HTMLElement | null;
+  const gearBtn = (row ?? document).querySelector(`.fx-gear-btn[data-fx="${fx.id}"]`) as HTMLElement | null;
   const drawer = document.getElementById(`${fx.id}_margin_drawer`);
   if (!drawer) return;
 
@@ -2845,8 +2864,8 @@ function bindFxSlider(fx: FxControlDef): void {
     handleFxExclusivity(fx.id, numVal);
   });
 
-  const lockBtn = row?.querySelector(`.fx-lock-btn[data-fx="${fx.id}"]`) as HTMLElement | null;
-  const randBtn = row?.querySelector(`.fx-rand-btn[data-fx="${fx.id}"]`) as HTMLElement | null;
+  const lockBtn = (row ?? document).querySelector(`.fx-lock-btn[data-fx="${fx.id}"]`) as HTMLElement | null;
+  const randBtn = (row ?? document).querySelector(`.fx-rand-btn[data-fx="${fx.id}"]`) as HTMLElement | null;
 
   if (lockBtn) {
     const isLocked = isFxParamLocked(fx.id);
