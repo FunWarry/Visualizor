@@ -2359,7 +2359,7 @@ const FX_CONTROLS: readonly FxControlDef[] = [
     valId: 'kaleidoVal',
     min: 0,
     max: 12,
-    step: 3,
+    step: 1,
     defaultVal: 0,
     panel: 'fx',
     chipGroupId: 'kaleidoSegments',
