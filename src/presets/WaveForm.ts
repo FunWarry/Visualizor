@@ -344,8 +344,10 @@ export class WaveFormPreset extends BasePreset {
   }
 
   public override onThemeChange(theme: VisualizerTheme): void {
-    const primaryCol = new THREE.Color(theme.primary);
-    const secondaryCol = new THREE.Color(theme.secondary || theme.accent || theme.primary);
+    const stops = theme.gradientStops;
+    const primaryCol = new THREE.Color(stops?.[0] ?? theme.primary);
+    const secondaryCol = new THREE.Color(stops?.[1] ?? theme.secondary ?? theme.accent ?? theme.primary);
+    const particleCol = new THREE.Color(stops?.[2] ?? stops?.[0] ?? theme.primary);
 
     if (this.wireMaterial) {
       this.wireMaterial.color.copy(primaryCol);
@@ -358,7 +360,7 @@ export class WaveFormPreset extends BasePreset {
     }
 
     if (this.particlesMaterial?.uniforms) {
-      this.particlesMaterial.uniforms.uColor.value.copy(primaryCol);
+      this.particlesMaterial.uniforms.uColor.value.copy(particleCol);
     }
   }
 

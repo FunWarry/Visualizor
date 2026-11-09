@@ -766,6 +766,13 @@ body, html {
   border-color: rgba(255, 255, 255, 0.2);
 }
 
+.gradient-preset-chip.active {
+  background: #28180e;
+  border-color: var(--primary);
+  color: #fff;
+  box-shadow: 0 0 6px var(--primary-glow);
+}
+
 .gradient-preset-thumb {
   width: 14px;
   height: 14px;

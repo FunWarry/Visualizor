@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { PresetContext, AudioFeatures, VisualizerTheme } from '../types';
 import { ParameterStore } from '../tuning/ParameterStore';
 import { BasePreset } from './BasePreset';
+import { sampleGradient } from '../themes/themes';
 
 /**
  * Creates an arc ribbon geometry for spectral arcs (extracted from visuval.io production)
@@ -1140,13 +1141,18 @@ export class CircularSpectrumPreset extends BasePreset {
     const primary = new THREE.Color(theme.primary);
     const secondary = new THREE.Color(theme.secondary || theme.accent || theme.primary);
 
-    this.updateOrbitalAndRingColors(primary, secondary);
+    this.updateOrbitalAndRingColors(primary, secondary, theme.gradientStops);
     this.updateParticleAndBeamColors(primary, secondary);
   }
 
-  private updateOrbitalAndRingColors(primary: THREE.Color, secondary: THREE.Color): void {
+  private updateOrbitalAndRingColors(primary: THREE.Color, secondary: THREE.Color, gradientStops?: string[]): void {
     for (let i = 0; i < this.ringMaterials.length; i++) {
-      const color = new THREE.Color().lerpColors(primary, secondary, i / this.numRings);
+      let color: THREE.Color;
+      if (gradientStops && gradientStops.length > 1) {
+        color = new THREE.Color(sampleGradient(gradientStops, i / Math.max(1, this.numRings - 1)));
+      } else {
+        color = new THREE.Color().lerpColors(primary, secondary, i / this.numRings);
+      }
       this.ringMaterials[i].color.copy(color);
     }
 

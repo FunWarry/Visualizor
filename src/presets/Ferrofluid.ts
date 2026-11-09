@@ -316,15 +316,22 @@ export class FerrofluidPreset extends BasePreset {
   }
 
   public override onThemeChange(theme: VisualizerTheme): void {
-    this.material.color.set(theme.primary).multiplyScalar(0.7);
-    this.material.emissive.set(theme.primary);
+    const stops = theme.gradientStops;
+    const cFluid = stops?.[0] ?? theme.primary;
+    const cPlane1 = stops?.[1] ?? theme.primary;
+    const cPlane2 = stops?.[2] ?? theme.secondary;
+    const cPart1 = stops?.[2] ?? theme.primary;
+    const cPart2 = stops?.[3] ?? stops?.[1] ?? theme.secondary;
+
+    this.material.color.set(cFluid).multiplyScalar(0.7);
+    this.material.emissive.set(cFluid);
     if (this.basePlaneMaterial) {
-      this.basePlaneMaterial.uniforms.uColor1.value.set(theme.primary);
-      this.basePlaneMaterial.uniforms.uColor2.value.set(theme.secondary);
+      this.basePlaneMaterial.uniforms.uColor1.value.set(cPlane1);
+      this.basePlaneMaterial.uniforms.uColor2.value.set(cPlane2);
     }
     if (this.particleMaterial) {
-      this.particleMaterial.uniforms.uColor1.value.set(theme.primary);
-      this.particleMaterial.uniforms.uColor2.value.set(theme.secondary);
+      this.particleMaterial.uniforms.uColor1.value.set(cPart1);
+      this.particleMaterial.uniforms.uColor2.value.set(cPart2);
     }
   }
 

@@ -2,7 +2,16 @@ import { AudioEngine, PlaylistTrack } from './audio/AudioEngine';
 import { RenderEngine } from './engine/RenderEngine';
 import { MilkdropEngine } from './engine/MilkdropEngine';
 import { ExportManager } from './export/ExportManager';
-import { THEMES, getTheme, SINGLE_COLOR_THEMES, EARTHY_THEMES, DUO_TONE_THEMES, GRADIENT_PRESETS } from './themes/themes';
+import {
+  THEMES,
+  getTheme,
+  SINGLE_COLOR_THEMES,
+  EARTHY_THEMES,
+  DUO_TONE_THEMES,
+  GRADIENT_PRESETS,
+  GRADIENT_THEMES,
+  ALL_COLOR_PRESETS
+} from './themes/themes';
 import { PRESETS, getPreset } from './presets';
 import { StudioComposerPreset } from './studio/StudioComposer';
 import {
@@ -248,7 +257,8 @@ function applySaturationToTheme(theme: VisualizerTheme, factor: number): Visuali
     primary: adjustHexSaturation(theme.primary, factor),
     secondary: theme.secondary ? adjustHexSaturation(theme.secondary, factor) : adjustHexSaturation(theme.primary, factor),
     accent: theme.accent ? adjustHexSaturation(theme.accent, factor) : adjustHexSaturation(theme.primary, factor),
-    glow: theme.glow ? adjustHexSaturation(theme.glow, factor) : adjustHexSaturation(theme.primary, factor)
+    glow: theme.glow ? adjustHexSaturation(theme.glow, factor) : adjustHexSaturation(theme.primary, factor),
+    gradientStops: theme.gradientStops?.map(s => adjustHexSaturation(s, factor))
   };
 }
 
@@ -297,7 +307,20 @@ function updateColorCalloutAndInputs(theme: VisualizerTheme): void {
   const calloutName = document.getElementById('themeCalloutName');
   if (calloutName) calloutName.textContent = theme.name;
 
-  if (theme.id !== 'custom') {
+  if (theme.gradientStops && theme.gradientStops.length > 0) {
+    customMode = 'gradient';
+    customSolidBtn?.classList.remove('active');
+    customGradientBtn?.classList.add('active');
+    if (customColorRow2) customColorRow2.style.display = 'flex';
+    if (customGradientExtraStops) customGradientExtraStops.style.display = 'flex';
+    if (gradientControlsRow) gradientControlsRow.style.display = 'flex';
+    if (gradientPresetsSection) gradientPresetsSection.style.display = 'block';
+
+    customGradientStops = [...theme.gradientStops];
+    customPrimaryHex = customGradientStops[0];
+    customSecondaryHex = customGradientStops[1] || customPrimaryHex;
+    renderExtraGradientStops();
+  } else if (theme.id !== 'custom') {
     customPrimaryHex = theme.primary;
     customSecondaryHex = theme.secondary || theme.primary;
     customGradientStops = [theme.primary, theme.secondary || theme.primary];
@@ -325,6 +348,9 @@ function applyAppTheme(theme: VisualizerTheme): void {
 
   document.querySelectorAll('.theme-swatch-card').forEach(c => {
     c.classList.toggle('active', (c as HTMLElement).dataset.themeId === theme.id);
+  });
+  document.querySelectorAll('.gradient-preset-chip').forEach(c => {
+    c.classList.toggle('active', (c as HTMLElement).dataset.gradientName === theme.name);
   });
   updateColorCalloutAndInputs(theme);
 }
@@ -414,10 +440,20 @@ populateThemeGrid('duoTonesGrid', DUO_TONE_THEMES, undefined, true);
 // Initial callout & inputs
 updateColorCalloutAndInputs(renderEngine.currentTheme);
 
+function getRandomColorTheme(excludeCurrent = true): VisualizerTheme {
+  const currentId = currentBaseTheme.id;
+  const currentName = currentBaseTheme.name;
+  const pool = excludeCurrent
+    ? ALL_COLOR_PRESETS.filter(t => t.id !== currentId && t.name !== currentName)
+    : ALL_COLOR_PRESETS;
+  const candidates = pool.length > 0 ? pool : ALL_COLOR_PRESETS;
+  return candidates[Math.floor(Math.random() * candidates.length)];
+}
+
 // Random Theme Button (Top right of Colors Drawer)
 const randomThemeBtn = document.getElementById('randomThemeBtn');
 randomThemeBtn?.addEventListener('click', () => {
-  const randTheme = THEMES[Math.floor(Math.random() * THEMES.length)];
+  const randTheme = getRandomColorTheme(true);
   applyAppTheme(randTheme);
 });
 
@@ -619,6 +655,7 @@ function initGradientPresets(): void {
   for (const preset of GRADIENT_PRESETS) {
     const chip = document.createElement('div');
     chip.className = 'gradient-preset-chip';
+    chip.dataset.gradientName = preset.name;
     chip.title = `${preset.name} (${preset.stops.join(', ')})`;
 
     const thumb = document.createElement('div');
@@ -632,17 +669,16 @@ function initGradientPresets(): void {
     chip.appendChild(name);
 
     chip.addEventListener('click', () => {
-      customGradientStops = [...preset.stops];
-      customPrimaryHex = customGradientStops[0];
-      customSecondaryHex = customGradientStops[1] || customPrimaryHex;
-      if (customColorBox) customColorBox.style.backgroundColor = customPrimaryHex;
-      if (customHexInput) customHexInput.value = customPrimaryHex.toUpperCase();
-      if (hiddenNativeColorPicker) hiddenNativeColorPicker.value = customPrimaryHex;
-      if (customColorBox2) customColorBox2.style.backgroundColor = customSecondaryHex;
-      if (customHexInput2) customHexInput2.value = customSecondaryHex.toUpperCase();
-      if (hiddenNativeColorPicker2) hiddenNativeColorPicker2.value = customSecondaryHex;
-      renderExtraGradientStops();
-      applyCustomTheme();
+      const gradTheme = GRADIENT_THEMES.find(g => g.name === preset.name);
+      if (gradTheme) {
+        applyAppTheme(gradTheme);
+      } else {
+        customGradientStops = [...preset.stops];
+        customPrimaryHex = customGradientStops[0];
+        customSecondaryHex = customGradientStops[1] || customPrimaryHex;
+        renderExtraGradientStops();
+        applyCustomTheme();
+      }
     });
 
     gradientPresetsGrid.appendChild(chip);
@@ -663,24 +699,15 @@ function getRandomHex(): string {
 }
 
 randomCustomColorBtn?.addEventListener('click', () => {
-  customPrimaryHex = getRandomHex();
-  customGradientStops[0] = customPrimaryHex;
-  if (customColorBox) customColorBox.style.backgroundColor = customPrimaryHex;
-  if (customHexInput) customHexInput.value = customPrimaryHex.toUpperCase();
-  if (hiddenNativeColorPicker) hiddenNativeColorPicker.value = customPrimaryHex;
-
-  if (customMode === 'gradient') {
-    customSecondaryHex = getRandomHex();
-    customGradientStops[1] = customSecondaryHex;
-    for (let i = 2; i < customGradientStops.length; i++) {
-      customGradientStops[i] = getRandomHex();
+  if (customMode === 'gradient' || Math.random() > 0.3) {
+    const randGrad = GRADIENT_THEMES[Math.floor(Math.random() * GRADIENT_THEMES.length)];
+    if (randGrad) {
+      applyAppTheme(randGrad);
+      return;
     }
-    if (customColorBox2) customColorBox2.style.backgroundColor = customSecondaryHex;
-    if (customHexInput2) customHexInput2.value = customSecondaryHex.toUpperCase();
-    if (hiddenNativeColorPicker2) hiddenNativeColorPicker2.value = customSecondaryHex;
-    renderExtraGradientStops();
   }
-  applyCustomTheme();
+  const randTheme = getRandomColorTheme(true);
+  applyAppTheme(randTheme);
 });
 
 customSolidBtn?.addEventListener('click', () => {
@@ -1085,9 +1112,7 @@ function randomizeAllCameraOptics(): void {
 
 function shuffleThemesIfEnabled(): void {
   if (autoCycleConfig.themes !== 'shuffle') return;
-  const candidates = THEMES.filter(t => t.id !== currentBaseTheme.id);
-  const pool = candidates.length > 0 ? candidates : THEMES;
-  const randTheme = pool[Math.floor(Math.random() * pool.length)];
+  const randTheme = getRandomColorTheme(true);
   if (randTheme) {
     applyAppTheme(randTheme);
   }

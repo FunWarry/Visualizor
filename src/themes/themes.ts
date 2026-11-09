@@ -276,12 +276,18 @@ export function getTheme(id: string): VisualizerTheme {
   const directMatch = THEMES.find(t => t.id === trimmed);
   if (directMatch) return directMatch;
 
+  const gradMatch = GRADIENT_THEMES.find(t => t.id === trimmed);
+  if (gradMatch) return gradMatch;
+
   const normalized = trimmed.toLowerCase().replace(/[-_\s]/g, '');
   const aliasTarget = THEME_ALIASES[normalized] || THEME_ALIASES[trimmed.toLowerCase()];
   if (aliasTarget) {
     const aliasMatch = THEMES.find(t => t.id === aliasTarget);
     if (aliasMatch) return aliasMatch;
   }
+
+  const nameMatch = GRADIENT_THEMES.find(t => t.name.toLowerCase().replace(/[-_\s]/g, '') === normalized);
+  if (nameMatch) return nameMatch;
 
   return THEMES.find(t => t.id.toLowerCase().replace(/[-_\s]/g, '') === normalized) || THEMES[0];
 }
@@ -373,6 +379,31 @@ export const GRADIENT_PRESETS: readonly GradientPreset[] = [
   { name: 'Black Hole', stops: ['#0D0D11', '#4A00E0', '#8E2DE2', '#FF007F'] },
   { name: 'Solar Flare', stops: ['#FFE000', '#FF8C00', '#FF0055', '#7F00FF'] },
   { name: 'Synth Glitch', stops: ['#00FFFF', '#FF00FF', '#FFFF00', '#00E5FF'] }
+];
+
+export function createThemeFromGradientPreset(preset: GradientPreset): VisualizerTheme {
+  const id = `gradient_${preset.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`;
+  const stops = preset.stops;
+  const primary = stops[0] || '#ff5c00';
+  const secondary = stops[1] || stops[0] || '#00d2ff';
+  const accent = stops[2] || secondary;
+  return {
+    id,
+    name: preset.name,
+    primary,
+    secondary,
+    accent,
+    background: '#0a0a0c',
+    glow: primary,
+    gradientStops: [...stops]
+  };
+}
+
+export const GRADIENT_THEMES: VisualizerTheme[] = GRADIENT_PRESETS.map(createThemeFromGradientPreset);
+
+export const ALL_COLOR_PRESETS: VisualizerTheme[] = [
+  ...THEMES,
+  ...GRADIENT_THEMES
 ];
 
 export function sampleGradient(stops: string[], t: number): string {

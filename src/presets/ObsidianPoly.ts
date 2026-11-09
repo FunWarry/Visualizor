@@ -429,19 +429,27 @@ export class ObsidianPolyPreset extends BasePreset {
   }
 
   public override onThemeChange(theme: VisualizerTheme): void {
-    this.material.color.set(theme.primary).lerp(new THREE.Color('#1c1c28'), 0.4);
-    this.material.emissive.set(theme.primary);
+    const stops = theme.gradientStops;
+    const colCore = stops?.[0] ?? theme.primary;
+    const colShards = stops?.[1] ?? theme.secondary;
+    const colPart1 = stops?.[2] ?? stops?.[0] ?? theme.primary;
+    const colPart2 = stops?.[3] ?? stops?.[1] ?? theme.secondary;
+    const colNeb1 = stops?.[0] ?? theme.primary;
+    const colNeb2 = stops?.[stops.length - 1] ?? theme.secondary;
+
+    this.material.color.set(colCore).lerp(new THREE.Color('#1c1c28'), 0.4);
+    this.material.emissive.set(colCore);
     if (this.shardMaterial) {
-      this.shardMaterial.color.set(theme.secondary);
-      this.shardMaterial.emissive.set(theme.secondary);
+      this.shardMaterial.color.set(colShards);
+      this.shardMaterial.emissive.set(colShards);
     }
     if (this.particleMaterial) {
-      this.particleMaterial.uniforms.uColor1.value.set(theme.primary);
-      this.particleMaterial.uniforms.uColor2.value.set(theme.secondary);
+      this.particleMaterial.uniforms.uColor1.value.set(colPart1);
+      this.particleMaterial.uniforms.uColor2.value.set(colPart2);
     }
     if (this.nebulaMaterial) {
-      this.nebulaMaterial.uniforms.uColor1.value.set(theme.primary);
-      this.nebulaMaterial.uniforms.uColor2.value.set(theme.secondary);
+      this.nebulaMaterial.uniforms.uColor1.value.set(colNeb1);
+      this.nebulaMaterial.uniforms.uColor2.value.set(colNeb2);
     }
   }
 
